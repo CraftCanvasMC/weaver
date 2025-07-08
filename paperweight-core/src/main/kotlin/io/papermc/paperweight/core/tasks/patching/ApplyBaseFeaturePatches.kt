@@ -25,8 +25,13 @@ package io.papermc.paperweight.core.tasks.patching
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.Git
 import java.nio.file.Path
+import java.time.Instant
 import kotlin.io.path.*
+import org.eclipse.jgit.api.Git as JGit
+import org.eclipse.jgit.lib.PersonIdent
+import org.eclipse.jgit.transport.URIish
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
@@ -36,11 +41,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
-import io.papermc.paperweight.util.Git 
-import org.eclipse.jgit.api.Git as JGit
-import org.eclipse.jgit.lib.PersonIdent
-import org.eclipse.jgit.transport.URIish
-import java.time.Instant
 
 abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
 
@@ -50,7 +50,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
 
     @get:OutputDirectory
     abstract val output: DirectoryProperty
-    
+
     @get:InputDirectory
     @get:Optional
     abstract val base: DirectoryProperty
@@ -85,14 +85,14 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         verbose.convention(false)
     }
 
-@TaskAction
-fun run() {
-    Git.checkForGit()
+    @TaskAction
+    fun run() {
+        Git.checkForGit()
 
-    val outputPath = output.path
-    recreateCloneDirectory(outputPath)
+        val outputPath = output.path
+        recreateCloneDirectory(outputPath)
 
-    val git = Git(outputPath)
+        val git = Git(outputPath)
 
         checkoutRepoFromUpstream(
             Git(outputPath),
@@ -113,11 +113,11 @@ fun run() {
 
         tagBase()
 
-    if (!patches.isPresent) {
-    } else {
-        applyGitPatches(git, "server repo", outputPath, patches.path, printOutput.get(), verbose.get())
+        if (!patches.isPresent) {
+        } else {
+            applyGitPatches(git, "server repo", outputPath, patches.path, printOutput.get(), verbose.get())
+        }
     }
-}
 
     private fun recreateCloneDirectory(target: Path) {
         if (target.exists()) {

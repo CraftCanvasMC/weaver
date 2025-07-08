@@ -25,13 +25,13 @@ package io.papermc.paperweight.core.taskcontainers
 import io.papermc.paperweight.core.extension.ForkConfig
 import io.papermc.paperweight.core.tasks.ImportLibraryFiles
 import io.papermc.paperweight.core.tasks.SetupForkMinecraftSources
+import io.papermc.paperweight.core.tasks.patching.ApplyBaseFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
-import io.papermc.paperweight.core.tasks.patching.ApplyResourceFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
+import io.papermc.paperweight.core.tasks.patching.ApplyResourceFilePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
-import io.papermc.paperweight.core.tasks.patching.ApplyBaseFeaturePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
@@ -188,12 +188,11 @@ class MinecraftPatchingTasks(
         }
 
         val importLibFiles = tasks.register<ImportLibraryFiles>("import${configName.capitalized()}LibraryFiles") {
-            patches.from(config.featurePatchDir, config.sourcePatchDir) // cant add base for some reason, oh well we'll use dev-imports 
+            patches.from(config.featurePatchDir, config.sourcePatchDir) // cant add base for some reason, oh well we'll use dev-imports
             devImports.set(config.devImports.fileExists(project))
             libraryFileIndex.set(coreTasks.indexLibraryFiles.flatMap { it.outputFile })
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
         }
-
 
         val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}Setup") {
             description = "Applies $configName ATs and library imports to Minecraft sources"

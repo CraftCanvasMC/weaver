@@ -35,7 +35,6 @@ import java.time.Instant
 import kotlin.io.path.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
-import org.eclipse.jgit.transport.URIish
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
@@ -108,7 +107,6 @@ abstract class ApplyFilePatches : BaseTask() {
 
         val base = base.pathOrNull
         if (base != null && base.toAbsolutePath() != repo.path.toAbsolutePath()) {
-
             recreateCloneDirectory(repo.path)
 
             val git = Git(repo.path.createDirectories())
