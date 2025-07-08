@@ -6,15 +6,7 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
-fun version(): String = version.toString()
 val noRelocate = project.hasProperty("disable-relocation")
-if (noRelocate) {
-    if (version().contains("-SNAPSHOT")) {
-        version = version().substringBefore("-SNAPSHOT") + "-NO-RELOCATE-SNAPSHOT"
-    } else {
-        version = version() + "-NO-RELOCATE"
-    }
-}
 
 val shade: Configuration by configurations.creating
 configurations.implementation {
@@ -49,8 +41,8 @@ val sourcesJar by tasks.existing(AbstractArchiveTask::class) {
 }
 
 gradlePlugin {
-    website.set("https://github.com/PaperMC/paperweight")
-    vcsUrl.set("https://github.com/PaperMC/paperweight")
+    website.set("https://github.com/Toffikk/paperweight/")
+    vcsUrl.set("https://github.com/Toffikk/paperweight/")
 }
 
 val shadowJar by tasks.existing(ShadowJar::class) {
@@ -95,9 +87,13 @@ val shadowJar by tasks.existing(ShadowJar::class) {
 
 publishing {
     repositories {
-        maven("https://repo.papermc.io/repository/maven-snapshots/") {
-            credentials(PasswordCredentials::class)
-            name = "paper"
+        maven {
+            name = "central"
+            url = uri("https://central.sonatype.com/repository/maven-snapshots/")
+            credentials {
+                username=System.getenv("PUBLISH_USER")
+                password=System.getenv("PUBLISH_TOKEN")
+            }
         }
     }
 
@@ -111,13 +107,13 @@ publishing {
 }
 
 fun MavenPom.pomConfig() {
-    val repoPath = "PaperMC/paperweight"
+    val repoPath = "CraftCanvasMC/weaver"
     val repoUrl = "https://github.com/$repoPath"
 
-    name.set("paperweight")
-    description.set("Gradle plugin for the PaperMC project")
+    name.set("weaver")
+    description.set("Gradle plugin for the CanvasMC project")
     url.set(repoUrl)
-    inceptionYear.set("2020")
+    inceptionYear.set("2025")
 
     licenses {
         license {
@@ -134,10 +130,9 @@ fun MavenPom.pomConfig() {
 
     developers {
         developer {
-            id.set("DenWav")
-            name.set("Kyle Wood")
-            email.set("kyle@denwav.dev")
-            url.set("https://github.com/DenWav")
+            id.set("CanvasMC")
+            name.set("Canvas")
+            url.set("https://github.com/CraftCanvasMC")
         }
     }
 

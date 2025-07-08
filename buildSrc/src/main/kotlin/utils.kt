@@ -16,7 +16,7 @@ fun Configuration.compatibilityAttributes(objects: ObjectFactory) {
 
 fun GradlePluginDevelopmentExtension.setupPlugin(prefix: String, op: Action<PluginDeclaration>) {
     plugins.register("paperweight-$prefix") {
-        id = "io.papermc.paperweight." + prefix
+        id = "io.canvasmc.weaver." + prefix
         displayName = "paperweight $prefix"
         tags.set(listOf("paper", "minecraft"))
         op.execute(this)
