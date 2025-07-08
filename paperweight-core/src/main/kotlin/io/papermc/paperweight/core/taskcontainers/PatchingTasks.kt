@@ -27,6 +27,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
+import io.papermc.paperweight.core.tasks.patching.ApplyBaseFeaturePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.paperTaskOutput
@@ -47,7 +48,9 @@ class PatchingTasks(
     private val readOnly: Boolean,
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
+    private val baseRejectsDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
+    private val baseFeaturePatchDir: DirectoryProperty,
     private val baseDir: Provider<Directory>,
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
@@ -60,25 +63,53 @@ class PatchingTasks(
         group = taskGroup
         description = "Applies $patchSetName file patches"
 
+        if (readOnly) {
+            repo.set(layout.cache.resolve(paperTaskOutput()))
+        } else {
+            repo.set(outputDir)
+        }
+        patches.set(filePatchDir.fileExists(project))
+        rejectsDir.set(this@PatchingTasks.rejectsDir)
+        gitFilePatches.set(this@PatchingTasks.gitFilePatches)
+        base.set(applyBaseFeaturePatches.flatMap { it.output })
+        identifier = "$forkName $patchSetName"
+    }
+
+    private fun ApplyBaseFeaturePatches.configureApplyBaseFeaturePatches() {
+        group = taskGroup
+        description = "Applies $patchSetName base patches"
+
         input.set(baseDir)
         if (readOnly) {
             output.set(layout.cache.resolve(paperTaskOutput()))
         } else {
             output.set(outputDir)
         }
-        patches.set(filePatchDir.fileExists(project))
-        rejectsDir.set(this@PatchingTasks.rejectsDir)
-        gitFilePatches.set(this@PatchingTasks.gitFilePatches)
-        baseRef.set("base")
+
+        base.set(baseDir)
+
+        baseRef.set("HEAD")
+        patches.set(baseFeaturePatchDir.fileExists(project))
+        baseRejectsDir.set(this@PatchingTasks.baseRejectsDir)
         identifier = "$forkName $patchSetName"
+    }
+
+    val applyBaseFeaturePatches = tasks.register<ApplyBaseFeaturePatches>("apply${namePart}BaseFeaturePatches") {
+        configureApplyBaseFeaturePatches()
     }
 
     val applyFilePatches = tasks.register<ApplyFilePatches>("apply${namePart}FilePatches") {
         configureApplyFilePatches()
+        dependsOn(applyBaseFeaturePatches)
+        base.set(applyBaseFeaturePatches.flatMap { it.output })
+        baseRef.set("patchedBase")
     }
 
     val applyFilePatchesFuzzy = tasks.register<ApplyFilePatchesFuzzy>("apply${namePart}FilePatchesFuzzy") {
         configureApplyFilePatches()
+        dependsOn(applyBaseFeaturePatches)
+        base.set(applyBaseFeaturePatches.flatMap { it.output })
+        baseRef.set("patchedBase")
     }
 
     val applyFeaturePatches = tasks.register<ApplyFeaturePatches>("apply${namePart}FeaturePatches") {
@@ -88,7 +119,7 @@ class PatchingTasks(
 
         repo.set(outputDir)
         if (readOnly) {
-            base.set(applyFilePatches.flatMap { it.output })
+            base.set(applyFilePatches.flatMap { it.repo })
         }
         patches.set(featurePatchDir.fileExists(project))
     }
@@ -96,9 +127,10 @@ class PatchingTasks(
     val applyPatches = tasks.register<Task>("apply${namePart}Patches") {
         group = taskGroup
         description = "Applies all $patchSetName patches"
-        dependsOn(applyFilePatches, applyFeaturePatches)
+        dependsOn(applyBaseFeaturePatches, applyFilePatches, applyFeaturePatches)
     }
 
+    val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildFilePatchesName = "rebuild${namePart}FilePatches"
     val fixupFilePatchesName = "fixup${namePart}FilePatches"
     val rebuildFeaturePatchesName = "rebuild${namePart}FeaturePatches"
@@ -112,6 +144,7 @@ class PatchingTasks(
 
     private fun setupWritable() {
         listOf(
+            applyBaseFeaturePatches,
             applyFilePatches,
             applyFilePatchesFuzzy,
             applyFeaturePatches,
@@ -121,6 +154,16 @@ class PatchingTasks(
             }
         }
 
+        val rebuildBasePatches = tasks.register<RebuildGitPatches>(rebuildBasePatchesName) {
+            group = taskGroup
+            description = "Rebuilds $patchSetName base patches"
+
+            inputDir.set(outputDir)
+            baseRef.set("base")
+            stopRef.set("patchedBase~1")
+            patchDir.set(baseFeaturePatchDir)
+            filterPatches.set(this@PatchingTasks.filterPatches)
+        }
         val rebuildFilePatches = tasks.register<RebuildFilePatches>(rebuildFilePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName file patches"
@@ -136,7 +179,7 @@ class PatchingTasks(
             description = "Puts the currently tracked source changes into the $patchSetName file patches commit"
 
             repo.set(outputDir)
-            upstream.set("base")
+            upstream.set("upstream/patchedBase")
         }
 
         val rebuildFeaturePatches = tasks.register<RebuildGitPatches>(rebuildFeaturePatchesName) {
@@ -147,13 +190,14 @@ class PatchingTasks(
             inputDir.set(outputDir)
             patchDir.set(featurePatchDir)
             baseRef.set("file")
+            stopRef.set("HEAD")
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
 
         val rebuildPatches = tasks.register<Task>(rebuildPatchesName) {
             group = taskGroup
             description = "Rebuilds all $patchSetName patches"
-            dependsOn(rebuildFilePatches, rebuildFeaturePatches)
+            dependsOn(rebuildBasePatches, rebuildFilePatches, rebuildFeaturePatches)
         }
 
         val applyOrMoveFilePatches = tasks.register<ApplyFilePatches>("applyOrMove${namePart}FilePatches") {

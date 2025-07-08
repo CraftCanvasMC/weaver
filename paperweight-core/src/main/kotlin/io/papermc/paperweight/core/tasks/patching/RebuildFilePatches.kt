@@ -87,6 +87,15 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         gitFilePatches.convention(false)
     }
 
+    fun runCommand(vararg args: String): String {
+        val process = ProcessBuilder(*args)
+            .redirectErrorStream(true)
+            .start()
+        val output = process.inputStream.bufferedReader().readText()
+        process.waitFor()
+        return output
+    }
+
     @TaskAction
     fun run() {
         val patchDir = patches.path.cleanDir()
@@ -94,12 +103,25 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val baseDir = base.convertToPath()
 
         val git = Git(inputDir)
+        val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
 
+        // thats some magic, it could be cleaned up but i dont want to risk breaking anything cuz it took me WAY TOO long
+        val fileCommit = git("rev-parse", "file").getText().trim()
+        val baseCommit = git("rev-parse", "$fileCommit~1").getText().trim()
+        val tempBaseDir = temporaryDir.toPath().resolve("base")
+        val baseTreeTar = temporaryDir.toPath().resolve("base.tar")
+
+        git("archive", baseCommit, "-o", baseTreeTar.absolutePathString()).executeSilently()
+
+        tempBaseDir.createDirectories()
+
+        runCommand("tar", "-xf", baseTreeTar.absolutePathString(), "-C", tempBaseDir.absolutePathString())
+
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
-                baseDir,
+                tempBaseDir,
                 inputDir,
                 atFile,
                 atFileOut,
@@ -120,10 +142,10 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val result = if (gitFilePatches.get()) {
             rebuildWithGit(git, patchDir)
         } else {
-            rebuildWithDiffPatch(baseDir, inputDir, patchDir)
+            rebuildWithDiffPatch(tempBaseDir, inputDir, patchDir)
         }
 
-        git("switch", "-").executeSilently(silenceErr = true)
+        git("checkout", "file").executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
                 // we need to rebase, so that the new file commit is part of the tree again.
@@ -149,13 +171,14 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         patchDirGit("add", "-A", ".").executeSilently()
 
         logger.lifecycle("Rebuilt $result patches")
+        git("switch", currentBranch).executeSilently()
     }
 
     private fun rebuildWithGit(
         git: Git,
         patchDir: Path
     ): Int {
-        val files = git("diff-tree", "--name-only", "--no-commit-id", "-r", "HEAD").getText().split("\n")
+        val files = git("diff-tree", "--name-only", "--no-commit-id", "-r", "file").getText().split("\n")
         files.parallelStream().forEach { filename ->
             if (filename.isBlank()) return@forEach
             val patch = git(
@@ -166,7 +189,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
                 "--no-stat",
                 "--no-numbered",
                 "-1",
-                "HEAD",
+                "file",
                 "--stdout",
                 filename
             ).getText()

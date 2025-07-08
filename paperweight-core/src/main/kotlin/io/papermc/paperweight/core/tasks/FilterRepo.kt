@@ -55,7 +55,7 @@ abstract class FilterRepo : BaseTask() {
     override fun init() {
         super.init()
         outputDir.set(layout.cache.resolve(paperTaskOutput()))
-        tag.convention("base")
+        tag.convention("patchedBase")
     }
 
     @TaskAction

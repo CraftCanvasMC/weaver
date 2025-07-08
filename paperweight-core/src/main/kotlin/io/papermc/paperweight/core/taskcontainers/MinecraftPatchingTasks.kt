@@ -27,9 +27,11 @@ import io.papermc.paperweight.core.tasks.ImportLibraryFiles
 import io.papermc.paperweight.core.tasks.SetupForkMinecraftSources
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
+import io.papermc.paperweight.core.tasks.patching.ApplyResourceFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
+import io.papermc.paperweight.core.tasks.patching.ApplyBaseFeaturePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
@@ -51,7 +53,9 @@ class MinecraftPatchingTasks(
     private val readOnly: Boolean,
     private val sourcePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
+    private val baseRejectsDir: DirectoryProperty,
     private val resourcePatchDir: DirectoryProperty,
+    private val baseFeaturePatchDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
     private val additionalAts: RegularFileProperty,
     private val baseSources: Provider<Directory>,
@@ -74,28 +78,50 @@ class MinecraftPatchingTasks(
     private fun ApplyFilePatches.configureApplyFilePatches() {
         group()
         description = "Applies $configName file patches to the Minecraft sources"
+        dependsOn(applyBaseFeaturePatches)
 
-        input.set(baseSources)
         if (readOnly) {
-            output.set(outputSrcFile)
+            repo.set(outputSrcFile)
         } else {
-            output.set(outputSrc)
+            repo.set(outputSrc)
         }
+        base.set(applyBaseFeaturePatches.flatMap { it.output })
         patches.set(sourcePatchDir.fileExists(project))
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
         identifier = configName
     }
 
+    private fun ApplyBaseFeaturePatches.configureApplyBaseFeaturePatches() {
+        group()
+        description = "Applies $configName base patches to the Minecraft sources"
+
+        input.set(baseSources)
+
+        base.set(baseSources)
+
+        output.set(outputSrc)
+        baseRef.set("upstream/main")
+        patches.set(baseFeaturePatchDir.fileExists(project))
+        baseRejectsDir.set(this@MinecraftPatchingTasks.baseRejectsDir)
+        identifier = configName
+    }
+
+    val applyBaseFeaturePatches = tasks.register<ApplyBaseFeaturePatches>("apply${namePart}BaseFeaturePatches") {
+        configureApplyBaseFeaturePatches()
+    }
+
     val applySourcePatches = tasks.register<ApplyFilePatches>("apply${namePart}SourcePatches") {
         configureApplyFilePatches()
+        dependsOn(applyBaseFeaturePatches)
     }
 
     val applySourcePatchesFuzzy = tasks.register<ApplyFilePatchesFuzzy>("apply${namePart}SourcePatchesFuzzy") {
         configureApplyFilePatches()
+        dependsOn(applyBaseFeaturePatches)
     }
 
-    val applyResourcePatches = tasks.register<ApplyFilePatches>("apply${namePart}ResourcePatches") {
+    val applyResourcePatches = tasks.register<ApplyResourceFilePatches>("apply${namePart}ResourcePatches") {
         group()
         description = "Applies $configName file patches to the Minecraft resources"
 
@@ -107,10 +133,16 @@ class MinecraftPatchingTasks(
         identifier = configName
     }
 
+    val applyBasePatches = tasks.register<Task>("apply${namePart}BasePatches") {
+        group()
+        description = "Applies all $configName Minecraft base feature patches"
+        dependsOn(applyBaseFeaturePatches)
+    }
+
     val applyFilePatches = tasks.register<Task>("apply${namePart}FilePatches") {
         group()
         description = "Applies all $configName Minecraft file patches"
-        dependsOn(applySourcePatches, applyResourcePatches)
+        dependsOn(applyBasePatches, applySourcePatches, applyResourcePatches)
     }
 
     val applyFeaturePatches = tasks.register<ApplyFeaturePatches>("apply${namePart}FeaturePatches") {
@@ -119,7 +151,7 @@ class MinecraftPatchingTasks(
         dependsOn(applyFilePatches)
 
         if (readOnly) {
-            base.set(applySourcePatches.flatMap { it.output })
+            base.set(applySourcePatches.flatMap { it.repo })
         }
         repo.set(outputSrc)
         patches.set(featurePatchDir.fileExists(project))
@@ -128,9 +160,11 @@ class MinecraftPatchingTasks(
     val applyPatches = tasks.register<Task>("apply${namePart}Patches") {
         group()
         description = "Applies all $configName Minecraft patches"
-        dependsOn(applyFilePatches, applyFeaturePatches)
+        dependsOn(applyBasePatches, applyFilePatches, applyFeaturePatches)
     }
 
+    val rebuildBaseFeaturePatchesName = "rebuild${namePart}BaseFeaturePatches"
+    val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildSourcePatchesName = "rebuild${namePart}SourcePatches"
     val rebuildResourcePatchesName = "rebuild${namePart}ResourcePatches"
     val rebuildFilePatchesName = "rebuild${namePart}FilePatches"
@@ -154,11 +188,12 @@ class MinecraftPatchingTasks(
         }
 
         val importLibFiles = tasks.register<ImportLibraryFiles>("import${configName.capitalized()}LibraryFiles") {
-            patches.from(config.featurePatchDir, config.sourcePatchDir)
+            patches.from(config.featurePatchDir, config.sourcePatchDir) // cant add base for some reason, oh well we'll use dev-imports 
             devImports.set(config.devImports.fileExists(project))
             libraryFileIndex.set(coreTasks.indexLibraryFiles.flatMap { it.outputFile })
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
         }
+
 
         val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}Setup") {
             description = "Applies $configName ATs and library imports to Minecraft sources"
@@ -173,22 +208,28 @@ class MinecraftPatchingTasks(
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_LIBRARIES_CONFIG))
         }
 
-        applySourcePatches.configure {
+        applyBaseFeaturePatches.configure {
             input.set(setup.flatMap { it.outputDir })
+        }
+
+        applySourcePatches.configure {
+            base.set(applyBaseFeaturePatches.flatMap { it.output })
         }
         applySourcePatchesFuzzy.configure {
-            input.set(setup.flatMap { it.outputDir })
+            base.set(applyBaseFeaturePatches.flatMap { it.output })
         }
+
         val name = "rebuild${namePart}SourcePatches"
         if (name in tasks.names) {
             tasks.named<RebuildFilePatches>(name) {
-                base.set(setup.flatMap { it.outputDir })
+                base.set(baseSources)
             }
         }
     }
 
     private fun setupWritable() {
         listOf(
+            applyBaseFeaturePatches,
             applySourcePatches,
             applySourcePatchesFuzzy,
             applyFeaturePatches,
@@ -197,6 +238,17 @@ class MinecraftPatchingTasks(
             it.configure {
                 doNotTrackState("Always run when requested")
             }
+        }
+
+        val rebuildBasePatches = tasks.register<RebuildGitPatches>(rebuildBasePatchesName) {
+            group()
+            description = "Rebuilds $configName base patches to the Minecraft source"
+
+            baseRef.set("base")
+            stopRef.set("patchedBase~1")
+            inputDir.set(outputSrc)
+            patchDir.set(baseFeaturePatchDir)
+            filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 
         val rebuildSourcePatches = tasks.register<RebuildFilePatches>(rebuildSourcePatchesName) {
@@ -218,8 +270,8 @@ class MinecraftPatchingTasks(
             group()
             description = "Rebuilds $configName file patches to the Minecraft resources"
 
-            base.set(baseResources)
             input.set(outputResources)
+            base.set(baseResources)
             patches.set(resourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
         }
@@ -238,13 +290,14 @@ class MinecraftPatchingTasks(
             inputDir.set(outputSrc)
             patchDir.set(featurePatchDir)
             baseRef.set("file")
+            stopRef.set("HEAD")
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 
         val rebuildPatches = tasks.register<Task>(rebuildPatchesName) {
             group()
             description = "Rebuilds all $configName patches to Minecraft"
-            dependsOn(rebuildFilePatches, rebuildFeaturePatches)
+            dependsOn(rebuildBasePatches, rebuildFilePatches, rebuildFeaturePatches)
         }
 
         val fixupSourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}SourcePatches") {
@@ -252,7 +305,7 @@ class MinecraftPatchingTasks(
             description = "Puts the currently tracked source changes into the $configName Minecraft sources file patches commit"
 
             repo.set(outputSrc)
-            upstream.set("upstream/main")
+            upstream.set("upstream/patchedBase")
         }
 
         val fixupResourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}ResourcePatches") {

@@ -130,7 +130,9 @@ class UpstreamConfigTasks(
             readOnly,
             cfg.filePatchDir,
             cfg.rejectsDir,
+            cfg.baseRejectsDir,
             cfg.featurePatchDir,
+            cfg.baseFeaturePatchDir,
             base,
             gitFilePatches,
             filterPatches,
@@ -170,6 +172,13 @@ class UpstreamConfigTasks(
     }
 
     fun setupAggregateTasks(namePart: String, desc: String, descSingleFile: String = desc) {
+        val applyBase = target.tasks.register("apply${namePart}BaseFeaturePatches") {
+            group = taskGroup
+            description = "Applies $desc base patches"
+            patchingTasks.values.forEach { t ->
+                dependsOn(t.applyBaseFeaturePatches)
+            }
+        }
         val applyFile = target.tasks.register("apply${namePart}FilePatches") {
             group = taskGroup
             description = "Applies $desc file patches"
@@ -182,6 +191,13 @@ class UpstreamConfigTasks(
             description = "Applies $desc feature patches"
             patchingTasks.values.forEach { t ->
                 dependsOn(t.applyFeaturePatches)
+            }
+        }
+        val rebuildBase = target.tasks.register("rebuild${namePart}BaseFeaturePatches") {
+            group = taskGroup
+            description = "Rebuilds $desc base patches"
+            patchingTasks.values.forEach { t ->
+                dependsOn(t.rebuildBasePatchesName)
             }
         }
         val rebuildFile = target.tasks.register("rebuild${namePart}FilePatches") {

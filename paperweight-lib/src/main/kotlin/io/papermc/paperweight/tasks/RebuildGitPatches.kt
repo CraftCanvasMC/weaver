@@ -43,6 +43,11 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
     @get:Input
     abstract val baseRef: Property<String>
 
+    // special handling cuz base patches cant go till head
+    @get:Input
+    @get:Optional
+    abstract val stopRef: Property<String>
+
     @get:OutputDirectory
     abstract val patchDir: DirectoryProperty
 
@@ -93,13 +98,26 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
             patchFolder.createDirectories()
         }
 
+        val base = baseRef.get()
+        val stop = stopRef.orNull
         val git = Git(inputDir.path)
+
+        val commitCount = if (stop != null) {
+            git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
+        } else {
+            git("rev-list", "--count", base).getText().trim().toInt()
+        }
+
+        if (commitCount == 0 || commitCount < 0) {
+            return
+        }
+        val range = if (stop != null) "$base..$stop" else base
         git("fetch", "--all", "--prune").runSilently(silenceErr = true)
         git(
             "format-patch",
             "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
             "-o", patchFolder.absolutePathString(),
-            baseRef.get()
+            range
         ).executeSilently()
         val patchDirGit = Git(patchFolder)
         patchDirGit("add", "-A", ".").executeSilently()

@@ -104,8 +104,10 @@ abstract class UpstreamConfig @Inject constructor(
 
         abstract val patchesDir: DirectoryProperty
         val rejectsDir: DirectoryProperty = objects.dirFrom(patchesDir, "rejected")
+        val baseRejectsDir: DirectoryProperty = objects.dirFrom(patchesDir, "rejected-base")
         val filePatchDir: DirectoryProperty = objects.dirFrom(patchesDir, "files")
         val featurePatchDir: DirectoryProperty = objects.dirFrom(patchesDir, "features")
+        val baseFeaturePatchDir: DirectoryProperty = objects.dirFrom(patchesDir, "base")
     }
 
     abstract class RepoPatchSet @Inject constructor(
