@@ -1,4 +1,5 @@
-## paperweight
+## weaver
+This is a modified paperweight version that implements `base` patches, which are feature patches that apply before per-file or feature patches in the Canvas server.
 
 `paperweight` consists of three Gradle plugins:
 - `paperweight-core`: Used to build Paper
