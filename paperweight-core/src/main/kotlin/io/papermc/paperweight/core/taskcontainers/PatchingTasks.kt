@@ -179,7 +179,7 @@ class PatchingTasks(
             description = "Puts the currently tracked source changes into the $patchSetName file patches commit"
 
             repo.set(outputDir)
-            upstream.set("upstream/patchedBase")
+            upstream.set("upstream/main")
         }
 
         val rebuildFeaturePatches = tasks.register<RebuildGitPatches>(rebuildFeaturePatchesName) {
