@@ -100,26 +100,11 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     fun run() {
         val patchDir = patches.path.cleanDir()
         val inputDir = input.convertToPath()
-        val headCommit = ProcessBuilder(
-            "git",
-            "rev-list",
-            "--grep=File Patches",
-            "--max-count=1",
-            "base..HEAD"
-        )
-            .directory(inputDir.toFile())
-            .redirectErrorStream(true)
-            .start()
-            .inputStream.bufferedReader()
-            .readText()
-            .trim()
-            .ifEmpty { "HEAD" }
 
         val git = Git(inputDir)
         val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
-        git("reset", headCommit, "--hard").executeSilently()
 
         // here we zip the parent commit's repo state and store it as our baseDir for later comparison overriding the baseDir prop
         val baseCommit = git("rev-parse", "HEAD~1").getText().trim()

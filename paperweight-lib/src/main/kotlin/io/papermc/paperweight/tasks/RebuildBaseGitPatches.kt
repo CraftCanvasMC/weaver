@@ -69,6 +69,30 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
 
     @TaskAction
     fun run() {
+        val git = Git(inputDir.path)
+        val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
+
+        val fileCommit = ProcessBuilder(
+            "git",
+            "rev-list",
+            "--grep=File Patches",
+            "--max-count=1",
+            "base..HEAD"
+        )
+            .directory(inputDir.path.toFile())
+            .redirectErrorStream(true)
+            .start()
+            .inputStream.bufferedReader()
+            .readText()
+            .trim()
+            .ifEmpty { "HEAD" } // realistically it wont ever be empty but lets have a fallback either way
+
+        // we update the file tag
+        git("checkout", "file").executeSilently(silenceErr = true)
+        git("reset", fileCommit, "--hard").executeSilently(silenceErr = true)
+        git("tag", "-f", "file").executeSilently(silenceErr = true)
+        git("switch", currentBranch).executeSilently(silenceErr = true)
+
         val stopCommit = ProcessBuilder(
             "git",
             "rev-list",
@@ -82,7 +106,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             .inputStream.bufferedReader()
             .readText()
             .trim()
-            .let { commit -> if (commit.isNotEmpty()) "$commit~1" else "patchedBase~1" }
+            .let { commit -> if (commit.isNotEmpty()) "$commit~1" else "file~1" }
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -116,7 +140,6 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
 
         val base = "base"
         val stop = stopCommit
-        val git = Git(inputDir.path)
 
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
