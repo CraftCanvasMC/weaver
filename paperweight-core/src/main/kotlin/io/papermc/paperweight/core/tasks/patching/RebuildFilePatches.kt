@@ -114,7 +114,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         if (zip.exists()) zip.deleteRecursive()
         if (baseDir.exists()) baseDir.deleteRecursive()
 
-        git("archive", "--format=zip", baseCommit, "-o", zip.absolutePathString()).executeSilently()
+        git("archive", "--format=zip", baseCommit, "-o", zip.absolutePathString()).executeSilently(silenceErr = true)
 
         unzip(zip, baseDir)
 

@@ -69,20 +69,8 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
 
     @TaskAction
     fun run() {
-        val baseCommit = ProcessBuilder(
-            "git",
-            "rev-list",
-            "--grep=File Patches",
-            "--max-count=1",
-            "base..HEAD"
-        )
-            .directory(inputDir.path.toFile())
-            .redirectErrorStream(true)
-            .start()
-            .inputStream.bufferedReader()
-            .readText()
-            .trim()
-            .ifEmpty { "file" }
+        val git = Git(inputDir.path)
+        val baseCommit = git("rev-list", "--grep=File Patches", "--max-count=1", "base..HEAD").getText().trim()
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -116,7 +104,6 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
 
         val base = baseCommit
         val stop = "HEAD"
-        val git = Git(inputDir.path)
 
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
