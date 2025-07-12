@@ -239,12 +239,12 @@ class MinecraftPatchingTasks(
             }
         }
 
-        val rebuildBasePatches = tasks.register<RebuildGitPatches>(rebuildBasePatchesName) {
+        val rebuildBasePatches = tasks.register<RebuildBaseGitPatches>(rebuildBasePatchesName) {
             group()
             description = "Rebuilds $configName base patches to the Minecraft source"
 
-            baseRef.set("base")
-            stopRef.set("patchedBase~1")
+            // baseRef.set("base")
+            // stopRef.set("patchedBase~1")
             inputDir.set(outputSrc)
             patchDir.set(baseFeaturePatchDir)
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
@@ -288,8 +288,8 @@ class MinecraftPatchingTasks(
 
             inputDir.set(outputSrc)
             patchDir.set(featurePatchDir)
-            baseRef.set("file")
-            stopRef.set("HEAD")
+            // baseRef.set("file")
+            // stopRef.set("HEAD")
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 

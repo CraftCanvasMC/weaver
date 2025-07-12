@@ -80,48 +80,62 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
 
+    @get:Input
+    @get:Optional
+    abstract val filterPatches: Property<Boolean>
+
     override fun init() {
         super.init()
         contextLines.convention(3)
         verbose.convention(false)
         gitFilePatches.convention(false)
-    }
-
-    fun runCommand(vararg args: String): String {
-        val process = ProcessBuilder(*args)
-            .redirectErrorStream(true)
-            .start()
-        val output = process.inputStream.bufferedReader().readText()
-        process.waitFor()
-        return output
+        filterPatches.convention(
+            project.providers.gradleProperty("paperweight.filter-patches")
+                .map { it.toBoolean() }
+                .orElse(true)
+        )
     }
 
     @TaskAction
     fun run() {
         val patchDir = patches.path.cleanDir()
         val inputDir = input.convertToPath()
-        val baseDir = base.convertToPath()
+        val headCommit = ProcessBuilder(
+            "git",
+            "rev-list",
+            "--grep=File Patches",
+            "--max-count=1",
+            "base..HEAD"
+        )
+            .directory(inputDir.toFile())
+            .redirectErrorStream(true)
+            .start()
+            .inputStream.bufferedReader()
+            .readText()
+            .trim()
+            .ifEmpty { "HEAD" }
 
         val git = Git(inputDir)
         val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
+        git("reset", headCommit, "--hard").executeSilently()
 
-        // thats some magic, it could be cleaned up but i dont want to risk breaking anything cuz it took me WAY TOO long
-        val fileCommit = git("rev-parse", "file").getText().trim()
-        val baseCommit = git("rev-parse", "$fileCommit~1").getText().trim()
-        val tempBaseDir = temporaryDir.toPath().resolve("base")
-        val baseTreeTar = temporaryDir.toPath().resolve("base.tar")
+        // here we zip the parent commit's repo state and store it as our baseDir for later comparison overriding the baseDir prop
+        val baseCommit = git("rev-parse", "HEAD~1").getText().trim()
+        val baseDir = temporaryDir.toPath().resolve("base")
+        val zip = temporaryDir.toPath().resolve("base.zip")
 
-        git("archive", baseCommit, "-o", baseTreeTar.absolutePathString()).executeSilently()
+        if (zip.exists()) zip.deleteRecursive()
+        if (baseDir.exists()) baseDir.deleteRecursive()
 
-        tempBaseDir.createDirectories()
+        git("archive", "--format=zip", baseCommit, "-o", zip.absolutePathString()).executeSilently()
 
-        runCommand("tar", "-xf", baseTreeTar.absolutePathString(), "-C", tempBaseDir.absolutePathString())
+        unzip(zip, baseDir)
 
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
-                tempBaseDir,
+                baseDir,
                 inputDir,
                 atFile,
                 atFileOut,
@@ -142,10 +156,27 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val result = if (gitFilePatches.get()) {
             rebuildWithGit(git, patchDir)
         } else {
-            rebuildWithDiffPatch(tempBaseDir, inputDir, patchDir)
+            rebuildWithDiffPatch(baseDir, inputDir, patchDir)
         }
 
-        git("checkout", "file").executeSilently(silenceErr = true)
+        // filter patches since our diff library seems to emit patches for empty files that existed in the baseDir
+        if (filterPatches.get()) {
+            patchDir
+                .walk()
+                .filter { it.extension == "patch" }
+                .forEach { patch ->
+                    val lines = patch.readLines()
+                    val hasChanges = lines.any {
+                        (it.startsWith("+") && !it.startsWith("+++")) ||
+                            (it.startsWith("-") && !it.startsWith("---"))
+                    }
+                    if (!hasChanges) {
+                        patch.deleteRecursive()
+                    }
+                }
+        }
+
+        git("switch", currentBranch).executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
                 // we need to rebase, so that the new file commit is part of the tree again.
@@ -171,14 +202,13 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         patchDirGit("add", "-A", ".").executeSilently()
 
         logger.lifecycle("Rebuilt $result patches")
-        git("switch", currentBranch).executeSilently()
     }
 
     private fun rebuildWithGit(
         git: Git,
         patchDir: Path
     ): Int {
-        val files = git("diff-tree", "--name-only", "--no-commit-id", "-r", "file").getText().split("\n")
+        val files = git("diff-tree", "--name-only", "--no-commit-id", "-r", "HEAD").getText().split("\n")
         files.parallelStream().forEach { filename ->
             if (filename.isBlank()) return@forEach
             val patch = git(
@@ -189,7 +219,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
                 "--no-stat",
                 "--no-numbered",
                 "-1",
-                "file",
+                "HEAD",
                 "--stdout",
                 filename
             ).getText()

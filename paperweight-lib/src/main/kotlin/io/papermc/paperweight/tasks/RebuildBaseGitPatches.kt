@@ -34,8 +34,8 @@ import org.gradle.api.provider.Property
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.tasks.*
 
-@UntrackedTask(because = "RebuildGitPatches should always run when requested")
-abstract class RebuildGitPatches : ControllableOutputTask() {
+@UntrackedTask(because = "RebuildBaseGitPatches should always run when requested")
+abstract class RebuildBaseGitPatches : ControllableOutputTask() {
 
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty
@@ -69,10 +69,10 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
 
     @TaskAction
     fun run() {
-        val baseCommit = ProcessBuilder(
+        val stopCommit = ProcessBuilder(
             "git",
             "rev-list",
-            "--grep=File Patches",
+            "--grep=Base Patches",
             "--max-count=1",
             "base..HEAD"
         )
@@ -82,7 +82,7 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
             .inputStream.bufferedReader()
             .readText()
             .trim()
-            .ifEmpty { "file" }
+            .let { commit -> if (commit.isNotEmpty()) "$commit~1" else "patchedBase~1" }
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -114,8 +114,8 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
             patchFolder.createDirectories()
         }
 
-        val base = baseCommit
-        val stop = "HEAD"
+        val base = "base"
+        val stop = stopCommit
         val git = Git(inputDir.path)
 
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()

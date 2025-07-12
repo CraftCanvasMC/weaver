@@ -154,13 +154,13 @@ class PatchingTasks(
             }
         }
 
-        val rebuildBasePatches = tasks.register<RebuildGitPatches>(rebuildBasePatchesName) {
+        val rebuildBasePatches = tasks.register<RebuildBaseGitPatches>(rebuildBasePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName base patches"
 
             inputDir.set(outputDir)
-            baseRef.set("base")
-            stopRef.set("patchedBase~1")
+            // baseRef.set("base")
+            // stopRef.set("patchedBase~1")
             patchDir.set(baseFeaturePatchDir)
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
@@ -189,8 +189,8 @@ class PatchingTasks(
 
             inputDir.set(outputDir)
             patchDir.set(featurePatchDir)
-            baseRef.set("file")
-            stopRef.set("HEAD")
+            // baseRef.set("file")
+            // stopRef.set("HEAD")
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
 
