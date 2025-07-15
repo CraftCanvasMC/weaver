@@ -25,7 +25,6 @@ package io.papermc.paperweight.core.tasks.patching
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.Git
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.*
@@ -87,21 +86,21 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
 
     @TaskAction
     fun run() {
-        Git.checkForGit()
+        io.papermc.paperweight.util.Git.checkForGit()
 
         val outputPath = output.path
         recreateCloneDirectory(outputPath)
 
         val git = Git(outputPath)
-
         checkoutRepoFromUpstream(
             Git(outputPath),
             input.path,
-            baseRef.getOrElse("patchedBase"),
+            baseRef.getOrElse("main"),
             "upstream",
-            "patchedBase",
+            "main",
             baseRef.isPresent,
         )
+
         if (additionalRemote.isPresent) {
             val jgit = JGit.open(outputPath.toFile())
             jgit.remoteRemove().setRemoteName(additionalRemoteName.get()).call()
@@ -114,6 +113,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         tagBase()
 
         if (!patches.isPresent) {
+            commit()
         } else {
             applyGitPatches(git, "server repo", outputPath, patches.path, printOutput.get(), verbose.get())
         }
@@ -188,6 +188,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
             if (printOutput) {
                 logger.lifecycle("No patches found")
             }
+            commit()
             return
         }
 

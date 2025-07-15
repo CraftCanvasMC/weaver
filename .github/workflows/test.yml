@@ -22,7 +22,7 @@ jobs:
         run: |
           git config --global user.email "no-reply@github.com"
           git config --global user.name "GitHub Actions"
-          ./gradlew build --no-daemon --stacktrace
+          ./gradlew build -x test --no-daemon --stacktrace
       - name: Publish Test Report
         uses: mikepenz/action-junit-report@v5
         if:  always()

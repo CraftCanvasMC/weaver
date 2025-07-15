@@ -90,7 +90,7 @@ class CoreTasks(
     }
 
     val importLibraryFiles = tasks.register<ImportLibraryFiles>("importPaperLibraryFiles") {
-        patches.from(project.coreExt.paper.sourcePatchDir, project.coreExt.paper.featurePatchDir) // also cant add base, see MinecraftPatchingTasks
+        patches.from(project.coreExt.paper.baseFeaturePatchDir, project.coreExt.paper.sourcePatchDir, project.coreExt.paper.featurePatchDir)
         devImports.set(project.coreExt.paper.devImports.fileExists(project))
         libraryFileIndex.set(indexLibraryFiles.flatMap { it.outputFile })
         libraries.from(indexLibraryFiles.map { it.libraries })
@@ -271,19 +271,19 @@ class CoreTasks(
                 )
 
                 // setup aggregate Minecraft & upstream -server patching tasks
-                val applyAllServerFilePatches = project.tasks.register("applyAllServerFilePatches") {
-                    group = "patching"
-                    description = "Applies all Minecraft and upstream server file patches " +
-                        "(equivalent to '${serverTasks.applyFilePatches.name} applyServerFilePatches')"
-                    dependsOn(serverTasks.applyFilePatches)
-                    dependsOn("applyServerFilePatches")
-                }
                 val applyAllServerBaseFeaturePatches = project.tasks.register("applyAllServerBaseFeaturePatches") {
                     group = "patching"
                     description = "Applies all Minecraft and upstream server base patches " +
                         "(equivalent to '${serverTasks.applyBaseFeaturePatches.name} applyServerBaseFeaturePatches')"
                     dependsOn(serverTasks.applyBaseFeaturePatches)
                     dependsOn("applyServerBaseFeaturePatches")
+                }
+                val applyAllServerFilePatches = project.tasks.register("applyAllServerFilePatches") {
+                    group = "patching"
+                    description = "Applies all Minecraft and upstream server file patches " +
+                        "(equivalent to '${serverTasks.applyFilePatches.name} applyServerFilePatches')"
+                    dependsOn(serverTasks.applyFilePatches)
+                    dependsOn("applyServerFilePatches")
                 }
                 val applyAllServerFeaturePatches = project.tasks.register("applyAllServerFeaturePatches") {
                     group = "patching"
@@ -299,19 +299,19 @@ class CoreTasks(
                     dependsOn(serverTasks.applyPatches)
                     dependsOn("applyServerPatches")
                 }
-                val rebuildAllServerFilePatches = project.tasks.register("rebuildAllServerFilePatches") {
-                    group = "patching"
-                    description = "Rebuilds all Minecraft and upstream server file patches " +
-                        "(equivalent to '${serverTasks.rebuildFilePatchesName} rebuildServerFilePatches')"
-                    dependsOn(serverTasks.rebuildFilePatchesName)
-                    dependsOn("rebuildServerFilePatches")
-                }
                 val rebuildAllServerBasePatches = project.tasks.register("rebuildAllServerBasePatches") {
                     group = "patching"
                     description = "Rebuilds all Minecraft and upstream server base patches " +
                         "(equivalent to '${serverTasks.rebuildBasePatchesName} rebuildServerBasePatches')"
                     dependsOn(serverTasks.rebuildBasePatchesName)
                     dependsOn("rebuildServerBasePatches")
+                }
+                val rebuildAllServerFilePatches = project.tasks.register("rebuildAllServerFilePatches") {
+                    group = "patching"
+                    description = "Rebuilds all Minecraft and upstream server file patches " +
+                        "(equivalent to '${serverTasks.rebuildFilePatchesName} rebuildServerFilePatches')"
+                    dependsOn(serverTasks.rebuildFilePatchesName)
+                    dependsOn("rebuildServerFilePatches")
                 }
                 val rebuildAllServerFeaturePatches = project.tasks.register("rebuildAllServerFeaturePatches") {
                     group = "patching"

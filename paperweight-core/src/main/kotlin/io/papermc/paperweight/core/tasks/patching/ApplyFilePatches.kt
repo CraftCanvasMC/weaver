@@ -113,7 +113,7 @@ abstract class ApplyFilePatches : BaseTask() {
             checkoutRepoFromUpstream(
                 git,
                 base,
-                baseRef.getOrElse("upstream/patchedBase"),
+                "patchedBase",
                 branchName = "main",
                 ref = true,
             )

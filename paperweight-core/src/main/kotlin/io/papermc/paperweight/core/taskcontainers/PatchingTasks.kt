@@ -68,6 +68,7 @@ class PatchingTasks(
         } else {
             repo.set(outputDir)
         }
+
         patches.set(filePatchDir.fileExists(project))
         rejectsDir.set(this@PatchingTasks.rejectsDir)
         gitFilePatches.set(this@PatchingTasks.gitFilePatches)
@@ -88,7 +89,7 @@ class PatchingTasks(
 
         base.set(baseDir)
 
-        baseRef.set("HEAD")
+        baseRef.set("base")
         patches.set(baseFeaturePatchDir.fileExists(project))
         baseRejectsDir.set(this@PatchingTasks.baseRejectsDir)
         identifier = "$forkName $patchSetName"
@@ -102,14 +103,12 @@ class PatchingTasks(
         configureApplyFilePatches()
         dependsOn(applyBaseFeaturePatches)
         base.set(applyBaseFeaturePatches.flatMap { it.output })
-        baseRef.set("patchedBase")
     }
 
     val applyFilePatchesFuzzy = tasks.register<ApplyFilePatchesFuzzy>("apply${namePart}FilePatchesFuzzy") {
         configureApplyFilePatches()
         dependsOn(applyBaseFeaturePatches)
         base.set(applyBaseFeaturePatches.flatMap { it.output })
-        baseRef.set("patchedBase")
     }
 
     val applyFeaturePatches = tasks.register<ApplyFeaturePatches>("apply${namePart}FeaturePatches") {
@@ -158,17 +157,16 @@ class PatchingTasks(
             group = taskGroup
             description = "Rebuilds $patchSetName base patches"
 
+            base.set(baseDir) // correct task execution order -> unused
             inputDir.set(outputDir)
-            // baseRef.set("base")
-            // stopRef.set("patchedBase~1")
             patchDir.set(baseFeaturePatchDir)
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
         val rebuildFilePatches = tasks.register<RebuildFilePatches>(rebuildFilePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName file patches"
+            dependsOn(rebuildBasePatches)
 
-            base.set(baseDir)
             input.set(outputDir)
             patches.set(filePatchDir)
             gitFilePatches.set(this@PatchingTasks.gitFilePatches)
@@ -179,7 +177,7 @@ class PatchingTasks(
             description = "Puts the currently tracked source changes into the $patchSetName file patches commit"
 
             repo.set(outputDir)
-            upstream.set("upstream/main")
+            upstream.set("patchedBase")
         }
 
         val rebuildFeaturePatches = tasks.register<RebuildGitPatches>(rebuildFeaturePatchesName) {
@@ -189,8 +187,6 @@ class PatchingTasks(
 
             inputDir.set(outputDir)
             patchDir.set(featurePatchDir)
-            // baseRef.set("file")
-            // stopRef.set("HEAD")
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
 

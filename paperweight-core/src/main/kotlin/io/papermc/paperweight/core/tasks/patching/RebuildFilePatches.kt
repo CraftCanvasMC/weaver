@@ -56,6 +56,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:InputDirectory
     abstract val input: DirectoryProperty
 
+    @get:Optional
     @get:InputDirectory
     abstract val base: DirectoryProperty
 
@@ -161,7 +162,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
                 }
         }
 
-        git("switch", currentBranch).executeSilently(silenceErr = true)
+        git("checkout", currentBranch).executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
                 // we need to rebase, so that the new file commit is part of the tree again.
@@ -241,6 +242,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         return result.summary.changedFiles
     }
 
+    // TODO: look into moving this earlier in the source tree, still most of it is broken anyway
     private fun handleAts(
         baseDir: Path,
         inputDir: Path,

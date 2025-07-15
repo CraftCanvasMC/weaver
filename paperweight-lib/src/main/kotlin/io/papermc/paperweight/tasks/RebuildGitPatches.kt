@@ -40,15 +40,6 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty
 
-    @get:Input
-    @get:Optional
-    abstract val baseRef: Property<String>
-
-    // special handling cuz base patches cant go till head
-    @get:Input
-    @get:Optional
-    abstract val stopRef: Property<String>
-
     @get:OutputDirectory
     abstract val patchDir: DirectoryProperty
 
@@ -69,9 +60,6 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
 
     @TaskAction
     fun run() {
-        val git = Git(inputDir.path)
-        val baseCommit = git("rev-list", "--grep=File Patches", "--max-count=1", "base..HEAD").getText().trim()
-
         val what = inputDir.path.name
         val patchFolder = patchDir.path
         if (!patchFolder.exists()) {
@@ -102,14 +90,13 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
             patchFolder.createDirectories()
         }
 
-        val base = baseCommit
+        val git = Git(inputDir.path)
+        val base = "file"
         val stop = "HEAD"
-
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
-        if (commitCount == 0 || commitCount < 0) {
-            return
-        }
+        if (commitCount <= 0) return // nothing to rebuild
+
         val range = "$base..$stop"
         git("fetch", "--all", "--prune").runSilently(silenceErr = true)
         git(

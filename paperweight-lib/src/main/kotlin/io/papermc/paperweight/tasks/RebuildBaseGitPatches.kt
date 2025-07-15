@@ -40,14 +40,9 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty
 
-    @get:Input
     @get:Optional
-    abstract val baseRef: Property<String>
-
-    // special handling cuz base patches cant go till head
-    @get:Input
-    @get:Optional
-    abstract val stopRef: Property<String>
+    @get:InputDirectory
+    abstract val base: DirectoryProperty // we dont need this at all but we use this to trick gradle into the correct task execution order
 
     @get:OutputDirectory
     abstract val patchDir: DirectoryProperty
@@ -71,18 +66,14 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     fun run() {
         val git = Git(inputDir.path)
         val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
-
         val fileCommit = git("rev-list", "--grep=File Patches", "--max-count=1", "base..HEAD").getText().trim()
-
-        val stopCommit = git("rev-list", "--grep=Base Patches", "--max-count=1", "base..HEAD").getText().trim().let {
-            if (it.isNotEmpty()) "$it~1" else "file~1"
-        }
+        val stopCommit = git("rev-list", "--grep=Base Patches", "--max-count=1", "base..HEAD").getText().trim().let { "$it~1" }
 
         // we update the file tag
         git("checkout", "file").executeSilently(silenceErr = true)
         git("reset", fileCommit, "--hard").executeSilently(silenceErr = true)
         git("tag", "-f", "file").executeSilently(silenceErr = true)
-        git("switch", currentBranch).executeSilently(silenceErr = true)
+        git("checkout", currentBranch).executeSilently(silenceErr = true)
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -116,12 +107,10 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
 
         val base = "base"
         val stop = stopCommit
-
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
-        if (commitCount == 0 || commitCount < 0) {
-            return
-        }
+        if (commitCount <= 0) return // nothing to rebuild
+
         val range = "$base..$stop"
         git("fetch", "--all", "--prune").runSilently(silenceErr = true)
         git(

@@ -50,6 +50,9 @@ class PaperclipTasks(
     reobfJar: Provider<RegularFile>,
     private val mcVersion: Provider<String>
 ) {
+
+    private val rootName: String = project.rootProject.name.lowercase()
+
     init {
         val (createBundlerJar, createPaperclipJar) = project.createTasks("mojmap")
         val (createReobfBundlerJar, createReobfPaperclipJar) = project.createTasks("reobf")
@@ -70,6 +73,10 @@ class PaperclipTasks(
     ): Pair<TaskProvider<CreateBundlerJar>, TaskProvider<CreatePaperclipJar>> {
         val bundlerTaskName = "create${classifier.capitalized()}BundlerJar"
         val paperclipTaskName = "create${classifier.capitalized()}PaperclipJar"
+        val publisherJarName = "build${classifier.capitalized()}PublisherJar"
+
+        val buildNum: Provider<String> = project.providers.environmentVariable("BUILD_NUMBER").orElse("local")
+        val publisherJar: Provider<String> = buildNum.map { build -> "libs/$rootName-build.$build.jar" }
 
         val bundlerJarTask = tasks.register<CreateBundlerJar>(bundlerTaskName) {
             group = "bundling"
@@ -87,6 +94,15 @@ class PaperclipTasks(
 
             libraryChangesJson.set(bundlerJarTask.flatMap { it.libraryChangesJson })
             outputZip.set(layout.buildDirectory.file(jarName("paperclip", classifier).map { "libs/$it" }))
+        }
+        val buildPublisherJarTask = tasks.register<CreatePublisherJar>(publisherJarName) {
+            group = "bundling"
+            description = "Build a ready-to-publish jar"
+
+            dependsOn(paperclipJarTask)
+
+            inputZip.set(paperclipJarTask.flatMap { it.outputZip })
+            outputZip.set(layout.buildDirectory.file(publisherJar))
         }
         return bundlerJarTask to paperclipJarTask
     }

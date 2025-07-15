@@ -100,7 +100,12 @@ class MinecraftPatchingTasks(
 
         base.set(baseSources)
 
-        output.set(outputSrc)
+        if (readOnly) {
+            output.set(outputSrcFile)
+        } else {
+            output.set(outputSrc)
+        }
+
         baseRef.set("upstream/main")
         patches.set(baseFeaturePatchDir.fileExists(project))
         baseRejectsDir.set(this@MinecraftPatchingTasks.baseRejectsDir)
@@ -142,7 +147,7 @@ class MinecraftPatchingTasks(
     val applyFilePatches = tasks.register<Task>("apply${namePart}FilePatches") {
         group()
         description = "Applies all $configName Minecraft file patches"
-        dependsOn(applyBasePatches, applySourcePatches, applyResourcePatches)
+        dependsOn(applySourcePatches, applyResourcePatches)
     }
 
     val applyFeaturePatches = tasks.register<ApplyFeaturePatches>("apply${namePart}FeaturePatches") {
@@ -163,7 +168,6 @@ class MinecraftPatchingTasks(
         dependsOn(applyBasePatches, applyFilePatches, applyFeaturePatches)
     }
 
-    val rebuildBaseFeaturePatchesName = "rebuild${namePart}BaseFeaturePatches"
     val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildSourcePatchesName = "rebuild${namePart}SourcePatches"
     val rebuildResourcePatchesName = "rebuild${namePart}ResourcePatches"
@@ -188,7 +192,7 @@ class MinecraftPatchingTasks(
         }
 
         val importLibFiles = tasks.register<ImportLibraryFiles>("import${configName.capitalized()}LibraryFiles") {
-            patches.from(config.featurePatchDir, config.sourcePatchDir) // cant add base for some reason, oh well we'll use dev-imports
+            patches.from(config.featurePatchDir, config.sourcePatchDir, config.baseFeaturePatchDir)
             devImports.set(config.devImports.fileExists(project))
             libraryFileIndex.set(coreTasks.indexLibraryFiles.flatMap { it.outputFile })
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
@@ -221,6 +225,7 @@ class MinecraftPatchingTasks(
         val name = "rebuild${namePart}SourcePatches"
         if (name in tasks.names) {
             tasks.named<RebuildFilePatches>(name) {
+                dependsOn(rebuildBasePatchesName)
                 base.set(baseSources)
             }
         }
@@ -243,8 +248,7 @@ class MinecraftPatchingTasks(
             group()
             description = "Rebuilds $configName base patches to the Minecraft source"
 
-            // baseRef.set("base")
-            // stopRef.set("patchedBase~1")
+            base.set(baseSources) // workaround to achieve the correct task execution order
             inputDir.set(outputSrc)
             patchDir.set(baseFeaturePatchDir)
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
@@ -253,8 +257,9 @@ class MinecraftPatchingTasks(
         val rebuildSourcePatches = tasks.register<RebuildFilePatches>(rebuildSourcePatchesName) {
             group()
             description = "Rebuilds $configName file patches to the Minecraft sources"
+            dependsOn(rebuildBasePatches)
 
-            base.set(baseSources)
+            // base.set(baseSources) maybe look into this for ats in the future but rn we use commit based repo states not dir
             input.set(outputSrc)
             patches.set(sourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
@@ -288,8 +293,6 @@ class MinecraftPatchingTasks(
 
             inputDir.set(outputSrc)
             patchDir.set(featurePatchDir)
-            // baseRef.set("file")
-            // stopRef.set("HEAD")
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 
@@ -304,7 +307,7 @@ class MinecraftPatchingTasks(
             description = "Puts the currently tracked source changes into the $configName Minecraft sources file patches commit"
 
             repo.set(outputSrc)
-            upstream.set("upstream/patchedBase")
+            upstream.set("upstream/main")
         }
 
         val fixupResourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}ResourcePatches") {
