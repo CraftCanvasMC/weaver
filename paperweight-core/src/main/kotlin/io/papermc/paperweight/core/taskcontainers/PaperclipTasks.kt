@@ -102,7 +102,7 @@ class PaperclipTasks(
             dependsOn(paperclipJarTask)
 
             inputZip.set(paperclipJarTask.flatMap { it.outputZip })
-            outputZip.set(layout.buildDirectory.file(publisherJar))
+            outputZip.convention(publisherJar.map { layout.buildDirectory.file(it) }.flatMap { it })
         }
         return bundlerJarTask to paperclipJarTask
     }
