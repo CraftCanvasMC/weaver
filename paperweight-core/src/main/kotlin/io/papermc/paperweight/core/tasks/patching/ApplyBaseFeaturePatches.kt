@@ -25,7 +25,6 @@ package io.papermc.paperweight.core.tasks.patching
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import java.nio.file.Files
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.*
@@ -187,12 +186,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         statusFile.deleteForcefully()
         val logFile = outputDir.resolve(".git/patch-apply-logs.log")
         logFile.deleteForcefully()
-
-        Files.walk(outputDir).use { file ->
-            file
-                .filter { it.fileName.toString().endsWith(".rej") }
-                .forEach { it.deleteForcefully() }
-        }
+        outputDir.filesMatchingRecursive("*.rej").forEach { it.deleteForcefully() }
 
         git("am", "--abort").runSilently(silenceErr = true)
 
@@ -260,11 +254,9 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
                         logger.error(filtered)
                     }
 
-                    logger.error("***   Patch application has been paused!")
-                    logger.error("***   Please review above details and fix the rejected hunks")
-                    logger.error(
-                        "***   then delete all `.rej` files, run `git am --continue` and save the changes with `./gradlew rebuildPatches`"
-                    )
+                    logger.error("***   Please review above details and finish the apply")
+                    logger.error("***   by manually applying the rejected hunks and deleting all `.rej` files")
+                    logger.error("***   then running `git am --continue` and saving the changes with `./gradlew rebuildPatches`")
                     logger.error("***   For full logs refer to the `.git/patch-apply-logs.log` log file")
                 } else {
                     if (!gitOut) {

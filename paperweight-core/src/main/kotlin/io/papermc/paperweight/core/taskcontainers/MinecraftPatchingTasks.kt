@@ -224,7 +224,6 @@ class MinecraftPatchingTasks(
         if (name in tasks.names) {
             tasks.named<RebuildFilePatches>(name) {
                 dependsOn(rebuildBasePatchesName)
-                base.set(baseSources)
             }
         }
     }
