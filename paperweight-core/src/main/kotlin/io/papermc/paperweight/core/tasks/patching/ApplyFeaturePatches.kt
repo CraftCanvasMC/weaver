@@ -25,6 +25,7 @@ package io.papermc.paperweight.core.tasks.patching
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
+import java.nio.file.Files
 import java.nio.file.Path
 import kotlin.io.path.*
 import org.gradle.api.file.DirectoryProperty
@@ -54,9 +55,13 @@ abstract class ApplyFeaturePatches : ControllableOutputTask() {
     @get:Input
     abstract val verbose: Property<Boolean>
 
+    @get:Input
+    abstract val emitRejects: Property<Boolean>
+
     override fun init() {
         printOutput.convention(false).finalizeValueOnRead()
         verbose.convention(false)
+        emitRejects.convention(false)
     }
 
     @TaskAction
@@ -106,6 +111,14 @@ abstract class ApplyFeaturePatches : ControllableOutputTask() {
 
         val statusFile = outputDir.resolve(".git/patch-apply-failed")
         statusFile.deleteForcefully()
+        val logFile = outputDir.resolve(".git/patch-apply-logs.log")
+        logFile.deleteForcefully()
+
+        Files.walk(outputDir).use { file ->
+            file
+                .filter { it.fileName.toString().endsWith(".rej") }
+                .forEach { it.deleteForcefully() }
+        }
 
         git("am", "--abort").runSilently(silenceErr = true)
 
@@ -130,20 +143,68 @@ abstract class ApplyFeaturePatches : ControllableOutputTask() {
             }
 
             val gitOut = printOutput && verbose
-            val result = git("am", "--3way", "--ignore-whitespace", tempDir.absolutePathString()).captureOut(gitOut)
+            val result = if (emitRejects.get()) {
+                git(
+                    "am",
+                    "--3way",
+                    "--reject",
+                    "--ignore-whitespace",
+                    tempDir.absolutePathString()
+                ).captureOut(gitOut)
+            } else {
+                git("am", "--3way", "--ignore-whitespace", tempDir.absolutePathString()).captureOut(gitOut)
+            }
+
             if (result.exit != 0) {
                 statusFile.writeText("1")
 
-                if (!gitOut) {
-                    // Log the output anyway on failure
-                    logger.lifecycle(result.out)
+                if (emitRejects.get()) {
+                    logFile.writeText(result.out)
+
+                    val filtered = result.out.lineSequence()
+                        .map { line ->
+                            val index = line.indexOf("Patch failed at")
+                            if (index >= 0) line.substring(index) else line
+                        }
+                        .filterNot { line ->
+                            line.startsWith("error: while") ||
+                                line.startsWith("Checking patch") ||
+                                line.startsWith("Applied patch") ||
+                                line.startsWith("Applying patch") ||
+                                line.endsWith("reject...") ||
+                                line.endsWith("cleanly.") ||
+                                line.startsWith(" ") ||
+                                line.startsWith("Hunk #") ||
+                                line.startsWith("Rejected hunk") ||
+                                line.contains(";") ||
+                                line.isEmpty()
+                        }
+                        .joinToString("\n")
+                    if (!gitOut) {
+                        // Log the output anyway on failure
+                        logger.error(filtered)
+                    }
+
+                    logger.error("***   Patch application has been paused!")
+                    logger.error("***   Please review above details and fix the rejected hunks")
+                    logger.error(
+                        "***   then delete all `.rej` files, run `git am --continue` and save the changes with `./gradlew rebuildPatches`"
+                    )
+                    logger.error("***   For full logs refer to the `.git/patch-apply-logs.log` log file")
+                } else {
+                    if (!gitOut) {
+                        // Log the output anyway on failure
+                        logger.error(result.out)
+                    }
+
+                    logger.error("***   Please review above details and finish the apply then")
+                    logger.error("***   save the changes with `./gradlew rebuildPatches`")
                 }
-                logger.error("***   Please review above details and finish the apply then")
-                logger.error("***   save the changes with `./gradlew rebuildPatches`")
 
                 throw PaperweightException("Failed to apply patches")
             } else {
                 statusFile.deleteForcefully()
+                logFile.deleteForcefully()
                 if (printOutput) {
                     logger.lifecycle("${patches.size} patches applied cleanly to $target")
                 }

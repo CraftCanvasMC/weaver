@@ -53,7 +53,6 @@ class MinecraftPatchingTasks(
     private val readOnly: Boolean,
     private val sourcePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
-    private val baseRejectsDir: DirectoryProperty,
     private val resourcePatchDir: DirectoryProperty,
     private val baseFeaturePatchDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
@@ -108,7 +107,6 @@ class MinecraftPatchingTasks(
 
         baseRef.set("upstream/main")
         patches.set(baseFeaturePatchDir.fileExists(project))
-        baseRejectsDir.set(this@MinecraftPatchingTasks.baseRejectsDir)
         identifier = configName
     }
 

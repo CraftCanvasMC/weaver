@@ -48,7 +48,6 @@ class PatchingTasks(
     private val readOnly: Boolean,
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
-    private val baseRejectsDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
     private val baseFeaturePatchDir: DirectoryProperty,
     private val baseDir: Provider<Directory>,
@@ -91,7 +90,6 @@ class PatchingTasks(
 
         baseRef.set("base")
         patches.set(baseFeaturePatchDir.fileExists(project))
-        baseRejectsDir.set(this@PatchingTasks.baseRejectsDir)
         identifier = "$forkName $patchSetName"
     }
 

@@ -130,7 +130,6 @@ class UpstreamConfigTasks(
             readOnly,
             cfg.filePatchDir,
             cfg.rejectsDir,
-            cfg.baseRejectsDir,
             cfg.featurePatchDir,
             cfg.baseFeaturePatchDir,
             base,
