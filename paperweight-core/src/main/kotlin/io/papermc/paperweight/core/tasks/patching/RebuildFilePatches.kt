@@ -145,23 +145,6 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             rebuildWithDiffPatch(baseDir, inputDir, patchDir)
         }
 
-        // filter patches since our diff library seems to emit patches for empty files that existed in the baseDir
-        if (filterPatches.get()) {
-            patchDir
-                .walk()
-                .filter { it.extension == "patch" }
-                .forEach { patch ->
-                    val lines = patch.readLines()
-                    val hasChanges = lines.any {
-                        (it.startsWith("+") && !it.startsWith("+++")) ||
-                            (it.startsWith("-") && !it.startsWith("---"))
-                    }
-                    if (!hasChanges) {
-                        patch.deleteRecursive()
-                    }
-                }
-        }
-
         git("checkout", currentBranch).executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
@@ -239,7 +222,12 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             .summary(verbose.get())
             .build()
             .operate()
-        return result.summary.changedFiles
+
+        return if (filterPatches.get()) {
+            cleanupPatches(patchDir)
+        } else {
+            result.summary.changedFiles
+        }
     }
 
     // TODO: look into moving this earlier in the source tree, still most of it is broken anyway
@@ -340,5 +328,26 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         }
 
         return foundNew
+    }
+
+    // filter patches since our diff library seems to emit patches for empty files that existed in the baseDir
+    private fun cleanupPatches(patchDir: Path): Int {
+        var saved = 0
+        val patches = patchDir.filesMatchingRecursive("*.patch")
+        patches.forEach { patch ->
+            val hasChanges = patch.useLines { lines ->
+                lines.any {
+                    (it.startsWith("+") && !it.startsWith("+++")) ||
+                        (it.startsWith("-") && !it.startsWith("---"))
+                }
+            }
+
+            if (!hasChanges) {
+                patch.deleteForcefully()
+            } else {
+                saved++
+            }
+        }
+        return saved
     }
 }
