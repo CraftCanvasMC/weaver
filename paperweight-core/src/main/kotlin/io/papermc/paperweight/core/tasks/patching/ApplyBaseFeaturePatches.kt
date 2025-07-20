@@ -28,7 +28,7 @@ import io.papermc.paperweight.util.*
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.*
-import org.eclipse.jgit.api.Git as JGit
+import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
 import org.eclipse.jgit.transport.URIish
 import org.gradle.api.file.DirectoryProperty
@@ -95,7 +95,6 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         val outputPath = output.path
         recreateCloneDirectory(outputPath)
 
-        val git = Git(outputPath)
         checkoutRepoFromUpstream(
             Git(outputPath),
             input.path,
@@ -106,7 +105,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         )
 
         if (additionalRemote.isPresent) {
-            val jgit = JGit.open(outputPath.toFile())
+            val jgit = Git.open(outputPath.toFile())
             jgit.remoteRemove().setRemoteName(additionalRemoteName.get()).call()
             jgit.remoteAdd().setName(additionalRemoteName.get()).setUri(URIish(additionalRemote.get())).call()
             jgit.fetch().setRemote(additionalRemoteName.get()).call()
@@ -119,7 +118,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         if (!patches.isPresent) {
             commit()
         } else {
-            applyGitPatches(git, "server repo", outputPath, patches.path, printOutput.get(), verbose.get())
+            applyGitPatches("server repo", outputPath, patches.path, printOutput.get(), verbose.get())
         }
     }
 
@@ -141,7 +140,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
     }
 
     private fun tagBase() {
-        val git = JGit.open(output.path.toFile())
+        val git = Git.open(output.path.toFile())
         val ident = PersonIdent("base", "noreply+automated@papermc.io")
         git.tagDelete().setTags("base").call()
         git.tag().setName("base").setTagger(ident).setSigned(false).call()
@@ -157,7 +156,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
 
     private fun commit() {
         val ident = PersonIdent(PersonIdent("Patched Base", "noreply+automated@papermc.io"), Instant.parse("1997-04-20T13:37:42.69Z"))
-        val git = JGit.open(output.path.toFile())
+        val git = Git.open(output.path.toFile())
         git.add().addFilepattern(".").call()
         git.commit()
             .setMessage("${identifier.get()} Base Patches")
@@ -171,7 +170,6 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
     }
 
     private fun applyGitPatches(
-        git: Git,
         target: String,
         outputDir: Path,
         patchDir: Path?,
@@ -182,6 +180,7 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
             logger.lifecycle("Applying patches to $target...")
         }
 
+        val git = Git(outputDir)
         val statusFile = outputDir.resolve(".git/patch-apply-failed")
         statusFile.deleteForcefully()
         val logFile = outputDir.resolve(".git/patch-apply-logs.log")
@@ -279,7 +278,6 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
         } finally {
             tempDir.deleteRecursive()
         }
-
         commit()
     }
 }
