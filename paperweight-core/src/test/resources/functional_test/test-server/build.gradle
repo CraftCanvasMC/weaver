@@ -1,6 +1,6 @@
 plugins {
     id "java"
-    id 'io.papermc.paperweight.core'
+    id 'io.canvasmc.weaver.core'
 }
 
 repositories {
@@ -34,6 +34,7 @@ paperweight {
         minecraftManifestUrl = 'file://project/../fake_mojang/version_manifest.json'
 
         paper {
+            basePatchDir.set(file('../fake-patches/base'))
             sourcePatchDir.set(file('../fake-patches/sources'))
             resourcePatchDir.set(file('../fake-patches/resources'))
             featurePatchDir.set(file('../fake-patches/features'))

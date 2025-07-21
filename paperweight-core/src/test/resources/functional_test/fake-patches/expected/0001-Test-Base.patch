@@ -1,0 +1,19 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: MiniDigger | Martin <admin@benndorf.dev>
+Date: Sun, 20 Oct 2024 09:24:36 +0200
+Subject: [PATCH] Test Base
+
+
+diff --git a/Test.java b/Test.java
+index 1f7aa5bc6212dec883505d3672b6a108a785dd47..bf731c042bf7f59b60378df1d61302e1769a6a77 100644
+--- a/Test.java
++++ b/Test.java
+@@ -7,7 +7,7 @@ public class Test {
+     }
+ 
+     public String getTest() {
+-        return this.test;
++        return this.test; // WOOOO
+     }
+ 
+     public final String getTest2() {

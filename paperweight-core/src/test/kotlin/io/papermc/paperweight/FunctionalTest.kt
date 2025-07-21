@@ -130,11 +130,11 @@ class FunctionalTest {
         }
 
         println("\nrebuilding feature patch\n")
-        val rebP3 = gradleRunner
+        val rebP4 = gradleRunner
             .withArguments("rebuildPatches", "--stacktrace", "-Dfake=true")
             .withDebug(debug)
             .build()
-        assertEquals(rebP3.task(":test-server:rebuildPatches")?.outcome, TaskOutcome.SUCCESS)
+        assertEquals(rebP4.task(":test-server:rebuildPatches")?.outcome, TaskOutcome.SUCCESS)
         assertEquals(
             testResource.resolve("fake-patches/expected/0001-Feature.patch").readText(),
             tempDir.resolve("fake-patches/features/0001-Feature.patch").readText()

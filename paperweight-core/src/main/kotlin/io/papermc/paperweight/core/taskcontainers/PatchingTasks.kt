@@ -22,7 +22,7 @@
 
 package io.papermc.paperweight.core.taskcontainers
 
-import io.papermc.paperweight.core.tasks.patching.ApplyBaseFeaturePatches
+import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
@@ -46,10 +46,10 @@ class PatchingTasks(
     private val patchSetName: String,
     private val taskGroup: String,
     private val readOnly: Boolean,
+    private val basePatchDir: DirectoryProperty,
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
-    private val baseFeaturePatchDir: DirectoryProperty,
     private val baseDir: Provider<Directory>,
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
@@ -58,24 +58,7 @@ class PatchingTasks(
 ) {
     private val namePart: String = if (readOnly) "${forkName.capitalized()}${patchSetName.capitalized()}" else patchSetName.capitalized()
 
-    private fun ApplyFilePatches.configureApplyFilePatches() {
-        group = taskGroup
-        description = "Applies $patchSetName file patches"
-
-        if (readOnly) {
-            repo.set(layout.cache.resolve(paperTaskOutput()))
-        } else {
-            repo.set(outputDir)
-        }
-
-        patches.set(filePatchDir.fileExists(project))
-        rejectsDir.set(this@PatchingTasks.rejectsDir)
-        gitFilePatches.set(this@PatchingTasks.gitFilePatches)
-        base.set(applyBaseFeaturePatches.flatMap { it.output })
-        identifier = "$forkName $patchSetName"
-    }
-
-    private fun ApplyBaseFeaturePatches.configureApplyBaseFeaturePatches() {
+    private fun ApplyBasePatches.configureApplyBasePatches() {
         group = taskGroup
         description = "Applies $patchSetName base patches"
 
@@ -87,26 +70,39 @@ class PatchingTasks(
         }
 
         base.set(baseDir)
-
         baseRef.set("base")
-        patches.set(baseFeaturePatchDir.fileExists(project))
+        patches.set(basePatchDir.fileExists(project))
         identifier = "$forkName $patchSetName"
     }
 
-    val applyBaseFeaturePatches = tasks.register<ApplyBaseFeaturePatches>("apply${namePart}BaseFeaturePatches") {
-        configureApplyBaseFeaturePatches()
+    private fun ApplyFilePatches.configureApplyFilePatches() {
+        group = taskGroup
+        description = "Applies $patchSetName file patches"
+        dependsOn(applyBasePatches)
+
+        if (readOnly) {
+            repo.set(layout.cache.resolve(paperTaskOutput()))
+        } else {
+            repo.set(outputDir)
+        }
+
+        patches.set(filePatchDir.fileExists(project))
+        rejectsDir.set(this@PatchingTasks.rejectsDir)
+        gitFilePatches.set(this@PatchingTasks.gitFilePatches)
+        base.set(applyBasePatches.flatMap { it.output })
+        identifier = "$forkName $patchSetName"
+    }
+
+    val applyBasePatches = tasks.register<ApplyBasePatches>("apply${namePart}BasePatches") {
+        configureApplyBasePatches()
     }
 
     val applyFilePatches = tasks.register<ApplyFilePatches>("apply${namePart}FilePatches") {
         configureApplyFilePatches()
-        dependsOn(applyBaseFeaturePatches)
-        base.set(applyBaseFeaturePatches.flatMap { it.output })
     }
 
     val applyFilePatchesFuzzy = tasks.register<ApplyFilePatchesFuzzy>("apply${namePart}FilePatchesFuzzy") {
         configureApplyFilePatches()
-        dependsOn(applyBaseFeaturePatches)
-        base.set(applyBaseFeaturePatches.flatMap { it.output })
     }
 
     val applyFeaturePatches = tasks.register<ApplyFeaturePatches>("apply${namePart}FeaturePatches") {
@@ -124,7 +120,7 @@ class PatchingTasks(
     val applyPatches = tasks.register<Task>("apply${namePart}Patches") {
         group = taskGroup
         description = "Applies all $patchSetName patches"
-        dependsOn(applyBaseFeaturePatches, applyFilePatches, applyFeaturePatches)
+        dependsOn(applyBasePatches, applyFilePatches, applyFeaturePatches)
     }
 
     val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
@@ -141,7 +137,7 @@ class PatchingTasks(
 
     private fun setupWritable() {
         listOf(
-            applyBaseFeaturePatches,
+            applyBasePatches,
             applyFilePatches,
             applyFilePatchesFuzzy,
             applyFeaturePatches,
@@ -157,7 +153,7 @@ class PatchingTasks(
 
             base.set(baseDir) // correct task execution order -> unused
             inputDir.set(outputDir)
-            patchDir.set(baseFeaturePatchDir)
+            patchDir.set(basePatchDir)
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
         val rebuildFilePatches = tasks.register<RebuildFilePatches>(rebuildFilePatchesName) {

@@ -103,7 +103,6 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val inputDir = input.convertToPath()
 
         val git = Git(inputDir)
-        val currentBranch = git("rev-parse", "--abbrev-ref", "HEAD").getText().trim()
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
 
@@ -145,7 +144,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             rebuildWithDiffPatch(baseDir, inputDir, patchDir)
         }
 
-        git("checkout", currentBranch).executeSilently(silenceErr = true)
+        git("switch", "-").executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
                 // we need to rebase, so that the new file commit is part of the tree again.
@@ -153,7 +152,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
                 // and then execs for all the files that remove the papter
                 // todo detect if sed is not present (windows) and switch out sed for something else
                 @Language("Shell Script")
-                val sequenceEditor = "sed -i -e 0,/pick/{s/pick/drop/}"
+                val sequenceEditor = "sed -i '/File Patches/ s/^pick /drop /' \"\$1\"" // maybe begin some work?
                 val execs = filesWithNewAts
                     .map { "sed -i -e 's|// Paper-AT:.*||g' $it && ((git add $it && git commit --amend --no-edit) || true)" }
                     .flatMap { listOf("--exec", it) }.toTypedArray()

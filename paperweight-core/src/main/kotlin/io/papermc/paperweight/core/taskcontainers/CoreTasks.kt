@@ -90,7 +90,7 @@ class CoreTasks(
     }
 
     val importLibraryFiles = tasks.register<ImportLibraryFiles>("importPaperLibraryFiles") {
-        patches.from(project.coreExt.paper.baseFeaturePatchDir, project.coreExt.paper.sourcePatchDir, project.coreExt.paper.featurePatchDir)
+        patches.from(project.coreExt.paper.basePatchDir, project.coreExt.paper.sourcePatchDir, project.coreExt.paper.featurePatchDir)
         devImports.set(project.coreExt.paper.devImports.fileExists(project))
         libraryFileIndex.set(indexLibraryFiles.flatMap { it.outputFile })
         libraries.from(indexLibraryFiles.map { it.libraries })
@@ -185,10 +185,10 @@ class CoreTasks(
             true,
             this,
             hasFork,
+            project.coreExt.paper.basePatchDir,
             project.coreExt.paper.sourcePatchDir,
             project.coreExt.paper.rejectsDir,
             project.coreExt.paper.resourcePatchDir,
-            project.coreExt.paper.baseFeaturePatchDir,
             project.coreExt.paper.featurePatchDir,
             project.coreExt.paper.additionalAts,
             extractMacheSources.flatMap { it.outputDir },
@@ -222,10 +222,10 @@ class CoreTasks(
                 false,
                 this,
                 !activeFork,
+                cfg.basePatchDir,
                 cfg.sourcePatchDir,
                 cfg.rejectsDir,
                 cfg.resourcePatchDir,
-                cfg.baseFeaturePatchDir,
                 cfg.featurePatchDir,
                 cfg.additionalAts,
                 upstreamTasks.first.applyFeaturePatches.flatMap { it.repo },
@@ -269,11 +269,11 @@ class CoreTasks(
                 )
 
                 // setup aggregate Minecraft & upstream -server patching tasks
-                val applyAllServerBaseFeaturePatches = project.tasks.register("applyAllServerBaseFeaturePatches") {
+                val applyAllServerBasePatches = project.tasks.register("applyAllServerBasePatches") {
                     group = "patching"
                     description = "Applies all Minecraft and upstream server base patches " +
-                        "(equivalent to '${serverTasks.applyBaseFeaturePatches.name} applyServerBaseFeaturePatches')"
-                    dependsOn(serverTasks.applyBaseFeaturePatches)
+                        "(equivalent to '${serverTasks.applyBasePatches.name} applyServerBasePatches')"
+                    dependsOn(serverTasks.applyBasePatches)
                     dependsOn("applyServerBaseFeaturePatches")
                 }
                 val applyAllServerFilePatches = project.tasks.register("applyAllServerFilePatches") {

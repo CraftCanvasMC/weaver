@@ -41,7 +41,7 @@ import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 
-abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
+abstract class ApplyBasePatches : ControllableOutputTask() {
 
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputDirectory
@@ -82,9 +82,9 @@ abstract class ApplyBaseFeaturePatches : ControllableOutputTask() {
     abstract val additionalRemoteName: Property<String>
 
     override fun init() {
-        printOutput.convention(false).finalizeValueOnRead()
+        printOutput.convention(true).finalizeValueOnRead()
         additionalRemoteName.convention("old")
-        verbose.convention(false)
+        verbose.convention(true)
         emitRejects.convention(false)
     }
 

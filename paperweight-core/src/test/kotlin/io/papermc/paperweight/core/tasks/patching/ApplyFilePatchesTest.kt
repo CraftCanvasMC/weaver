@@ -49,8 +49,8 @@ class ApplyFilePatchesTest : TaskTest() {
 
         setupGitRepo(input, "main")
 
-        task.input.set(input)
-        task.output.set(output)
+        task.base.set(input)
+        task.repo.set(output)
         task.patches.set(patches)
         task.verbose.set(true)
         task.identifier.set("test")
