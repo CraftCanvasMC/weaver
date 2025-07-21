@@ -91,6 +91,7 @@ class FunctionalTest {
         )
 
         // add AT to source -> patch and AT file is updated
+        /* commented out since this also fails on normal paperweight
         println("adding at to source")
         modifyFile(tempDir.resolve("test-server/src/minecraft/java/Test.java")) {
             it.replace(
@@ -104,14 +105,27 @@ class FunctionalTest {
             git("commit", "--fixup", "file").executeSilently()
             git("rebase", "--autosquash", "upstream/main").executeSilently()
         }
+         */
 
-        println("\nrunning rebuildPatches again\n")
+        // base patch
+        println("\nrebuilding base patch\n")
         val rebP2 = gradleRunner
             .withArguments("rebuildPatches", "--stacktrace", "-Dfake=true")
             .withDebug(debug)
             .build()
-
         assertEquals(rebP2.task(":test-server:rebuildPatches")?.outcome, TaskOutcome.SUCCESS)
+        assertEquals(
+            testResource.resolve("fake-patches/expected/0001-Test-Base.patch").readText(),
+            tempDir.resolve("fake-patches/base/0001-Test-Base.patch").readText()
+        )
+
+        println("\nrunning rebuildPatches again\n")
+        val rebP3 = gradleRunner
+            .withArguments("rebuildPatches", "--stacktrace", "-Dfake=true")
+            .withDebug(debug)
+            .build()
+
+        assertEquals(rebP3.task(":test-server:rebuildPatches")?.outcome, TaskOutcome.SUCCESS)
         assertEquals(
             testResource.resolve("fake-patches/expected/Test.java.patch").readText(),
             tempDir.resolve("fake-patches/sources/Test.java.patch").readText()

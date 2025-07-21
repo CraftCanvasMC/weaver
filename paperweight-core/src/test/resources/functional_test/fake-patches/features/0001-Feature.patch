@@ -5,7 +5,7 @@ Subject: [PATCH] Feature
 
 
 diff --git a/Test.java b/Test.java
-index d047a159f76d162bc24b030a575252202e57080c..95266c0cad0b100367ca840d286b7a004b93f4ef 100644
+index b5106a3b36987dfdd5141ae1cbd229e6db020cd9..804b0637acd5e86e420dbaa11559ca9f3017281b 100644
 --- a/Test.java
 +++ b/Test.java
 @@ -13,4 +13,8 @@ public class Test {

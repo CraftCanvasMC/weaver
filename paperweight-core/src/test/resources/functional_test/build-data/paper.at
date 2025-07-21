@@ -1,3 +1,4 @@
 # This file is auto generated, any changes may be overridden!
 # See CONTRIBUTING.md on how to add access transformers.
 public net.minecraft.core.Rotations y
+private net.minecraft.util.crash.CrashReport <init>(Ljava/lang/String;Ljava/lang/Throwable;)V

@@ -30,12 +30,17 @@ import org.gradle.kotlin.dsl.*
 import org.junit.jupiter.api.io.TempDir
 
 class ApplyFilePatchesTest : TaskTest() {
+    private lateinit var task2: ApplyBasePatches
     private lateinit var task: ApplyFilePatches
 
     @BeforeTest
     fun setup() {
         val project = setupProject()
-        task = project.tasks.register("applyPatches", ApplyFilePatches::class).get()
+        task2 = project.tasks.register("applyBasePatches", ApplyBasePatches::class).get()
+        task = project.tasks.register("applyPatches", ApplyFilePatches::class) {
+            dependsOn(task2)
+        }
+            .get()
     }
 
     @Test
@@ -49,12 +54,17 @@ class ApplyFilePatchesTest : TaskTest() {
 
         setupGitRepo(input, "main")
 
-        task.base.set(input)
+        task2.input.set(input)
+        task2.output.set(output)
+        task2.identifier.set("test")
+
+        task.base.set(task2.output)
         task.repo.set(output)
         task.patches.set(patches)
         task.verbose.set(true)
         task.identifier.set("test")
 
+        task2.run()
         task.run()
 
         val testOutput = testResource.resolve("output")

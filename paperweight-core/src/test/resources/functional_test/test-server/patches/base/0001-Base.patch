@@ -14,5 +14,5 @@ index 3e0e88afcf010d9a3d46e48bca5cbdf98fe97544..18e63dca2a315ad01fa5b80ec126f4ea
      private final SystemReport systemReport = new SystemReport();
 +    private List<String> extraInfo = List.of("", "Woooo", ""); // WOOOOO
  
-     public CrashReport(String title, Throwable exception) {
+     private CrashReport(String title, Throwable exception) {
          io.papermc.paper.util.StacktraceDeobfuscator.INSTANCE.deobfuscateThrowable(exception); // Paper

@@ -82,9 +82,9 @@ abstract class ApplyBasePatches : ControllableOutputTask() {
     abstract val additionalRemoteName: Property<String>
 
     override fun init() {
-        printOutput.convention(true).finalizeValueOnRead()
+        printOutput.convention(false).finalizeValueOnRead()
         additionalRemoteName.convention("old")
-        verbose.convention(true)
+        verbose.convention(false)
         emitRejects.convention(false)
     }
 

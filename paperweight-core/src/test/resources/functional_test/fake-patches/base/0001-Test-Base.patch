@@ -5,7 +5,7 @@ Subject: [PATCH] Test Base
 
 
 diff --git a/Test.java b/Test.java
-index 51f6794c111f68e72cc4054c01f0c8896afaf292..d047a159f76d162bc24b030a575252202e57080c 100644
+index 1f7aa5bc6212dec883505d3672b6a108a785dd47..bf731c042bf7f59b60378df1d61302e1769a6a77 100644
 --- a/Test.java
 +++ b/Test.java
 @@ -7,7 +7,7 @@ public class Test {

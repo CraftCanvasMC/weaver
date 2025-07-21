@@ -5,12 +5,12 @@ Subject: [PATCH] Feature
 
 
 diff --git a/Test.java b/Test.java
-index 51f6794c111f68e72cc4054c01f0c8896afaf292..d047a159f76d162bc24b030a575252202e57080c 100644
+index b5106a3b36987dfdd5141ae1cbd229e6db020cd9..412773ad543cc9a5116044dc138cc08300b2dd1b 100644
 --- a/Test.java
 +++ b/Test.java
 @@ -13,4 +13,8 @@ public class Test {
-     public String getTest2() {
-         return this.test + "2"; // Woo
+     public final String getTest2() {
+         return this.test + "2";
      }
 +
 +    public String feature() {

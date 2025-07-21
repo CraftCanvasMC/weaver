@@ -2,4 +2,3 @@
 # See CONTRIBUTING.md on how to add access transformers.
 public+f Test dum2
 public-f Test getTest()Ljava/lang/String;
-public-f Test getTest2()Ljava/lang/String;
