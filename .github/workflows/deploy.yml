@@ -1,11 +1,17 @@
-name: Deploy
+name: Deploy Snapshot
 on:
   push:
-    tags: [ 'v*' ]
+    branches: [ 'basepatches' ]
+    paths-ignore:
+      - 'license/*'
+      - 'readme.md'
+      - '.gitignore'
+      - '.gitattributes'
+      - '.editorconfig'
 
 jobs:
   deploy:
-    name: Deploy
+    name: Deploy Snapshot
     runs-on: 'ubuntu-latest'
     steps:
       - uses: actions/checkout@v4
@@ -13,10 +19,8 @@ jobs:
         with:
           java-version: 21
           distribution: 'temurin'
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v4
-      - name: Deploy release
-        run: ./gradlew publish -x test --no-daemon --stacktrace
+      - name: Deploy Version
+        run: ./gradlew publishAllPublicationsToCentralRepository
         env:
-          ORG_GRADLE_PROJECT_username: ${{ secrets.PUBLISH_USER }}
-          ORG_GRADLE_PROJECT_password: ${{ secrets.PUBLISH_TOKEN }}
+          PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
+          PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
