@@ -78,7 +78,9 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             "--grep= Base Patches",
             "--max-count=1",
             "base..HEAD"
-        ).getText().trim()
+        ).getText().trim().let {
+            if (it.isNotEmpty()) "$it" else git("rev-list", "--grep= Base Patches", "--max-count=1", "base..HEAD").getText().trim()
+        } // fallback to the old logic for tests
         val fileCommit = git(
             "rev-list",
             "--all-match",
@@ -86,7 +88,9 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             "--grep= File Patches",
             "--max-count=1",
             "base..HEAD"
-        ).getText().trim()
+        ).getText().trim().let {
+            if (it.isNotEmpty()) "$it" else git("rev-list", "--grep= File Patches", "--max-count=1", "base..HEAD").getText().trim()
+        } // fallback to the old logic for tests
 
         // we update the patchedBase tag
         git("checkout", "patchedBase").executeSilently(silenceErr = true)
