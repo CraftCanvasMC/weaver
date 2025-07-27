@@ -23,6 +23,7 @@
 package io.papermc.paperweight.tasks
 
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import javax.inject.Inject
 import kotlin.io.path.*
@@ -132,7 +133,7 @@ abstract class ApplyAccessTransform : JavaLauncherTask() {
                     inheritanceProvider.set(
                         it,
                         ClassProviderInheritanceProvider(
-                            Opcodes.ASM9,
+                            ASM_OPCODES_VERSION,
                             classProvider.get(inheritanceProvider.get(it)) as ClassProvider
                         )
                     )
@@ -168,7 +169,7 @@ class AccessTransformerVisitor(
     private val at: AccessTransformSet,
     private val inheritanceProvider: InheritanceProvider,
     writer: ClassWriter
-) : ClassVisitor(Opcodes.ASM9, writer) {
+) : ClassVisitor(ASM_OPCODES_VERSION, writer) {
 
     private lateinit var classTransform: AccessTransformSet.Class
 

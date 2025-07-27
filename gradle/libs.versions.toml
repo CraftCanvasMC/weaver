@@ -5,6 +5,7 @@ hypo = "1.2.4"
 serialize = "1.8.1"
 jst = "1.0.68+paper.2-SNAPSHOT"
 tinyRemapper = "0.11.1"
+accessWidener = "2.1.0"
 
 [libraries]
 asm-core = { module = "org.ow2.asm:asm", version.ref = "asm" }
@@ -40,6 +41,7 @@ serialize-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", 
 jst = { module = "io.papermc.jst:jst-cli-bundle", version.ref = "jst" }
 # jst = { module = "net.neoforged.jst:jst-cli-bundle", version.ref = "jst" }
 tinyRemapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tinyRemapper" }
+accessWidener = { module = "net.fabricmc:access-widener", version.ref = "accessWidener" }
 
 # test
 mockk = "io.mockk:mockk:1.14.2"

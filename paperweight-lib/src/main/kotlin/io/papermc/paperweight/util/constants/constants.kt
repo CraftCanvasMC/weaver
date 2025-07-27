@@ -23,6 +23,7 @@
 package io.papermc.paperweight.util.constants
 
 import org.gradle.api.Task
+import org.objectweb.asm.Opcodes
 
 const val PAPERWEIGHT_EXTENSION = "paperweight"
 const val PAPERWEIGHT_DEBUG = "paperweight.debug"
@@ -51,6 +52,7 @@ const val MACHE_CONSTANTS_CONFIG = "macheConstants"
 const val MACHE_MINECRAFT_LIBRARIES_CONFIG = "macheMinecraftLibraries"
 const val MACHE_MINECRAFT_CONFIG = "macheMinecraft"
 const val MAPPED_JAR_OUTGOING_CONFIG = "mappedJarOutgoing"
+const val ASM_OPCODES_VERSION = Opcodes.ASM9
 const val JST_CONFIG = "javaSourceTransformer"
 const val DEV_BUNDLE_CONFIG = "paperweightDevelopmentBundle"
 const val MOJANG_MAPPED_SERVER_CONFIG = "mojangMappedServer"

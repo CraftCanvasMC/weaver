@@ -23,6 +23,7 @@
 package io.papermc.paperweight.tasks
 
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import kotlin.io.path.*
 import org.gradle.api.Action
@@ -38,7 +39,6 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 import org.objectweb.asm.ClassVisitor
 import org.objectweb.asm.MethodVisitor
-import org.objectweb.asm.Opcodes
 import org.objectweb.asm.tree.ClassNode
 
 @Suppress("LeakingThis")
@@ -107,7 +107,7 @@ abstract class RelocateClassNameConstants : BaseTask() {
     private class ConstantRelocatingClassVisitor(
         parent: ClassVisitor,
         private val relocations: List<RelocationWrapper>
-    ) : ClassVisitor(Opcodes.ASM9, parent) {
+    ) : ClassVisitor(ASM_OPCODES_VERSION, parent) {
         override fun visitMethod(
             access: Int,
             name: String?,
@@ -115,7 +115,7 @@ abstract class RelocateClassNameConstants : BaseTask() {
             signature: String?,
             exceptions: Array<out String>?
         ): MethodVisitor {
-            return object : MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+            return object : MethodVisitor(ASM_OPCODES_VERSION, super.visitMethod(access, name, descriptor, signature, exceptions)) {
                 override fun visitLdcInsn(value: Any?) {
                     if (value is String) {
                         var v: String = value
