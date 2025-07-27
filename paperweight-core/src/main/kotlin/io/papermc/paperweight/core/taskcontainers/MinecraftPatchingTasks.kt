@@ -173,11 +173,12 @@ class MinecraftPatchingTasks(
     }
 
     fun setupFork(config: ForkConfig) {
-        val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${configName.capitalized()}ATsFromPatches") {
-            patchDir.set(featurePatchDir.fileExists(project))
+        val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${configName.capitalized()}MinecraftATsFromPatches") {
+            patchDir.set(basePatchDir.fileExists(project))
+            extraPatchDir.set(featurePatchDir.fileExists(project))
         }
 
-        val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${configName.capitalized()}ATs") {
+        val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${configName.capitalized()}MinecraftATs") {
             firstFile.set(additionalAts.fileExists(project))
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
@@ -189,7 +190,7 @@ class MinecraftPatchingTasks(
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
         }
 
-        val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}Setup") {
+        val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}MinecraftSetup") {
             description = "Applies $configName ATs and library imports to Minecraft sources"
 
             inputDir.set(baseSources)
@@ -204,13 +205,7 @@ class MinecraftPatchingTasks(
 
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
-        }
-
-        applySourcePatches.configure {
-            base.set(applyBasePatches.flatMap { it.output })
-        }
-        applySourcePatchesFuzzy.configure {
-            base.set(applyBasePatches.flatMap { it.output })
+            base.set(setup.flatMap { it.outputDir })
         }
 
         val name = "rebuild${namePart}SourcePatches"

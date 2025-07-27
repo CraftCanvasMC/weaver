@@ -74,7 +74,8 @@ class CoreTasks(
     }
 
     val collectPaperATsFromPatches by tasks.registering(CollectATsFromPatches::class) {
-        patchDir.set(project.coreExt.paper.featurePatchDir.fileExists(project))
+        patchDir.set(project.coreExt.paper.basePatchDir.fileExists(project))
+        extraPatchDir.set(project.coreExt.paper.featurePatchDir.fileExists(project))
     }
 
     val mergePaperATs by tasks.registering<MergeAccessTransforms> {

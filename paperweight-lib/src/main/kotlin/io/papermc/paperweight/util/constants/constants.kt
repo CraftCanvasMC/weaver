@@ -64,6 +64,7 @@ const val DECOMPILER_REPO_NAME = "paperweightDecompilerRepository"
 const val REMAPPER_REPO_NAME = "paperweightRemapperRepository"
 const val PLUGIN_REMAPPER_REPO_NAME = "paperweightPluginRemapperRepository"
 const val MACHE_REPO_NAME = "paperweightMacheRepository"
+const val JST_REPO_NAME = "paperweightJstRepository"
 
 const val CACHE_PATH = "caches"
 private const val PAPER_PATH = "paperweight"

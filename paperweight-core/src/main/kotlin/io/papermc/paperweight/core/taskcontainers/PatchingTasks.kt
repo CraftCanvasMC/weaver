@@ -22,6 +22,8 @@
 
 package io.papermc.paperweight.core.taskcontainers
 
+import io.papermc.paperweight.core.extension.UpstreamConfig
+import io.papermc.paperweight.core.tasks.SetupForkSources
 import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
@@ -30,12 +32,13 @@ import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.paperTaskOutput
+import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.*
@@ -50,6 +53,7 @@ class PatchingTasks(
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
+    private val additionalAts: RegularFileProperty?,
     private val baseDir: Provider<Directory>,
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
@@ -132,6 +136,34 @@ class PatchingTasks(
     init {
         if (!readOnly) {
             setupWritable()
+        }
+    }
+
+    fun setupUpstream(cfg: UpstreamConfig.DirectoryPatchSet) {
+        val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${namePart}ATsFromPatches") {
+            patchDir.set(basePatchDir.fileExists(project))
+            extraPatchDir.set(featurePatchDir.fileExists(project))
+        }
+
+        val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${namePart}ATs") {
+            additionalAts?.let {
+                firstFile.set(it.fileExists(project))
+            }
+            secondFile.set(collectAccessTransform.flatMap { it.outputFile })
+        }
+
+        val setup = tasks.register<SetupForkSources>("run${namePart}Setup") {
+            description = "Applies $forkName ATs to non-minecraft sources"
+            inputDir.set(baseDir)
+            outputDir.set(layout.cache.resolve(paperTaskOutput()))
+            identifier.set(namePart)
+            atFile.set(mergeCollectedAts.flatMap { it.outputFile })
+            ats.jst.from(project.configurations.named(JST_CONFIG))
+        }
+
+        applyBasePatches.configure {
+            input.set(setup.flatMap { it.outputDir })
+            base.set(setup.flatMap { it.outputDir })
         }
     }
 

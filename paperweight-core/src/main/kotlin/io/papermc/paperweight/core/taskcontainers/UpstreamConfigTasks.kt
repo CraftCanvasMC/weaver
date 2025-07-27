@@ -122,7 +122,7 @@ class UpstreamConfigTasks(
             createBaseFromDirectoryInRepo(cfg)
         }
 
-        return PatchingTasks(
+        val tasks = PatchingTasks(
             target,
             forkName,
             cfg.name,
@@ -132,11 +132,14 @@ class UpstreamConfigTasks(
             cfg.filePatchDir,
             cfg.rejectsDir,
             cfg.featurePatchDir,
+            cfg.additionalAts,
             base,
             gitFilePatches,
             filterPatches,
             cfg.outputDir.path,
         )
+        tasks.setupUpstream(cfg)
+        return tasks
     }
 
     private fun createBaseFromRepo(cfg: UpstreamConfig.RepoPatchSet): Provider<Directory> {

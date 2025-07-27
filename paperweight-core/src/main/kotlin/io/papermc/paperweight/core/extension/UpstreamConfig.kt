@@ -101,6 +101,7 @@ abstract class UpstreamConfig @Inject constructor(
         abstract val excludes: SetProperty<String>
 
         abstract val outputDir: DirectoryProperty
+        abstract val additionalAts: RegularFileProperty?
 
         abstract val patchesDir: DirectoryProperty
         val rejectsDir: DirectoryProperty = objects.dirFrom(patchesDir, "rejected")
