@@ -196,7 +196,7 @@ abstract class PaperweightCore : Plugin<Project> {
             )
 
             if (coreExt.updatingMinecraft.oldPaperCommit.isPresent) {
-                tasks.paperPatchingTasks.applySourcePatches.configure {
+                tasks.paperPatchingTasks.applyBasePatches.configure {
                     additionalRemote = layout.cache.resolve(
                         "$OLD_PAPER_PATH/${coreExt.updatingMinecraft.oldPaperCommit.get()}/paper-server/src/minecraft/java"
                     ).absolutePathString()

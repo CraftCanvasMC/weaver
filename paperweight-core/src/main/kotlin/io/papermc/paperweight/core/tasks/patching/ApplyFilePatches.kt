@@ -69,21 +69,9 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Optional
     abstract val base: DirectoryProperty
 
-    @get:Optional
-    @get:Input
-    abstract val baseRef: Property<String>
-
     @get:Input
     @get:Optional
     abstract val identifier: Property<String>
-
-    // An additional remote to add and fetch from before applying patches (to bring in objects for 3-way merge).
-    @get:Input
-    @get:Optional
-    abstract val additionalRemote: Property<String>
-
-    @get:Input
-    abstract val additionalRemoteName: Property<String>
 
     @get:Input
     abstract val moveFailedGitPatchesToRejects: Property<Boolean>
@@ -95,7 +83,6 @@ abstract class ApplyFilePatches : BaseTask() {
         run {
             verbose.convention(false)
             gitFilePatches.convention(false)
-            additionalRemoteName.convention("old")
             moveFailedGitPatchesToRejects.convention(false)
             emitRejects.convention(true)
         }
@@ -125,9 +112,7 @@ abstract class ApplyFilePatches : BaseTask() {
         if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
             git("checkout", "-b", "main").runSilently(silenceErr = true)
         }
-        if (git("reset", "--hard", "patchedBase").runSilently(silenceErr = true) != 0) {
-            git("reset", "--hard", "upstream/main").runSilently(silenceErr = true) // resources special handling
-        }
+        git("reset", "--hard", "patchedBase").runSilently(silenceErr = true)
         git("gc").runSilently(silenceErr = true)
 
         val result = if (!patches.isPresent) {

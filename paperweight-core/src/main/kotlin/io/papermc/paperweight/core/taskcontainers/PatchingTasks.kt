@@ -71,10 +71,8 @@ class PatchingTasks(
         } else {
             output.set(outputDir)
         }
-
-        base.set(baseDir)
-        baseRef.set("base")
         patches.set(basePatchDir.fileExists(project))
+        baseRef.set("base")
         identifier = "$forkName $patchSetName"
     }
 
@@ -84,15 +82,14 @@ class PatchingTasks(
         dependsOn(applyBasePatches)
 
         if (readOnly) {
+            base.set(applyBasePatches.flatMap { it.output })
             repo.set(layout.cache.resolve(paperTaskOutput()))
         } else {
             repo.set(outputDir)
         }
-
         patches.set(filePatchDir.fileExists(project))
         rejectsDir.set(this@PatchingTasks.rejectsDir)
         gitFilePatches.set(this@PatchingTasks.gitFilePatches)
-        base.set(applyBasePatches.flatMap { it.output })
         identifier = "$forkName $patchSetName"
     }
 
@@ -160,7 +157,6 @@ class PatchingTasks(
 
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
-            base.set(setup.flatMap { it.outputDir })
         }
     }
 

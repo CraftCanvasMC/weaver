@@ -50,10 +50,6 @@ abstract class ApplyBasePatches : ControllableOutputTask() {
     @get:OutputDirectory
     abstract val output: DirectoryProperty
 
-    @get:InputDirectory
-    @get:Optional
-    abstract val base: DirectoryProperty
-
     @get:Optional
     @get:Input
     abstract val baseRef: Property<String>

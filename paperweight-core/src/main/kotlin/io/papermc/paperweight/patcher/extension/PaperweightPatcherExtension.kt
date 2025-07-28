@@ -23,7 +23,7 @@
 package io.papermc.paperweight.patcher.extension
 
 import io.papermc.paperweight.core.extension.UpstreamConfig
-import io.papermc.paperweight.util.constants.*
+import io.papermc.paperweight.util.constants.PAPER_MAVEN_REPO_URL
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer

@@ -80,16 +80,11 @@ class MinecraftPatchingTasks(
         dependsOn(applyResourcePatches)
 
         input.set(baseSources)
-
-        base.set(baseSources)
-
         if (readOnly) {
             output.set(outputSrcFile)
         } else {
             output.set(outputSrc)
         }
-
-        baseRef.set("upstream/main")
         patches.set(basePatchDir.fileExists(project))
         identifier = configName
     }
@@ -100,11 +95,11 @@ class MinecraftPatchingTasks(
         dependsOn(applyBasePatches)
 
         if (readOnly) {
+            base.set(applyBasePatches.flatMap { it.output })
             repo.set(outputSrcFile)
         } else {
             repo.set(outputSrc)
         }
-        base.set(applyBasePatches.flatMap { it.output })
         patches.set(sourcePatchDir.fileExists(project))
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
@@ -205,14 +200,6 @@ class MinecraftPatchingTasks(
 
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
-            base.set(setup.flatMap { it.outputDir })
-        }
-
-        val name = "rebuild${namePart}SourcePatches"
-        if (name in tasks.names) {
-            tasks.named<RebuildFilePatches>(name) {
-                dependsOn(rebuildBasePatchesName)
-            }
         }
     }
 
@@ -255,7 +242,6 @@ class MinecraftPatchingTasks(
             description = "Rebuilds $configName file patches to the Minecraft sources"
             dependsOn(rebuildBasePatches)
 
-            // base.set(baseSources) maybe look into this for ats in the future but rn we use commit based repo states not dir
             input.set(outputSrc)
             patches.set(sourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
