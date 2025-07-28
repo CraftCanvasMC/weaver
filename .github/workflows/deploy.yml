@@ -20,7 +20,7 @@ jobs:
           java-version: 21
           distribution: 'temurin'
       - name: Deploy Version
-        run: ./gradlew publishAllPublicationsToCanvasRepository
+        run: ./gradlew publishAllPublicationsToCanvasmcRepository
         env:
           PUBLISH_USER: ${{ secrets.PUBLISH_USER }}
           PUBLISH_TOKEN: ${{ secrets.PUBLISH_TOKEN }}

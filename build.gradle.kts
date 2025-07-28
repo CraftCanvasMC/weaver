@@ -7,8 +7,3 @@ tasks.register("printVersion") {
 tasks.wrapper {
     distributionType = Wrapper.DistributionType.ALL
 }
-
-tasks.register("publishAllPublicationsToCanvasRepository") {
-    dependsOn(":paperweight-core:publishAllPublicationsToCentralRepository")
-    dependsOn(":paperweight-userdev:publishAllPublicationsToCentralRepository")
-}
