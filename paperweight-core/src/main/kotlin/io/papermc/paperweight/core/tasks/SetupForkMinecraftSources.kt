@@ -68,7 +68,25 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
 
         val git = Git.open(outputDir.path.toFile())
 
-        if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
+        if (atFile.isPresent && atFile.path.readText().isNotBlank() && libraryImports.isPresent) {
+            println("Applying access transformers...")
+
+            libraryImports.path.walk().forEach {
+                val outFile = inputDir.path.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
+                // The file may already exist if upstream imported it
+                if (!outFile.exists()) {
+                    it.copyTo(outFile.createParentDirectories())
+                }
+            }
+            ats.run(
+                launcher.get(),
+                inputDir.path,
+                outputDir.path,
+                atFile.path,
+                temporaryDir.toPath(),
+            )
+            commitAndTag(git, "ATs", "${identifier.get()} ATs and Imports")
+        } else if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
             println("Applying access transformers...")
             ats.run(
                 launcher.get(),
@@ -78,9 +96,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 temporaryDir.toPath(),
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
-        }
-
-        if (libraryImports.isPresent) {
+        } else if (libraryImports.isPresent) {
             libraryImports.path.walk().forEach {
                 val outFile = out.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
                 // The file may already exist if upstream imported it

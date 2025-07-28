@@ -138,7 +138,7 @@ class UpstreamConfigTasks(
             filterPatches,
             cfg.outputDir.path,
         )
-        tasks.setupUpstream(cfg)
+        tasks.setupUpstream()
         return tasks
     }
 

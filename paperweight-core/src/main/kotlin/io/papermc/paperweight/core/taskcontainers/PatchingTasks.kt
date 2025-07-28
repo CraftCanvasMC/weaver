@@ -22,7 +22,6 @@
 
 package io.papermc.paperweight.core.taskcontainers
 
-import io.papermc.paperweight.core.extension.UpstreamConfig
 import io.papermc.paperweight.core.tasks.SetupForkSources
 import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
@@ -139,16 +138,14 @@ class PatchingTasks(
         }
     }
 
-    fun setupUpstream(cfg: UpstreamConfig.DirectoryPatchSet) {
+    fun setupUpstream() {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${namePart}ATsFromPatches") {
             patchDir.set(basePatchDir.fileExists(project))
             extraPatchDir.set(featurePatchDir.fileExists(project))
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${namePart}ATs") {
-            additionalAts?.let {
-                firstFile.set(it.fileExists(project))
-            }
+            additionalAts?.let { firstFile.set(it.fileExists(project)) }
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
 
