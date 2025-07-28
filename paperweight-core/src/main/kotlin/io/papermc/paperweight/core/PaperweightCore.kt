@@ -202,6 +202,9 @@ abstract class PaperweightCore : Plugin<Project> {
                     ).absolutePathString()
                     emitRejects = false
                 }
+                tasks.paperPatchingTasks.applySourcePatches.configure {
+                    emitRejects = false
+                }
 
                 PatchRouletteTasks(
                     target,
