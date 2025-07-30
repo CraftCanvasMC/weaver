@@ -201,6 +201,13 @@ class MinecraftPatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
+        /* uncomment this when we enable validation of ATs since then seperate AT files will be forced, right now this breaks on projects with one AT file for many modules
+        val name = "rebuild${namePart}BasePatches"
+        if (name in tasks.names) {
+            tasks.named<RebuildBaseGitPatches>(name) {
+                base.set(setup.flatMap { it.outputDir })
+            }
+         */
     }
 
     private fun setupWritable() {
@@ -245,6 +252,7 @@ class MinecraftPatchingTasks(
             input.set(outputSrc)
             patches.set(sourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
+            filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
 
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_CONFIG))
             ats.jst.from(project.configurations.named(JST_CONFIG))

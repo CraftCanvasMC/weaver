@@ -200,11 +200,10 @@ abstract class PaperweightCore : Plugin<Project> {
                     additionalRemote = layout.cache.resolve(
                         "$OLD_PAPER_PATH/${coreExt.updatingMinecraft.oldPaperCommit.get()}/paper-server/src/minecraft/java"
                     ).absolutePathString()
-                    emitRejects = false
                 }
                 tasks.paperPatchingTasks.applySourcePatches.configure {
                     emitRejects = false
-                }
+                } // if we ever make features/base emit rejects by default, we should update this.
 
                 PatchRouletteTasks(
                     target,
