@@ -92,17 +92,9 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             if (it.isNotEmpty()) "$it" else git("rev-list", "--grep= File Patches", "--max-count=1", "base..HEAD").getText().trim()
         } // fallback to the old logic for tests
 
-        // we update the patchedBase tag
-        git("checkout", "patchedBase").executeSilently(silenceErr = true)
-        git("reset", patchedBaseCommit, "--hard").executeSilently(silenceErr = true)
-        git("tag", "-f", "patchedBase").executeSilently(silenceErr = true)
-        git("switch", "-").executeSilently(silenceErr = true)
-
-        // and here we update the file tag
-        git("checkout", "file").executeSilently(silenceErr = true)
-        git("reset", fileCommit, "--hard").executeSilently(silenceErr = true)
-        git("tag", "-f", "file").executeSilently(silenceErr = true)
-        git("switch", "-").executeSilently(silenceErr = true)
+        // we update the appropriate tags to reflect the new repo state
+        git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
+        git("tag", "-f", "file", fileCommit).executeSilently(silenceErr = true)
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
