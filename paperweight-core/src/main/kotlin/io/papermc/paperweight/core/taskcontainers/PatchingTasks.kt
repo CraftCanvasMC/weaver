@@ -187,6 +187,7 @@ class PatchingTasks(
             inputDir.set(outputDir)
             patchDir.set(basePatchDir)
             filterPatches.set(this@PatchingTasks.filterPatches)
+            identifier = "$forkName $patchSetName"
         }
         val rebuildFilePatches = tasks.register<RebuildFilePatches>(rebuildFilePatchesName) {
             group = taskGroup
