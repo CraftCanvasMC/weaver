@@ -242,6 +242,7 @@ class MinecraftPatchingTasks(
             inputDir.set(outputSrc)
             patchDir.set(basePatchDir)
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
+            identifier = configName
         }
 
         val rebuildSourcePatches = tasks.register<RebuildFilePatches>(rebuildSourcePatchesName) {

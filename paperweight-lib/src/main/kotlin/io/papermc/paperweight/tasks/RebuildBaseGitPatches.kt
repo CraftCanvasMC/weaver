@@ -54,11 +54,10 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     abstract val providers: ProviderFactory
 
     @get:Input
-    abstract val projectName: Property<String>
+    abstract val identifier: Property<String>
 
     override fun init() {
         printOutput.convention(true)
-        projectName.convention(project.rootProject.name.lowercase())
         filterPatches.convention(
             providers.gradleProperty("paperweight.filter-patches")
                 .map { it.toBoolean() }
@@ -71,26 +70,8 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         val git = Git(inputDir.path)
 
         // these have to be retrieved dynamically
-        val patchedBaseCommit = git(
-            "rev-list",
-            "--all-match",
-            "--grep=${projectName.get()} ",
-            "--grep= Base Patches",
-            "--max-count=1",
-            "base..HEAD"
-        ).getText().trim().let {
-            if (it.isNotEmpty()) "$it" else git("rev-list", "--grep= Base Patches", "--max-count=1", "base..HEAD").getText().trim()
-        } // fallback to the old logic for tests
-        val fileCommit = git(
-            "rev-list",
-            "--all-match",
-            "--grep=${projectName.get()} ",
-            "--grep= File Patches",
-            "--max-count=1",
-            "base..HEAD"
-        ).getText().trim().let {
-            if (it.isNotEmpty()) "$it" else git("rev-list", "--grep= File Patches", "--max-count=1", "base..HEAD").getText().trim()
-        } // fallback to the old logic for tests
+        val patchedBaseCommit = git("rev-list", "--grep=${identifier.get()} Base Patches", "--max-count=1", "base..HEAD").getText().trim()
+        val fileCommit = git("rev-list", "--grep=${identifier.get()} File Patches", "--max-count=1", "base..HEAD").getText().trim()
 
         // we update the appropriate tags to reflect the new repo state
         git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
