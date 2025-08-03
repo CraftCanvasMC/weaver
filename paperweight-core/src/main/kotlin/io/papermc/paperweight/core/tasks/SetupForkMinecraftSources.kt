@@ -64,13 +64,8 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @TaskAction
     fun run() {
         val out = outputDir.path.cleanDir()
-        inputDir.path.copyRecursivelyTo(out)
 
-        val git = Git.open(outputDir.path.toFile())
-
-        if (atFile.isPresent && atFile.path.readText().isNotBlank() && libraryImports.isPresent) {
-            println("Applying access transformers...")
-
+        if (libraryImports.isPresent) {
             libraryImports.path.walk().forEach {
                 val outFile = inputDir.path.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
                 // The file may already exist if upstream imported it
@@ -78,6 +73,17 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                     it.copyTo(outFile.createParentDirectories())
                 }
             }
+        }
+
+        inputDir.path.copyRecursivelyTo(out)
+        val git = Git.open(outputDir.path.toFile())
+
+        if (libraryImports.isPresent) {
+            commitAndTag(git, "Imports", "${identifier.get()} Imports")
+        }
+
+        if (atFile.isPresent && atFile.path.readText().isNotBlank() && libraryImports.isPresent) {
+            println("Applying access transformers...")
             ats.run(
                 launcher.get(),
                 inputDir.path,
@@ -85,7 +91,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 atFile.path,
                 temporaryDir.toPath(),
             )
-            commitAndTag(git, "ATs", "${identifier.get()} ATs and Imports")
+            commitAndTag(git, "ATs", "${identifier.get()} ATs")
         } else if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
             println("Applying access transformers...")
             ats.run(
@@ -96,16 +102,6 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 temporaryDir.toPath(),
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
-        } else if (libraryImports.isPresent) {
-            libraryImports.path.walk().forEach {
-                val outFile = out.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
-                // The file may already exist if upstream imported it
-                if (!outFile.exists()) {
-                    it.copyTo(outFile.createParentDirectories())
-                }
-            }
-
-            commitAndTag(git, "Imports", "${identifier.get()} Imports")
         }
 
         git.close()
