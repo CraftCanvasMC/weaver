@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.tasks
 
+import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.util.*
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -69,10 +70,29 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     fun run() {
         val git = Git(inputDir.path)
 
+        // fail fast if someone decides to name their feature patch with these names to avoid patch corruption
+        val patchedBaseCommitCount = git(
+            "rev-list",
+            "--grep=${identifier.get()} Base Patches",
+            "base..HEAD"
+        ).getText().lines().filter { it.isNotBlank() }
+        if (patchedBaseCommitCount.size > 1) {
+            val count = patchedBaseCommitCount.size
+            throw PaperweightException(
+                "Exceeded the max amount of commits with the identifier: `${identifier.get()} Base Patches`!\nGot $count commits, expected: 1"
+            )
+        }
+        val fileCommitCount = git("rev-list", "--grep=${identifier.get()} File Patches", "base..HEAD").getText().lines().filter { it.isNotBlank() }
+        if (fileCommitCount.size > 1) {
+            val count = fileCommitCount.size
+            throw PaperweightException(
+                "Exceeded the max amount of commits with the identifier: `${identifier.get()} File Patches`!\nGot $count commits, expected: 1"
+            )
+        }
+
         // these have to be retrieved dynamically
         val patchedBaseCommit = git("rev-list", "--grep=${identifier.get()} Base Patches", "--max-count=1", "base..HEAD").getText().trim()
         val fileCommit = git("rev-list", "--grep=${identifier.get()} File Patches", "--max-count=1", "base..HEAD").getText().trim()
-
         // we update the appropriate tags to reflect the new repo state
         git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
         git("tag", "-f", "file", fileCommit).executeSilently(silenceErr = true)
