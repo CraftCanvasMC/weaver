@@ -82,17 +82,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
             commitAndTag(git, "Imports", "${identifier.get()} Imports")
         }
 
-        if (atFile.isPresent && atFile.path.readText().isNotBlank() && libraryImports.isPresent) {
-            println("Applying access transformers...")
-            ats.run(
-                launcher.get(),
-                inputDir.path,
-                outputDir.path,
-                atFile.path,
-                temporaryDir.toPath(),
-            )
-            commitAndTag(git, "ATs", "${identifier.get()} ATs")
-        } else if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
+        if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
             println("Applying access transformers...")
             ats.run(
                 launcher.get(),
