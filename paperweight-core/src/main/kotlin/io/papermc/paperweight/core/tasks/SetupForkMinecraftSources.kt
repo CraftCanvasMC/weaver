@@ -64,21 +64,18 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @TaskAction
     fun run() {
         val out = outputDir.path.cleanDir()
+        inputDir.path.copyRecursivelyTo(out)
+
+        val git = Git.open(outputDir.path.toFile())
 
         if (libraryImports.isPresent) {
             libraryImports.path.walk().forEach {
-                val outFile = inputDir.path.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
+                val outFile = out.resolve(it.relativeTo(libraryImports.path).invariantSeparatorsPathString)
                 // The file may already exist if upstream imported it
                 if (!outFile.exists()) {
                     it.copyTo(outFile.createParentDirectories())
                 }
             }
-        }
-
-        inputDir.path.copyRecursivelyTo(out)
-        val git = Git.open(outputDir.path.toFile())
-
-        if (libraryImports.isPresent) {
             commitAndTag(git, "Imports", "${identifier.get()} Imports")
         }
 
@@ -86,7 +83,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
             println("Applying access transformers...")
             ats.run(
                 launcher.get(),
-                inputDir.path,
+                outputDir.path,
                 outputDir.path,
                 atFile.path,
                 temporaryDir.toPath(),
