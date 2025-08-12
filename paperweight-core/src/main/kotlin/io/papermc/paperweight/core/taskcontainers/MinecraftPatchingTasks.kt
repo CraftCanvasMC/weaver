@@ -77,7 +77,7 @@ class MinecraftPatchingTasks(
     private fun ApplyBasePatches.configureApplyBasePatches() {
         group()
         description = "Applies $configName base patches to the Minecraft sources"
-        dependsOn(applyResourcePatches)
+        // dependsOn(applyResourcePatches)
 
         input.set(baseSources)
         if (readOnly) {
@@ -223,20 +223,9 @@ class MinecraftPatchingTasks(
             }
         }
 
-        val rebuildResourcePatches = tasks.register<RebuildFilePatches>(rebuildResourcePatchesName) {
-            group()
-            description = "Rebuilds $configName file patches to the Minecraft resources"
-
-            input.set(outputResources)
-            base.set(baseResources)
-            patches.set(resourcePatchDir)
-            gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
-        }
-
         val rebuildBasePatches = tasks.register<RebuildBaseGitPatches>(rebuildBasePatchesName) {
             group()
             description = "Rebuilds $configName base patches to the Minecraft source"
-            dependsOn(rebuildResourcePatches)
 
             base.set(baseSources) // workaround to achieve the correct task execution order
             inputDir.set(outputSrc)
@@ -259,6 +248,16 @@ class MinecraftPatchingTasks(
             ats.jst.from(project.configurations.named(JST_CONFIG))
             atFile.set(additionalAts.fileExists(project))
             atFileOut.set(additionalAts.fileExists(project))
+        }
+
+        val rebuildResourcePatches = tasks.register<RebuildFilePatches>(rebuildResourcePatchesName) {
+            group()
+            description = "Rebuilds $configName file patches to the Minecraft resources"
+
+            input.set(outputResources)
+            base.set(baseResources)
+            patches.set(resourcePatchDir)
+            gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
         }
 
         val rebuildFilePatches = tasks.register<Task>(rebuildFilePatchesName) {

@@ -108,15 +108,19 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
 
         // here we zip the parent commit's repo state and store it as our baseDir for later comparison overriding the baseDir prop
         val baseCommit = git("rev-parse", "HEAD~1").getText().trim()
-        val baseDir = temporaryDir.toPath().resolve("base")
-        val zip = temporaryDir.toPath().resolve("base.zip")
+        val baseDir = temporaryDir.toPath().resolve("base.zip")
 
-        if (zip.exists()) zip.deleteRecursive()
-        if (baseDir.exists()) baseDir.deleteRecursive()
+        if (baseDir.exists()) baseDir.deleteForcefully()
 
-        git("archive", "--format=zip", baseCommit, "-o", zip.absolutePathString()).executeSilently(silenceErr = true)
+        git("archive", "--format=zip", baseCommit, "-o", baseDir.absolutePathString()).executeSilently(silenceErr = true)
 
-        unzip(zip, baseDir)
+        // we have to open the zip to avoid passing in an empty one (causes sig errors)
+        baseDir.openZipSafe().use {
+            if (it.walkSequence().none { p -> p.isRegularFile() }) {
+                logger.lifecycle("Rebuilt 0 patches")
+                return
+            }
+        }
 
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
