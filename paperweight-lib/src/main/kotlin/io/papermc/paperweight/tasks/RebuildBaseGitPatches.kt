@@ -70,7 +70,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     fun run() {
         val git = Git(inputDir.path)
 
-        // fail fast if someone decides to name their feature patch with these names to avoid patch corruption
+        // fail fast if someone decides to name a patch with these names to avoid patch corruption
         val patchedBaseCommitCount = git(
             "rev-list",
             "--grep=${identifier.get()} Base Patches",
@@ -93,6 +93,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         // these have to be retrieved dynamically
         val patchedBaseCommit = git("rev-list", "--grep=${identifier.get()} Base Patches", "--max-count=1", "base..HEAD").getText().trim()
         val fileCommit = git("rev-list", "--grep=${identifier.get()} File Patches", "--max-count=1", "base..HEAD").getText().trim()
+
         // we update the appropriate tags to reflect the new repo state
         git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
         git("tag", "-f", "file", fileCommit).executeSilently(silenceErr = true)
