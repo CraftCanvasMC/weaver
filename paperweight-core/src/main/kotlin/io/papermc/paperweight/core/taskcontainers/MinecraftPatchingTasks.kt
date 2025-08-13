@@ -77,7 +77,6 @@ class MinecraftPatchingTasks(
     private fun ApplyBasePatches.configureApplyBasePatches() {
         group()
         description = "Applies $configName base patches to the Minecraft sources"
-        // dependsOn(applyResourcePatches)
 
         input.set(baseSources)
         if (readOnly) {
