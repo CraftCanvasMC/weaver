@@ -22,9 +22,11 @@
 
 package io.papermc.paperweight.core.tasks.patching
 
-import codechicken.diffpatch.cli.DiffOperation
-import codechicken.diffpatch.util.LogLevel
-import codechicken.diffpatch.util.LoggingOutputStream
+import io.codechicken.diffpatch.cli.DiffOperation
+import io.codechicken.diffpatch.util.ConsumingOutputStream
+import io.codechicken.diffpatch.util.Input as DiffInput
+import io.codechicken.diffpatch.util.LogLevel
+import io.codechicken.diffpatch.util.Output as DiffOutput
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.*
@@ -81,20 +83,11 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
 
-    @get:Input
-    @get:Optional
-    abstract val filterPatches: Property<Boolean>
-
     override fun init() {
         super.init()
         contextLines.convention(3)
         verbose.convention(false)
         gitFilePatches.convention(false)
-        filterPatches.convention(
-            project.providers.gradleProperty("paperweight.filter-patches")
-                .map { it.toBoolean() }
-                .orElse(true)
-        )
     }
 
     @TaskAction
@@ -203,13 +196,13 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         baseDir: Path,
         inputDir: Path,
         patchDir: Path
-    ): Int {
-        val printStream = PrintStream(LoggingOutputStream(logger, org.gradle.api.logging.LogLevel.LIFECYCLE))
+    ): Int? {
+        val printStream = PrintStream(ConsumingOutputStream { s -> logger.log(org.gradle.api.logging.LogLevel.LIFECYCLE, s) })
         val result = DiffOperation.builder()
             .logTo(printStream)
-            .aPath(baseDir)
-            .bPath(inputDir)
-            .outputPath(patchDir)
+            .baseInput(DiffInput.MultiInput.folder(baseDir))
+            .changedInput(DiffInput.MultiInput.folder(inputDir))
+            .patchesOutput(DiffOutput.MultiOutput.folder(patchDir))
             .autoHeader(true)
             .level(if (verbose.get()) LogLevel.ALL else LogLevel.INFO)
             .lineEnding("\n")
@@ -222,11 +215,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             .build()
             .operate()
 
-        return if (filterPatches.get()) {
-            cleanupPatches(patchDir)
-        } else {
-            result.summary.changedFiles
-        }
+        return result.summary?.changedFiles
     }
 
     // TODO: look into moving this earlier in the source tree, still most of it is broken anyway
@@ -327,26 +316,5 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         }
 
         return foundNew
-    }
-
-    // filter patches since our diff library seems to emit patches for empty files that existed in the baseDir
-    private fun cleanupPatches(patchDir: Path): Int {
-        var saved = 0
-        val patches = patchDir.filesMatchingRecursive("*.patch")
-        patches.forEach { patch ->
-            val hasChanges = patch.useLines { lines ->
-                lines.any {
-                    (it.startsWith("+") && !it.startsWith("+++")) ||
-                        (it.startsWith("-") && !it.startsWith("---"))
-                }
-            }
-
-            if (!hasChanges) {
-                patch.deleteForcefully()
-            } else {
-                saved++
-            }
-        }
-        return saved
     }
 }

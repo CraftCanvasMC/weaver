@@ -241,7 +241,6 @@ class MinecraftPatchingTasks(
             input.set(outputSrc)
             patches.set(sourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
-            filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
 
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_CONFIG))
             ats.jst.from(project.configurations.named(JST_CONFIG))
