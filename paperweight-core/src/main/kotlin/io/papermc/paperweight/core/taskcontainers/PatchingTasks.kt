@@ -197,7 +197,6 @@ class PatchingTasks(
             input.set(outputDir)
             patches.set(filePatchDir)
             gitFilePatches.set(this@PatchingTasks.gitFilePatches)
-            filterPatches.set(this@PatchingTasks.filterPatches)
         }
 
         val fixupFilePatches = tasks.register<FixupFilePatches>(fixupFilePatchesName) {
