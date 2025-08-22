@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.patcher.extension
 
+import io.papermc.paperweight.core.extension.AdditionalUpstreamConfig
 import io.papermc.paperweight.core.extension.UpstreamConfig
 import io.papermc.paperweight.util.constants.PAPER_MAVEN_REPO_URL
 import javax.inject.Inject
@@ -41,6 +42,10 @@ abstract class PaperweightPatcherExtension @Inject constructor(private val objec
 
     val upstreams: NamedDomainObjectContainer<UpstreamConfig> = objects.domainObjectContainer(UpstreamConfig::class) {
         objects.newInstance(it, true)
+    }
+
+    val additionalUpstreams: NamedDomainObjectContainer<AdditionalUpstreamConfig> = objects.domainObjectContainer(AdditionalUpstreamConfig::class) {
+        objects.newInstance(it)
     }
 
     fun NamedDomainObjectContainer<UpstreamConfig>.paper(

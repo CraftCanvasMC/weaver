@@ -24,6 +24,7 @@ package io.papermc.paperweight.patcher
 
 import io.papermc.paperweight.core.taskcontainers.UpstreamConfigTasks
 import io.papermc.paperweight.core.tasks.CheckoutRepo
+import io.papermc.paperweight.core.tasks.GeneratePatches
 import io.papermc.paperweight.core.tasks.RunNestedBuild
 import io.papermc.paperweight.patcher.extension.PaperweightPatcherExtension
 import io.papermc.paperweight.util.*
@@ -114,6 +115,30 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     "(equivalent to running '$depend' and then '${tasks.get().single()}' in a second Gradle invocation)"
                 projectDir.set(layout.projectDirectory)
                 dependsOn(depend)
+            }
+        }
+        patcher.additionalUpstreams.forEach { upstream ->
+            val checkoutTask = tasks.register<CheckoutRepo>("checkout${upstream.name.capitalized()}Repo") {
+                repoName.set(upstream.name)
+                url.set(upstream.repo)
+                ref.set(upstream.ref)
+                workDir.set(workDirFromProp)
+            }
+
+            val applyAdditionalUpstream = tasks.register<RunNestedBuild>("apply${upstream.name.capitalized()}ForPatchGeneration") {
+                projectDir.set(checkoutTask.flatMap { it.outputDir })
+                tasks.add("applyAllPatches")
+            }
+
+            tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}Patches") {
+                dependsOn(applyAdditionalUpstream)
+                group = "patch generation"
+                description = "Generates base patches from ${upstream.name.capitalized()}"
+                upstreamName.set(upstream.name)
+                workDir.set(workDirFromProp)
+                apiDirs.set(upstream.apiDirs)
+                serverDirs.set(upstream.serverDirs)
+                outputDir.set(upstream.patchesOutput)
             }
         }
     }
