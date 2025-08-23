@@ -25,6 +25,7 @@ package io.papermc.paperweight.patcher
 import io.papermc.paperweight.core.taskcontainers.UpstreamConfigTasks
 import io.papermc.paperweight.core.tasks.CheckoutRepo
 import io.papermc.paperweight.core.tasks.GeneratePatches
+import io.papermc.paperweight.core.tasks.PrepareForPatchGeneration
 import io.papermc.paperweight.core.tasks.RunNestedBuild
 import io.papermc.paperweight.patcher.extension.PaperweightPatcherExtension
 import io.papermc.paperweight.util.*
@@ -130,8 +131,27 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 tasks.add("applyAllPatches")
             }
 
+            val depend = upstream.patchGenerationConfig.repoConfig.map { repo ->
+                val name = if (repo.name.equals("minecraft")) {
+                    "Minecraft"
+                } else {
+                    repo.name.split("-").joinToString("") {
+                        it.replaceFirstChar { char -> char.uppercase() }
+                    }
+                }
+                tasks.register<PrepareForPatchGeneration>("prepare${upstream.name.capitalized()}${name}ForPatchGeneration") {
+                    group = "patch generation"
+                    description = "Prepares ${upstream.name} ${repo.name} for patch generation"
+                    dependsOn(applyAdditionalUpstream)
+                    upstreamName.set(upstream.name)
+                    repoName.set(repo.name)
+                    workDir.set(workDirFromProp)
+                    atFile.set(repo.additionalAts.fileExists(project))
+                    additionalPatch.set(repo.additionalPatch.fileExists(project))
+                }
+            }
             tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}Patches") {
-                dependsOn(applyAdditionalUpstream)
+                dependsOn(depend)
                 group = "patch generation"
                 description = "Generates base patches from ${upstream.name.capitalized()}"
                 upstreamName.set(upstream.name)
