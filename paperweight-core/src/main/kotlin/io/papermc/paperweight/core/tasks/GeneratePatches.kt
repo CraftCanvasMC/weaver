@@ -60,12 +60,21 @@ abstract class GeneratePatches : BaseTask() {
     abstract val rootDir: DirectoryProperty
 
     @get:Input
+    @get:Optional
     abstract val patchDirOutput: Property<Boolean>
 
     @TaskAction
     fun run() {
-        val outputToPatches = patchDirOutput.get()
-        val outputDir = if (!outputToPatches) outputDir.path.cleanDir() else null
+        val outputToPatches = patchDirOutput.getOrElse(false)
+        val outputDir = if (!outputToPatches && outputDir.isPresent) {
+            outputDir.path.cleanDir()
+        } else if (!outputToPatches && !outputDir.isPresent) {
+            throw PaperweightException(
+                "Cannot find an output directory and patchDirOutput is set to false!"
+            )
+        } else {
+            null
+        }
         val name = upstreamName.get()
         val upstreamUrl = upstreamLink.get()
         val url = upstreamUrl.removeSuffix(".git")
@@ -108,7 +117,13 @@ abstract class GeneratePatches : BaseTask() {
                 } else if (outputToPatches) {
                     rootDir.convertToPath().resolve("${rootName.get()}-server/$cutRepo-patches/base").absolutePathString()
                 } else {
-                    if (outputDir != null) outputDir.absolutePathString() else throw PaperweightException("Cannot find an output directory and patchDirOutput is set to false!")
+                    if (outputDir != null) {
+                        outputDir.absolutePathString()
+                    } else {
+                        throw PaperweightException(
+                            "Cannot find an output directory and patchDirOutput is set to false!"
+                        )
+                    }
                 }
             ).runSilently(silenceErr = true)
         }
