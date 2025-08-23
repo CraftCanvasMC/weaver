@@ -95,6 +95,11 @@ abstract class GeneratePatches : BaseTask() {
             val isApi = if (repo.toString().contains("-api")) true else false
             val sourceOutput = if (isApi) outputDir.resolve("api-sources") else outputDir.resolve("server-sources")
             repo.copyRecursivelyTo(sourceOutput)
+
+            sourceOutput.filesMatchingRecursive("*.java").forEach {
+                val content = it.readText()
+                it.writeText("// Generated from $url/commit/${upstreamHash.get()}\n$content")
+            }
         }
     }
     fun cleanupPatch(name: String, identifier: String) {
