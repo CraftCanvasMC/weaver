@@ -56,6 +56,7 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
     abstract class PatchGenerationConfig @Inject constructor(
         objects: ObjectFactory
     ) {
+        abstract val patchDirOutput: Property<Boolean>
         abstract val inputFrom: ListProperty<String>
         abstract val outputDir: DirectoryProperty
 

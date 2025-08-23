@@ -51,8 +51,18 @@ abstract class GeneratePatches : BaseTask() {
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
+    @get:Input
+    abstract val rootName: Property<String>
+
+    @get:InputDirectory
+    abstract val rootDir: DirectoryProperty
+
+    @get:Input
+    abstract val patchDirOutput: Property<Boolean>
+
     @TaskAction
     fun run() {
+        val outputToPatches = patchDirOutput.get()
         val outputDir = outputDir.path.cleanDir()
         val name = upstreamName.get()
         val upstreamUrl = upstreamLink.get()
@@ -67,10 +77,13 @@ abstract class GeneratePatches : BaseTask() {
             val isApi = if (repo.fileName.toString().contains("-api")) true else false
             val repoName = if (isApi) {
                 repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }.replace("Api", "API")
+            } else if (repo.fileName.toString().equals("java")) {
+                "Minecraft"
             } else {
                 repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
             }
 
+            val cutRepo = repo.fileName.toString().substringBefore("-")
             val git = Git(repo)
             git("reset", "base", "--soft").runSilently(silenceErr = true)
             git("add", ".").runSilently(silenceErr = true)
@@ -85,31 +98,34 @@ abstract class GeneratePatches : BaseTask() {
             git(
                 "format-patch",
                 "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
-                "HEAD~1..HEAD", "-o", outputDir.absolutePathString()
+                "HEAD~1..HEAD", "-o",
+                if (outputToPatches && isApi) {
+                    rootDir.convertToPath().resolve("${rootName.get()}-api/$cutRepo-patches/base").absolutePathString()
+                } else if (outputToPatches && cutRepo.equals("java")) {
+                    rootDir.convertToPath().resolve("${rootName.get()}-server/minecraft-patches/base").absolutePathString()
+                } else if (outputToPatches) {
+                    rootDir.convertToPath().resolve("${rootName.get()}-server/$cutRepo-patches/base").absolutePathString()
+                } else {
+                    outputDir.absolutePathString()
+                }
             ).runSilently(silenceErr = true)
-            cleanupPatch(name.capitalized(), repoName)
         }
         val additionalRepositories: List<Path> =
             listOf(workDir.path.resolve("$name/$name-api/src/main/java"), workDir.path.resolve("$name/$name-server/src/main/java"))
         for (repo in additionalRepositories) {
             val isApi = if (repo.toString().contains("-api")) true else false
-            val sourceOutput = if (isApi) outputDir.resolve("api-sources") else outputDir.resolve("server-sources")
+            val sourceOutput = if (isApi) {
+                rootDir.convertToPath().resolve("${rootName.get()}-api/src/generated/java")
+            } else {
+                rootDir.convertToPath().resolve("${rootName.get()}-server/src/generated/java")
+            }
+            sourceOutput.deleteRecursively()
             repo.copyRecursivelyTo(sourceOutput)
 
             sourceOutput.filesMatchingRecursive("*.java").forEach {
                 val content = it.readText()
                 it.writeText("// Generated from $url/commit/${upstreamHash.get()}\n$content")
             }
-        }
-    }
-    fun cleanupPatch(name: String, identifier: String) {
-        val patchFile = outputDir.path.resolve("0001-$name-$identifier-Patches.patch")
-        if (patchFile.toString().contains("Java")) {
-            val text = patchFile.readText()
-            val clean = text.replace("[PATCH] $name Java Patches", "[PATCH] $name Minecraft Patches")
-            val new = outputDir.path.resolve("0001-$name-Minecraft-Patches.patch")
-            new.writeText(clean)
-            patchFile.deleteForcefully()
         }
     }
 }

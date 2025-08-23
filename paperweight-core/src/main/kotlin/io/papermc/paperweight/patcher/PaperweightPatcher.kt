@@ -154,10 +154,13 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 dependsOn(depend)
                 group = "patch generation"
                 description = "Generates base patches from ${upstream.name.capitalized()}"
+                rootName.set(rootProject.name)
+                rootDir.set(rootProject.rootDir)
                 upstreamName.set(upstream.name)
                 upstreamLink.set(upstream.repo)
                 upstreamHash.set(upstream.ref)
                 workDir.set(workDirFromProp)
+                patchDirOutput.set(upstream.patchGenerationConfig.patchDirOutput)
                 inputFrom.set(upstream.patchGenerationConfig.inputFrom)
                 outputDir.set(upstream.patchGenerationConfig.outputDir)
             }
