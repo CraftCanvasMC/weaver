@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.core.tasks
 
+import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.BaseTask
 import io.papermc.paperweight.util.*
 import java.nio.file.Path
@@ -49,6 +50,7 @@ abstract class GeneratePatches : BaseTask() {
     abstract val inputFrom: ListProperty<String>
 
     @get:OutputDirectory
+    @get:Optional
     abstract val outputDir: DirectoryProperty
 
     @get:Input
@@ -63,7 +65,7 @@ abstract class GeneratePatches : BaseTask() {
     @TaskAction
     fun run() {
         val outputToPatches = patchDirOutput.get()
-        val outputDir = outputDir.path.cleanDir()
+        val outputDir = if (!outputToPatches) outputDir.path.cleanDir() else null
         val name = upstreamName.get()
         val upstreamUrl = upstreamLink.get()
         val url = upstreamUrl.removeSuffix(".git")
@@ -106,7 +108,7 @@ abstract class GeneratePatches : BaseTask() {
                 } else if (outputToPatches) {
                     rootDir.convertToPath().resolve("${rootName.get()}-server/$cutRepo-patches/base").absolutePathString()
                 } else {
-                    outputDir.absolutePathString()
+                    if (outputDir != null) outputDir.absolutePathString() else throw PaperweightException("Cannot find an output directory and patchDirOutput is set to false!")
                 }
             ).runSilently(silenceErr = true)
         }
