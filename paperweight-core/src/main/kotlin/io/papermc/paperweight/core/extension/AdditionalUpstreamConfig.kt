@@ -51,9 +51,8 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
     }
 
     abstract class PatchGenerationConfig {
-        abstract val apiDirs: ListProperty<String>
-        abstract val serverDirs: ListProperty<String>
-        abstract val patchesOutput: DirectoryProperty
+        abstract val inputFrom: ListProperty<String>
+        abstract val outputDir: DirectoryProperty
     }
 
     fun github(owner: String, repo: String): String = "https://github.com/$owner/$repo.git"

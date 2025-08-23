@@ -36,14 +36,17 @@ abstract class GeneratePatches : BaseTask() {
     @get:Input
     abstract val upstreamName: Property<String>
 
+    @get:Input
+    abstract val upstreamLink: Property<String>
+
+    @get:Input
+    abstract val upstreamHash: Property<String>
+
     @get:InputDirectory
     abstract val workDir: DirectoryProperty
 
     @get:Input
-    abstract val apiDirs: ListProperty<String>
-
-    @get:Input
-    abstract val serverDirs: ListProperty<String>
+    abstract val inputFrom: ListProperty<String>
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
@@ -52,24 +55,39 @@ abstract class GeneratePatches : BaseTask() {
     fun run() {
         val outputDir = outputDir.path.cleanDir()
         val name = upstreamName.get()
+        val upstreamUrl = upstreamLink.get()
+        val url = upstreamUrl.removeSuffix(".git")
 
         val repositories: List<Path> =
-            apiDirs.get().map { workDir.path.resolve(it) } +
-                serverDirs.get().map { workDir.path.resolve(it) }
+            inputFrom.get().map { workDir.path.resolve("$name/$it") }
 
         for (repo in repositories) {
             if (!repo.exists()) continue
 
+            val isApi = if (repo.fileName.toString().contains("-api")) true else false
+            val repoName = if (isApi) {
+                repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }.replace("Api", "API")
+            } else {
+                repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
+            }
+
             val git = Git(repo)
             git("reset", "base", "--soft").runSilently(silenceErr = true)
             git("add", ".").runSilently(silenceErr = true)
-            git("commit", "-m", "$name ${repo.fileName}", "--author=Generated Source <noreply+automated@papermc.io>").runSilently(silenceErr = true)
+            git(
+                "commit",
+                "-m",
+                "${name.capitalized()} $repoName Patches",
+                "-m",
+                "Patch generated from $url/commit/${upstreamHash.get()}",
+                "--author=Generated Source <noreply+automated@papermc.io>"
+            ).runSilently(silenceErr = true)
             git(
                 "format-patch",
                 "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
                 "HEAD~1..HEAD", "-o", outputDir.absolutePathString()
             ).runSilently(silenceErr = true)
-            cleanupPatch(name, repo.fileName.toString())
+            cleanupPatch(name.capitalized(), repoName)
         }
         val additionalRepositories: List<Path> =
             listOf(workDir.path.resolve("$name/$name-api/src/main/java"), workDir.path.resolve("$name/$name-server/src/main/java"))
@@ -80,11 +98,11 @@ abstract class GeneratePatches : BaseTask() {
         }
     }
     fun cleanupPatch(name: String, identifier: String) {
-        val patchFile = outputDir.path.resolve("0001-$name-$identifier.patch")
-        if (patchFile.toString().contains("java")) {
+        val patchFile = outputDir.path.resolve("0001-$name-$identifier-Patches.patch")
+        if (patchFile.toString().contains("Java")) {
             val text = patchFile.readText()
-            val clean = text.replace("[PATCH] $name java", "[PATCH] $name minecraft")
-            val new = outputDir.path.resolve("0001-$name-minecraft.patch")
+            val clean = text.replace("[PATCH] $name Java Patches", "[PATCH] $name Minecraft Patches")
+            val new = outputDir.path.resolve("0001-$name-Minecraft-Patches.patch")
             new.writeText(clean)
             patchFile.deleteForcefully()
         }
