@@ -81,13 +81,11 @@ abstract class GeneratePatches : BaseTask() {
     }
     fun cleanupPatch(name: String, identifier: String) {
         val patchFile = outputDir.path.resolve("0001-$name-$identifier.patch")
-        val text = patchFile.readText()
-        val clean1 = text.replace("src/main/java/", "")
-        val clean2 = clean1.replace("$name java", "$name minecraft")
-        patchFile.writeText(clean2)
         if (patchFile.toString().contains("java")) {
+            val text = patchFile.readText()
+            val clean = text.replace("[PATCH] $name java", "[PATCH] $name minecraft")
             val new = outputDir.path.resolve("0001-$name-minecraft.patch")
-            new.writeText(clean2)
+            new.writeText(clean)
             patchFile.deleteForcefully()
         }
     }
