@@ -118,7 +118,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
             }
         }
         patcher.additionalUpstreams.forEach { upstream ->
-            val checkoutTask = tasks.register<CheckoutRepo>("checkout${upstream.name.capitalized()}Repo") {
+            val checkoutTask = tasks.register<CheckoutRepo>("checkout${upstream.name.capitalized()}RepoForPatchGeneration") {
                 repoName.set(upstream.name)
                 url.set(upstream.repo)
                 ref.set(upstream.ref)
@@ -136,9 +136,9 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 description = "Generates base patches from ${upstream.name.capitalized()}"
                 upstreamName.set(upstream.name)
                 workDir.set(workDirFromProp)
-                apiDirs.set(upstream.apiDirs)
-                serverDirs.set(upstream.serverDirs)
-                outputDir.set(upstream.patchesOutput)
+                apiDirs.set(upstream.patchGenerationConfig.apiDirs)
+                serverDirs.set(upstream.patchGenerationConfig.serverDirs)
+                outputDir.set(upstream.patchGenerationConfig.patchesOutput)
             }
         }
     }

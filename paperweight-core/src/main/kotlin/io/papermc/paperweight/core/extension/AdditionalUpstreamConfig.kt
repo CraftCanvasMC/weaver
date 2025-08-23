@@ -25,14 +25,18 @@ package io.papermc.paperweight.core.extension
 import io.papermc.paperweight.util.*
 import javax.inject.Inject
 import kotlin.io.path.*
+import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.newInstance
 
 abstract class AdditionalUpstreamConfig @Inject constructor(
     private val configName: String,
+    objects: ObjectFactory,
 ) : Named {
     override fun getName(): String {
         return configName
@@ -40,10 +44,17 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
 
     abstract val repo: Property<String>
     abstract val ref: Property<String>
+    val patchGenerationConfig: PatchGenerationConfig = objects.newInstance<PatchGenerationConfig>()
 
-    abstract val apiDirs: ListProperty<String>
-    abstract val serverDirs: ListProperty<String>
-    abstract val patchesOutput: DirectoryProperty
+    fun patchGeneration(op: Action<PatchGenerationConfig>) {
+        op.execute(patchGenerationConfig)
+    }
+
+    abstract class PatchGenerationConfig {
+        abstract val apiDirs: ListProperty<String>
+        abstract val serverDirs: ListProperty<String>
+        abstract val patchesOutput: DirectoryProperty
+    }
 
     fun github(owner: String, repo: String): String = "https://github.com/$owner/$repo.git"
 }
