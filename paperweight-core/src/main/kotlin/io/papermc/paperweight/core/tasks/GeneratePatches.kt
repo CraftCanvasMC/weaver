@@ -97,6 +97,8 @@ abstract class GeneratePatches : BaseTask() {
             val cutRepo = repo.fileName.toString().substringBefore("-")
             val git = Git(repo)
             git("reset", "base", "--soft").runSilently(silenceErr = true)
+            val toCommit = git("status", "--porcelain").getText().trim()
+            if (toCommit.isBlank()) continue
             git("add", ".").runSilently(silenceErr = true)
             git(
                 "commit",
