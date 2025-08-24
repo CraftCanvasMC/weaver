@@ -151,7 +151,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 }
             }
             tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}Patches") {
-                dependsOn(depend)
+                if (depend.isNotEmpty()) dependsOn(depend) else dependsOn(applyAdditionalUpstream)
                 group = "patch generation"
                 description = "Generates base patches from ${upstream.name.capitalized()}"
                 rootName.set(rootProject.name)
