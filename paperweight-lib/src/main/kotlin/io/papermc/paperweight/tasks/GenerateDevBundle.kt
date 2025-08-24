@@ -125,7 +125,7 @@ abstract class GenerateDevBundle : BaseTask() {
             if (file.isDirectory()) {
                 workingDir.resolve(path).createDirectories()
             } else {
-                file.toPath().copyTo(workingDir.resolve(path))
+                file.toPath().copyTo(workingDir.resolve(path), overwrite = true)
             }
         }
         workingDir.resolve(".git").deleteRecursive()
