@@ -26,6 +26,7 @@ import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.JavaLauncherTask
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.JST_CONFIG
+import io.papermc.paperweight.util.constants.paperTaskOutput
 import kotlin.io.path.*
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -36,14 +37,14 @@ import org.gradle.kotlin.dsl.newInstance
 @UntrackedTask(because = "PrepareForPatchGeneration should always run when requested")
 abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
-    @get:InputDirectory
-    abstract val workDir: DirectoryProperty
-
     @get:Input
-    abstract val upstreamName: Property<String>
+    abstract val forkName: Property<String>
 
     @get:Input
     abstract val repoName: Property<String>
+
+    @get:InputDirectory
+    abstract val workDir: DirectoryProperty
 
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance<ApplySourceATs>().apply {
@@ -52,27 +53,46 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
     @get:InputFile
     @get:Optional
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val atFile: RegularFileProperty
 
     @get:InputFile
     @get:Optional
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val additionalPatch: RegularFileProperty
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    override fun init() {
+        super.init()
+        outputDir.set(layout.buildDirectory.dir(paperTaskOutput("patchgen-work")))
+    }
 
     @TaskAction
     fun run() {
-        val name = if (repoName.get().equals("minecraft")) "${upstreamName.get()}-server/src/minecraft/java" else repoName.get()
-        val outputDir = workDir.path.resolve("${upstreamName.get()}/$name")
+        val outputName = forkName.get()
+        val workDirectory = workDir.get().asFile.toPath()
+
+        val sourceDir = if (repoName.get() == "minecraft") {
+            workDirectory.resolve("$outputName/$outputName-server/src/minecraft/java")
+        } else {
+            workDirectory.resolve("$outputName/${repoName.get()}")
+        }
+        val outputDir = outputDir.get().asFile.toPath().resolve(repoName.get())
+        val outputDirPath = outputDir.cleanFile()
+        sourceDir.copyRecursivelyTo(outputDirPath)
 
         if (additionalPatch.isPresent) {
-            val git = Git(outputDir)
-            git("am", "--3way", "--ignore-whitespace", additionalPatch.path.toString()).captureOut(false)
+            val git = Git(outputDirPath)
+            git("am", "--3way", "--ignore-whitespace", additionalPatch.path.toString()).runSilently()
         }
 
         if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
             ats.run(
                 launcher.get(),
-                outputDir,
-                outputDir,
+                outputDirPath,
+                outputDirPath,
                 atFile.path,
                 temporaryDir.toPath()
             )

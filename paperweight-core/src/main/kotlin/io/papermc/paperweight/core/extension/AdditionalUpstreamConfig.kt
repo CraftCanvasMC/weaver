@@ -32,7 +32,6 @@ import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
-import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.newInstance
@@ -47,24 +46,61 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
 
     abstract val repo: Property<String>
     abstract val ref: Property<String>
+    val sourceGenerationConfig: SourceGenerationConfig = objects.newInstance<SourceGenerationConfig>()
     val patchGenerationConfig: PatchGenerationConfig = objects.newInstance<PatchGenerationConfig>()
+
+    fun sourceGeneration(op: Action<SourceGenerationConfig>) {
+        op.execute(sourceGenerationConfig)
+    }
 
     fun patchGeneration(op: Action<PatchGenerationConfig>) {
         op.execute(patchGenerationConfig)
     }
 
+    @Suppress("UNUSED_PARAMETER")
+    abstract class SourceGenerationConfig @Inject constructor(
+        objects: ObjectFactory,
+    ) {
+        @get:Nullable
+        abstract val serverSourceOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val apiSourceOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val serverTestSourceOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val apiTestSourceOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val serverResourcesOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val apiResourcesOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val serverTestResourcesOutput: DirectoryProperty
+
+        @get:Nullable
+        abstract val apiTestResourcesOutput: DirectoryProperty
+    }
+
     abstract class PatchGenerationConfig @Inject constructor(
         objects: ObjectFactory
     ) {
-        abstract val patchDirOutput: Property<Boolean>
-        abstract val inputFrom: ListProperty<String>
+        @get:Nullable
         abstract val outputDir: DirectoryProperty
 
-        val repoConfig: NamedDomainObjectContainer<RepoConfig> = objects.domainObjectContainer(
-            RepoConfig::class
+        @get:Nullable
+        abstract val patchesDirOutput: Property<Boolean>
+
+        val inputConfig: NamedDomainObjectContainer<InputConfig> = objects.domainObjectContainer(
+            InputConfig::class
         ) { name -> objects.newInstance(name, objects) }
 
-        abstract class RepoConfig @Inject constructor(
+        @Suppress("UNUSED_PARAMETER")
+        abstract class InputConfig @Inject constructor(
             private val setName: String,
             objects: ObjectFactory,
         ) : Named {

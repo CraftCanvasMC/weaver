@@ -22,129 +22,232 @@
 
 package io.papermc.paperweight.core.tasks
 
-import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.BaseTask
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.paperTaskOutput
 import java.nio.file.Path
 import kotlin.io.path.*
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
+import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
-@UntrackedTask(because = "GeneratePatches should always run when requested")
 abstract class GeneratePatches : BaseTask() {
     @get:Input
-    abstract val upstreamName: Property<String>
+    abstract val forkName: Property<String>
 
     @get:Input
-    abstract val upstreamLink: Property<String>
+    abstract val forkUrl: Property<String>
 
     @get:Input
-    abstract val upstreamHash: Property<String>
+    abstract val commitHash: Property<String>
+
+    @get:Input
+    abstract val inputFrom: Property<String>
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val workDir: DirectoryProperty
 
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val preparedSource: ConfigurableFileCollection
+
     @get:Input
-    abstract val inputFrom: ListProperty<String>
+    @get:Optional
+    abstract val patchesDirOutput: Property<Boolean>
+
+    @get:Internal
+    abstract val serverSourceInput: DirectoryProperty
+
+    @get:Internal
+    abstract val apiSourceInput: DirectoryProperty
+
+    @get:Internal
+    abstract val serverTestSourceInput: DirectoryProperty
+
+    @get:Internal
+    abstract val apiTestSourceInput: DirectoryProperty
+
+    @get:Internal
+    abstract val serverResourcesInput: DirectoryProperty
+
+    @get:Internal
+    abstract val apiResourcesInput: DirectoryProperty
+
+    @get:Internal
+    abstract val serverTestResourcesInput: DirectoryProperty
+
+    @get:Internal
+    abstract val apiTestResourcesInput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val serverSourceOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val apiSourceOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val serverTestSourceOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val apiTestSourceOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val serverResourcesOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val apiResourcesOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val serverTestResourcesOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val apiTestResourcesOutput: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val serverProjectDir: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val apiProjectDir: DirectoryProperty
 
     @get:OutputDirectory
     @get:Optional
     abstract val outputDir: DirectoryProperty
 
-    @get:Input
-    abstract val rootName: Property<String>
+    @get:Internal
+    abstract val tempOutput: DirectoryProperty
 
-    @get:InputDirectory
-    abstract val rootDir: DirectoryProperty
-
-    @get:Input
-    @get:Optional
-    abstract val patchDirOutput: Property<Boolean>
+    override fun init() {
+        tempOutput.set(layout.buildDirectory.dir(paperTaskOutput(name)))
+        serverSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/main/java") })
+        serverTestSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/test/java") })
+        serverResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/main/resources") })
+        serverTestResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/test/resources") })
+        apiSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/main/java") })
+        apiTestSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/test/java") })
+        apiResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/main/resources") })
+        apiTestResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/test/resources") })
+    }
 
     @TaskAction
     fun run() {
-        val outputToPatches = patchDirOutput.getOrElse(false)
-        val outputDir = if (!outputToPatches && outputDir.isPresent) {
-            outputDir.path.cleanDir()
-        } else if (!outputToPatches && !outputDir.isPresent) {
-            throw PaperweightException(
-                "Cannot find an output directory and patchDirOutput is set to false!"
-            )
-        } else {
-            null
-        }
-        val name = upstreamName.get()
-        val upstreamUrl = upstreamLink.get()
-        val url = upstreamUrl.removeSuffix(".git")
+        val forkName = forkName.get()
+        val commit = commitHash.get()
+        val url = forkUrl.get()
+        val repoTypes = inputFrom.get().split(",")
+        val serverGeneratedOutput = serverSourceOutput.get()
+        val apiGeneratedOutput = apiSourceOutput.get()
+        val serverTestGeneratedOutput = serverTestSourceOutput.get()
+        val apiTestGeneratedOutput = apiTestSourceOutput.get()
+        val apiResourceGeneratedOutput = apiResourcesOutput.get()
+        val serverResourceGeneratedOutput = serverResourcesOutput.get()
+        val apiTestResourceGeneratedOutput = apiTestResourcesOutput.get()
+        val serverTestResourceGeneratedOutput = serverTestResourcesOutput.get()
+        val inputDirs = preparedSource.files.map { it.toPath() }
 
-        val repositories: List<Path> =
-            inputFrom.get().map { workDir.path.resolve("$name/$it") }
+        val outputToPatchesDirectory = patchesDirOutput.getOrElse(true)
+        val outputDir = outputDir.getOrElse(layout.buildDirectory.dir(paperTaskOutput(name)).get())
+        val cacheOutput = tempOutput.get().asFile.toPath()
+        val tempOutput = cacheOutput.cleanFile()
+        val outputDirPath = outputDir.asFile.toPath()
 
-        for (repo in repositories) {
-            if (!repo.exists()) continue
-
-            val isApi = if (repo.fileName.toString().contains("-api")) true else false
-            val repoName = if (isApi) {
-                repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }.replace("Api", "API")
-            } else if (repo.fileName.toString().equals("java")) {
-                "Minecraft"
-            } else {
-                repo.fileName.toString().split("-").joinToString("") { it.replaceFirstChar { char -> char.uppercase() } }
+        for (inputDir in inputDirs) {
+            inputDir.copyRecursivelyTo(tempOutput)
+            for (repoType in repoTypes) {
+                val repository = tempOutput.resolve(repoType)
+                if (!repository.exists()) continue
+                val dirName = repository.fileName.toString()
+                val repoName = capitalizedName(dirName, dirName.isApi())
+                val cutRepo = dirName.substringBefore("-")
+                val git = Git(repository)
+                git("reset", "base", "--soft").runSilently(silenceErr = true)
+                if (git("status", "--porcelain").getText().trim().isBlank()) continue
+                git("add", ".").runSilently(silenceErr = true)
+                git.commit(forkName, repoName, url, commit)
+                git(
+                    "format-patch",
+                    "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
+                    "HEAD~1..HEAD", "-o",
+                    outputPath(outputToPatchesDirectory, dirName.isApi(), outputDirPath, cutRepo)
+                ).runSilently(silenceErr = true)
             }
-
-            val cutRepo = repo.fileName.toString().substringBefore("-")
-            val git = Git(repo)
-            git("reset", "base", "--soft").runSilently(silenceErr = true)
-            val toCommit = git("status", "--porcelain").getText().trim()
-            if (toCommit.isBlank()) continue
-            git("add", ".").runSilently(silenceErr = true)
-            git(
-                "commit",
-                "-m",
-                "${name.capitalized()} $repoName Patches",
-                "-m",
-                "Patch generated from $url/commit/${upstreamHash.get()}",
-                "--author=Generated Source <noreply+automated@papermc.io>"
-            ).runSilently(silenceErr = true)
-            git(
-                "format-patch",
-                "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
-                "HEAD~1..HEAD", "-o",
-                if (outputToPatches && isApi) {
-                    rootDir.convertToPath().resolve("${rootName.get()}-api/$cutRepo-patches/base").absolutePathString()
-                } else if (outputToPatches && cutRepo.equals("java")) {
-                    rootDir.convertToPath().resolve("${rootName.get()}-server/minecraft-patches/base").absolutePathString()
-                } else if (outputToPatches) {
-                    rootDir.convertToPath().resolve("${rootName.get()}-server/$cutRepo-patches/base").absolutePathString()
-                } else {
-                    if (outputDir != null) {
-                        outputDir.absolutePathString()
-                    } else {
-                        throw PaperweightException(
-                            "Cannot find an output directory and patchDirOutput is set to false!"
-                        )
-                    }
-                }
-            ).runSilently(silenceErr = true)
         }
-        val additionalRepositories: List<Path> =
-            listOf(workDir.path.resolve("$name/$name-api/src/main/java"), workDir.path.resolve("$name/$name-server/src/main/java"))
+        val serverJavaRepo = serverSourceInput.get()
+        val apiJavaRepo = apiSourceInput.get()
+        val serverTestRepo = serverTestSourceInput.get()
+        val apiTestRepo = apiTestSourceInput.get()
+        val serverResourcesRepo = serverResourcesInput.get()
+        val apiResourcesRepo = apiResourcesInput.get()
+        val serverTestResourcesRepo = serverTestResourcesInput.get()
+        val apiTestResourcesRepo = apiTestResourcesInput.get()
+
+        val additionalRepositories = listOfNotNull(
+            apiJavaRepo,
+            apiTestRepo,
+            apiResourcesRepo,
+            apiTestResourcesRepo,
+            serverJavaRepo,
+            serverTestRepo,
+            serverResourcesRepo,
+            serverTestResourcesRepo
+        )
+
         for (repo in additionalRepositories) {
-            val isApi = if (repo.toString().contains("-api")) true else false
-            val sourceOutput = if (isApi) {
-                rootDir.convertToPath().resolve("${rootName.get()}-api/src/generated/java")
-            } else {
-                rootDir.convertToPath().resolve("${rootName.get()}-server/src/generated/java")
+            if (!repo.asFile.toPath().exists()) continue
+            val string = repo.toString()
+            val sourceOutputPath = when {
+                string.isApi() && string.isTest() -> apiTestGeneratedOutput.asFile.toPath()
+                !string.isApi() && string.isTest() -> serverTestGeneratedOutput.asFile.toPath()
+                string.isApi() && string.isResources() && string.isTest() -> apiTestResourceGeneratedOutput.asFile.toPath()
+                !string.isApi() && string.isResources() && string.isTest() -> serverTestResourceGeneratedOutput.asFile.toPath()
+                string.isApi() && !string.isResources() -> apiGeneratedOutput.asFile.toPath()
+                string.isApi() && string.isResources() -> apiResourceGeneratedOutput.asFile.toPath()
+                !string.isApi() && !string.isResources() -> serverGeneratedOutput.asFile.toPath()
+                else -> serverResourceGeneratedOutput.asFile.toPath()
             }
-            sourceOutput.deleteRecursively()
-            repo.copyRecursivelyTo(sourceOutput)
+            sourceOutputPath.deleteRecursively()
+            repo.asFile.toPath().copyRecursivelyTo(sourceOutputPath)
 
-            sourceOutput.filesMatchingRecursive("*.java").forEach {
+            sourceOutputPath.filesMatchingRecursive("*.java").forEach {
                 val content = it.readText()
-                it.writeText("// Generated from $url/commit/${upstreamHash.get()}\n$content")
+                it.writeText("// Generated from ${commitLink(url, commit)}\n$content")
             }
+        }
+    }
+    private fun Git.commit(name: String, repoName: String, url: String, commit: String) {
+        this(
+            "commit",
+            "-m",
+            "${name.capitalized()} $repoName Patches",
+            "-m",
+            "Patch generated from ${commitLink(url, commit)}",
+            "--author=Generated Source <noreply+automated@papermc.io>"
+        ).runSilently(silenceErr = true)
+    }
+    private fun capitalizedName(name: String, api: Boolean): String {
+        val trimmed = name.split("-").joinToString("") { it.uppercaseFirstChar() }
+        return when {
+            api -> trimmed.replace("Api", "API")
+            else -> trimmed
+        }
+    }
+    private fun String.isApi() = contains("-api")
+    private fun String.isResources() = endsWith("resources")
+    private fun String.isTest() = contains("test/")
+    private fun commitLink(url: String, hash: String): String {
+        val cleanUrl = url.removeSuffix(".git")
+        return "$cleanUrl/commit/$hash"
+    }
+    private fun outputPath(patchDir: Boolean, api: Boolean, outputDir: Path, repoName: String): String {
+        val serverOutput = serverProjectDir.get().asFile.toPath()
+        val apiOutput = apiProjectDir.get().asFile.toPath()
+        return when {
+            patchDir && api -> apiOutput.resolve("$repoName-patches/base").absolutePathString()
+            patchDir && repoName == "minecraft" -> serverOutput.resolve("$repoName-patches/base").absolutePathString()
+            patchDir -> serverOutput.resolve("$repoName-patches/base").absolutePathString()
+            else -> outputDir.absolutePathString()
         }
     }
 }
