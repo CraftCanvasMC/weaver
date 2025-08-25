@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.core.extension
 
+import io.papermc.paperweight.core.extension.AdditionalUpstreamConfig.PatchGenerationConfig.InputConfig
 import io.papermc.paperweight.util.*
 import javax.annotation.Nullable
 import javax.inject.Inject
@@ -34,6 +35,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.domainObjectContainer
 import org.gradle.kotlin.dsl.newInstance
 
 abstract class AdditionalUpstreamConfig @Inject constructor(
@@ -61,29 +63,49 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
     abstract class SourceGenerationConfig @Inject constructor(
         objects: ObjectFactory,
     ) {
-        @get:Nullable
-        abstract val serverSourceOutput: DirectoryProperty
+        val generationConfig: NamedDomainObjectContainer<GenerationConfig> = objects.domainObjectContainer(
+            GenerationConfig::class
+        ) { name -> objects.newInstance(name, objects) }
 
-        @get:Nullable
-        abstract val apiSourceOutput: DirectoryProperty
+        @Suppress("UNUSED_PARAMETER")
+        abstract class GenerationConfig @Inject constructor(
+            private val setName: String,
+            objects: ObjectFactory,
+        ) : Named {
+            override fun getName(): String {
+                return setName
+            }
 
-        @get:Nullable
-        abstract val serverTestSourceOutput: DirectoryProperty
+            @get:Nullable
+            abstract val generateSources: Property<Boolean>
 
-        @get:Nullable
-        abstract val apiTestSourceOutput: DirectoryProperty
+            @get:Nullable
+            abstract val generateResources: Property<Boolean>
 
-        @get:Nullable
-        abstract val serverResourcesOutput: DirectoryProperty
+            @get:Nullable
+            abstract val generateTestSources: Property<Boolean>
 
-        @get:Nullable
-        abstract val apiResourcesOutput: DirectoryProperty
+            @get:Nullable
+            abstract val generateTestResources: Property<Boolean>
 
-        @get:Nullable
-        abstract val serverTestResourcesOutput: DirectoryProperty
+            @get:Nullable
+            abstract val sourcesOutputDir: DirectoryProperty
 
-        @get:Nullable
-        abstract val apiTestResourcesOutput: DirectoryProperty
+            @get:Nullable
+            abstract val resourcesOutputDir: DirectoryProperty
+
+            @get:Nullable
+            abstract val testSourcesOutputDir: DirectoryProperty
+
+            @get:Nullable
+            abstract val testResourcesOutputDir: DirectoryProperty
+
+            @get:Nullable
+            abstract val additionalAts: RegularFileProperty
+
+            @get:Nullable
+            abstract val additionalPatch: RegularFileProperty
+        }
     }
 
     abstract class PatchGenerationConfig @Inject constructor(

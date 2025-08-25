@@ -25,6 +25,7 @@ package io.papermc.paperweight.patcher
 import io.papermc.paperweight.core.taskcontainers.UpstreamConfigTasks
 import io.papermc.paperweight.core.tasks.CheckoutRepo
 import io.papermc.paperweight.core.tasks.GeneratePatches
+import io.papermc.paperweight.core.tasks.GenerateSources
 import io.papermc.paperweight.core.tasks.PrepareForPatchGeneration
 import io.papermc.paperweight.core.tasks.RunNestedBuild
 import io.papermc.paperweight.patcher.extension.PaperweightPatcherExtension
@@ -143,7 +144,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                         it.uppercaseFirstChar()
                     }
                 }
-                tasks.register<PrepareForPatchGeneration>("prepare${upstream.name.capitalized()}${name}ForGeneration") {
+                tasks.register<PrepareForPatchGeneration>("prepare${upstream.name.capitalized()}${name}ForPatchGeneration") {
                     group = INTERNAL_TASK_GROUP
                     dependsOn(applyAdditionalUpstream)
                     forkName.set(upstream.name)
@@ -153,46 +154,71 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     additionalPatch.set(input.additionalPatch.fileExists(project))
                 }
             }
+
+            val sourceGenDepend: List<TaskProvider<GenerateSources>> = upstream.sourceGenerationConfig.generationConfig.map { input ->
+                val name = input.name.split("-").joinToString("") {
+                    it.uppercaseFirstChar()
+                }
+                val outputType = input.name.substringAfter("-")
+                val projectDir: Provider<Directory> = project.provider { project.layout.projectDirectory.dir("${rootProject.name}-$outputType") }
+
+                tasks.register<GenerateSources>("generate${name}Sources") {
+                    group = "source generation"
+                    dependsOn(applyAdditionalUpstream)
+                    forkName.set(upstream.name)
+                    forkUrl.set(upstream.repo)
+                    inputFrom.set(input.name)
+                    commitHash.set(upstream.ref)
+                    workDir.set(workDirFromProp)
+                    atFile.set(input.additionalAts.fileExists(project))
+                    additionalPatch.set(input.additionalPatch.fileExists(project))
+                    generateSources.set(input.generateSources.orElse(true))
+                    generateResources.set(input.generateResources.orElse(true))
+                    generateTestSources.set(input.generateTestSources.orElse(true))
+                    generateTestResources.set(input.generateTestResources.orElse(true))
+                    sourceOutput.set(
+                        input.sourcesOutputDir.orElse(projectDir.map { it.dir("src/generated/main/java") })
+                    )
+                    resourceOutput.set(
+                        input.resourcesOutputDir.orElse(projectDir.map { it.dir("src/generated/main/resources") })
+                    )
+                    testSourceOutput.set(
+                        input.testSourcesOutputDir.orElse(projectDir.map { it.dir("src/generated/test/java") })
+                    )
+                    testResourceOutput.set(
+                        input.testResourcesOutputDir.orElse(projectDir.map { it.dir("src/generated/test/resources") })
+                    )
+                }
+            }
             val apiProject: Provider<Directory> = project.provider { project.layout.projectDirectory.dir("${rootProject.name}-api") }
             val serverProject: Provider<Directory> = project.provider { project.layout.projectDirectory.dir("${rootProject.name}-server") }
 
-            tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}") {
+            val genPatches = tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}Patches") {
                 dependsOn(depend.map { it })
                 group = "patch generation"
-                description = "Generates base patches and source files from ${upstream.name}"
+                description = "Generates base patches from ${upstream.name}"
                 forkName.set(upstream.name)
                 forkUrl.set(upstream.repo)
                 commitHash.set(upstream.ref)
                 inputFrom.set(upstream.patchGenerationConfig.inputConfig.joinToString(",") { it.name })
-                workDir.set(workDirFromProp)
                 preparedSource.from(depend.map { it.flatMap { t -> t.outputDir } })
                 patchesDirOutput.set(upstream.patchGenerationConfig.patchesDirOutput)
-                serverSourceOutput.set(
-                    upstream.sourceGenerationConfig.serverSourceOutput.orElse(serverProject.map { it.dir("src/generated/main/java") })
-                )
-                apiSourceOutput.set(upstream.sourceGenerationConfig.apiSourceOutput.orElse(apiProject.map { it.dir("src/generated/main/java") }))
-                serverTestSourceOutput.set(
-                    upstream.sourceGenerationConfig.serverTestSourceOutput.orElse(serverProject.map { it.dir("src/generated/test/java") })
-                )
-                apiTestSourceOutput.set(
-                    upstream.sourceGenerationConfig.apiTestSourceOutput.orElse(apiProject.map { it.dir("src/generated/test/java") })
-                )
-                serverResourcesOutput.set(
-                    upstream.sourceGenerationConfig.serverResourcesOutput.orElse(serverProject.map { it.dir("src/generated/main/resources") })
-                )
-                apiResourcesOutput.set(
-                    upstream.sourceGenerationConfig.apiResourcesOutput.orElse(apiProject.map { it.dir("src/generated/main/resources") })
-                )
-                serverTestResourcesOutput.set(
-                    upstream.sourceGenerationConfig.serverTestResourcesOutput.orElse(serverProject.map { it.dir("src/generated/test/resources") })
-                )
-                apiTestResourcesOutput.set(
-                    upstream.sourceGenerationConfig.apiTestResourcesOutput.orElse(apiProject.map { it.dir("src/generated/test/resources") })
-                )
                 serverProjectDir.set(serverProject)
                 apiProjectDir.set(apiProject)
                 outputDir.set(upstream.patchGenerationConfig.outputDir)
             }
+
+            val genSources = tasks.register("generate${upstream.name.capitalized()}Sources") {
+                group = "source generation"
+                description = "Generates sources from ${upstream.name}"
+            }
+
+            val generate = tasks.register("generate${upstream.name.capitalized()}") {
+                group = "generation"
+                description = "Generates base patches and sources from ${upstream.name}"
+            }
+            genSources { dependsOn(sourceGenDepend.map { it }) }
+            generate { dependsOn(genPatches, genSources) }
         }
     }
 }

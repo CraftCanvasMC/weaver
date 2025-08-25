@@ -46,10 +46,6 @@ abstract class GeneratePatches : BaseTask() {
     @get:Input
     abstract val inputFrom: Property<String>
 
-    @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
-    abstract val workDir: DirectoryProperty
-
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val preparedSource: ConfigurableFileCollection
@@ -57,54 +53,6 @@ abstract class GeneratePatches : BaseTask() {
     @get:Input
     @get:Optional
     abstract val patchesDirOutput: Property<Boolean>
-
-    @get:Internal
-    abstract val serverSourceInput: DirectoryProperty
-
-    @get:Internal
-    abstract val apiSourceInput: DirectoryProperty
-
-    @get:Internal
-    abstract val serverTestSourceInput: DirectoryProperty
-
-    @get:Internal
-    abstract val apiTestSourceInput: DirectoryProperty
-
-    @get:Internal
-    abstract val serverResourcesInput: DirectoryProperty
-
-    @get:Internal
-    abstract val apiResourcesInput: DirectoryProperty
-
-    @get:Internal
-    abstract val serverTestResourcesInput: DirectoryProperty
-
-    @get:Internal
-    abstract val apiTestResourcesInput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val serverSourceOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val apiSourceOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val serverTestSourceOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val apiTestSourceOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val serverResourcesOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val apiResourcesOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val serverTestResourcesOutput: DirectoryProperty
-
-    @get:OutputDirectory
-    abstract val apiTestResourcesOutput: DirectoryProperty
 
     @get:OutputDirectory
     abstract val serverProjectDir: DirectoryProperty
@@ -121,14 +69,6 @@ abstract class GeneratePatches : BaseTask() {
 
     override fun init() {
         tempOutput.set(layout.buildDirectory.dir(paperTaskOutput(name)))
-        serverSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/main/java") })
-        serverTestSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/test/java") })
-        serverResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/main/resources") })
-        serverTestResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-server/src/test/resources") })
-        apiSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/main/java") })
-        apiTestSourceInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/test/java") })
-        apiResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/main/resources") })
-        apiTestResourcesInput.convention(forkName.flatMap { workDir.dir("$it/$it-api/src/test/resources") })
     }
 
     @TaskAction
@@ -137,14 +77,6 @@ abstract class GeneratePatches : BaseTask() {
         val commit = commitHash.get()
         val url = forkUrl.get()
         val repoTypes = inputFrom.get().split(",")
-        val serverGeneratedOutput = serverSourceOutput.get()
-        val apiGeneratedOutput = apiSourceOutput.get()
-        val serverTestGeneratedOutput = serverTestSourceOutput.get()
-        val apiTestGeneratedOutput = apiTestSourceOutput.get()
-        val apiResourceGeneratedOutput = apiResourcesOutput.get()
-        val serverResourceGeneratedOutput = serverResourcesOutput.get()
-        val apiTestResourceGeneratedOutput = apiTestResourcesOutput.get()
-        val serverTestResourceGeneratedOutput = serverTestResourcesOutput.get()
         val inputDirs = preparedSource.files.map { it.toPath() }
 
         val outputToPatchesDirectory = patchesDirOutput.getOrElse(true)
@@ -174,47 +106,6 @@ abstract class GeneratePatches : BaseTask() {
                 ).runSilently(silenceErr = true)
             }
         }
-        val serverJavaRepo = serverSourceInput.get()
-        val apiJavaRepo = apiSourceInput.get()
-        val serverTestRepo = serverTestSourceInput.get()
-        val apiTestRepo = apiTestSourceInput.get()
-        val serverResourcesRepo = serverResourcesInput.get()
-        val apiResourcesRepo = apiResourcesInput.get()
-        val serverTestResourcesRepo = serverTestResourcesInput.get()
-        val apiTestResourcesRepo = apiTestResourcesInput.get()
-
-        val additionalRepositories = listOfNotNull(
-            apiJavaRepo,
-            apiTestRepo,
-            apiResourcesRepo,
-            apiTestResourcesRepo,
-            serverJavaRepo,
-            serverTestRepo,
-            serverResourcesRepo,
-            serverTestResourcesRepo
-        )
-
-        for (repo in additionalRepositories) {
-            if (!repo.asFile.toPath().exists()) continue
-            val string = repo.toString()
-            val sourceOutputPath = when {
-                string.isApi() && string.isTest() -> apiTestGeneratedOutput.asFile.toPath()
-                !string.isApi() && string.isTest() -> serverTestGeneratedOutput.asFile.toPath()
-                string.isApi() && string.isResources() && string.isTest() -> apiTestResourceGeneratedOutput.asFile.toPath()
-                !string.isApi() && string.isResources() && string.isTest() -> serverTestResourceGeneratedOutput.asFile.toPath()
-                string.isApi() && !string.isResources() -> apiGeneratedOutput.asFile.toPath()
-                string.isApi() && string.isResources() -> apiResourceGeneratedOutput.asFile.toPath()
-                !string.isApi() && !string.isResources() -> serverGeneratedOutput.asFile.toPath()
-                else -> serverResourceGeneratedOutput.asFile.toPath()
-            }
-            sourceOutputPath.deleteRecursively()
-            repo.asFile.toPath().copyRecursivelyTo(sourceOutputPath)
-
-            sourceOutputPath.filesMatchingRecursive("*.java").forEach {
-                val content = it.readText()
-                it.writeText("// Generated from ${commitLink(url, commit)}\n$content")
-            }
-        }
     }
     private fun Git.commit(name: String, repoName: String, url: String, commit: String) {
         this(
@@ -234,8 +125,6 @@ abstract class GeneratePatches : BaseTask() {
         }
     }
     private fun String.isApi() = contains("-api")
-    private fun String.isResources() = endsWith("resources")
-    private fun String.isTest() = contains("test/")
     private fun commitLink(url: String, hash: String): String {
         val cleanUrl = url.removeSuffix(".git")
         return "$cleanUrl/commit/$hash"
