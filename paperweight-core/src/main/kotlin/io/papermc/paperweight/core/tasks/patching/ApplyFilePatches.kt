@@ -24,14 +24,12 @@ package io.papermc.paperweight.core.tasks.patching
 
 import io.codechicken.diffpatch.cli.PatchOperation
 import io.codechicken.diffpatch.match.FuzzyLineMatcher
-import io.codechicken.diffpatch.util.ConsumingOutputStream
 import io.codechicken.diffpatch.util.Input as DiffInput
 import io.codechicken.diffpatch.util.Output as DiffOutput
 import io.codechicken.diffpatch.util.PatchMode
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import java.io.PrintStream
 import java.nio.file.Path
 import java.time.Instant
 import kotlin.io.path.*
@@ -120,7 +118,7 @@ abstract class ApplyFilePatches : BaseTask() {
         val result = if (!patches.isPresent) {
             commit()
             0
-        } else if (gitFilePatches.get()) {
+        } else if (gitFilePatches.get() && shouldApplyWithGit(repoPath)) {
             applyWithGit(repoPath)
         } else {
             applyWithDiffPatch()
@@ -146,6 +144,16 @@ abstract class ApplyFilePatches : BaseTask() {
         } else {
             target.createDirectories()
         }
+    }
+
+    private fun shouldApplyWithGit(repoPath: Path): Boolean {
+        val patchFiles = patches.path.filesMatchingRecursive("*.patch")
+        val git = Git(repoPath)
+        val canApply = patchFiles.any { patch ->
+            val result = git("apply", "--check", patch.absolutePathString()).getText(ignoreErr = true)
+            result.contains("error: corrupt patch at line")
+        }
+        return !canApply
     }
 
     private fun applyWithGit(repoPath: Path): Int {
@@ -191,9 +199,8 @@ abstract class ApplyFilePatches : BaseTask() {
     }
 
     private fun applyWithDiffPatch(): Int? {
-        val printStream = PrintStream(ConsumingOutputStream { s -> logger.log(LogLevel.LIFECYCLE, s) })
         val builder = PatchOperation.builder()
-            .logTo(printStream)
+            .logTo(logger::lifecycle)
             .baseInput(DiffInput.MultiInput.folder(repo.path))
             .patchesInput(DiffInput.MultiInput.folder(patches.path))
             .patchedOutput(DiffOutput.MultiOutput.folder(repo.path))

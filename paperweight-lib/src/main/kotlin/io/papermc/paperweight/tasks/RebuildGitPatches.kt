@@ -98,7 +98,7 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
         if (commitCount <= 0) return // nothing to rebuild
 
         val range = "$base..$stop"
-        git("fetch", "--all", "--prune").runSilently(silenceErr = true)
+        git("fetch", "--all", "--prune", "--no-prune-tags").runSilently(silenceErr = true)
         git(
             "format-patch",
             "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",

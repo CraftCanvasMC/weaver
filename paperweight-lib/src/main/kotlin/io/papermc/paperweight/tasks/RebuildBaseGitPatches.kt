@@ -73,7 +73,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         // fail fast if someone decides to name a patch with these names to avoid patch corruption
         val patchedBaseCommitCount = git(
             "rev-list",
-            "--grep=${identifier.get()} Base Patches",
+            "--grep=^${identifier.get()} Base Patches$",
             "base..HEAD"
         ).getText().lines().filter { it.isNotBlank() }
         if (patchedBaseCommitCount.size > 1) {
@@ -82,7 +82,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
                 "Exceeded the max amount of commits with the identifier: `${identifier.get()} Base Patches`!\nGot $count commits, expected: 1"
             )
         }
-        val fileCommitCount = git("rev-list", "--grep=${identifier.get()} File Patches", "base..HEAD").getText().lines().filter { it.isNotBlank() }
+        val fileCommitCount = git("rev-list", "--grep=^${identifier.get()} File Patches$", "base..HEAD").getText().lines().filter { it.isNotBlank() }
         if (fileCommitCount.size > 1) {
             val count = fileCommitCount.size
             throw PaperweightException(
@@ -91,8 +91,8 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         }
 
         // these have to be retrieved dynamically
-        val patchedBaseCommit = git("rev-list", "--grep=${identifier.get()} Base Patches", "--max-count=1", "base..HEAD").getText().trim()
-        val fileCommit = git("rev-list", "--grep=${identifier.get()} File Patches", "--max-count=1", "base..HEAD").getText().trim()
+        val patchedBaseCommit = git("rev-list", "--grep=^${identifier.get()} Base Patches$", "--max-count=1", "base..HEAD").getText().trim()
+        val fileCommit = git("rev-list", "--grep=^${identifier.get()} File Patches$", "--max-count=1", "base..HEAD").getText().trim()
 
         // we update the appropriate tags to reflect the new repo state
         git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
@@ -135,7 +135,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         if (commitCount <= 0) return // nothing to rebuild
 
         val range = "$base..$stop"
-        git("fetch", "--all", "--prune").runSilently(silenceErr = true)
+        git("fetch", "--all", "--prune", "--no-prune-tags").runSilently(silenceErr = true)
         git(
             "format-patch",
             "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
