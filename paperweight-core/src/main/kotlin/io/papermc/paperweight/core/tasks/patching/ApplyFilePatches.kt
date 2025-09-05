@@ -118,7 +118,7 @@ abstract class ApplyFilePatches : BaseTask() {
         val result = if (!patches.isPresent) {
             commit()
             0
-        } else if (gitFilePatches.get()) {
+        } else if (gitFilePatches.get() && shouldApplyWithGit(repoPath)) {
             applyWithGit(repoPath)
         } else {
             applyWithDiffPatch()
@@ -144,6 +144,16 @@ abstract class ApplyFilePatches : BaseTask() {
         } else {
             target.createDirectories()
         }
+    }
+
+    private fun shouldApplyWithGit(repoPath: Path): Boolean {
+        val patchFiles = patches.path.filesMatchingRecursive("*.patch")
+        val git = Git(repoPath)
+        val canApply = patchFiles.any { patch ->
+            val result = git("apply", "--check", patch.absolutePathString()).getText(ignoreErr = true)
+            result.contains("error: corrupt patch at line")
+        }
+        return !canApply
     }
 
     private fun applyWithGit(repoPath: Path): Int {

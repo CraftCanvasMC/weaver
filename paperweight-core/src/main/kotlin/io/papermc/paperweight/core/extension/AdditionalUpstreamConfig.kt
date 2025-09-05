@@ -22,11 +22,8 @@
 
 package io.papermc.paperweight.core.extension
 
-import io.papermc.paperweight.core.extension.AdditionalUpstreamConfig.PatchGenerationConfig.InputConfig
-import io.papermc.paperweight.util.*
 import javax.annotation.Nullable
 import javax.inject.Inject
-import kotlin.io.path.*
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.NamedDomainObjectContainer
@@ -34,7 +31,6 @@ import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
-import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.domainObjectContainer
 import org.gradle.kotlin.dsl.newInstance
 

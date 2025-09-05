@@ -157,7 +157,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
     private var outStream: OutputStream = UselessOutputStream
     private var errStream: OutputStream = UselessOutputStream
 
-    fun run(): Int {
+    fun run(ignoreErr: Boolean): Int {
         if (paperweightDebug()) {
             // Override all settings for debug
             setup(DelegatingOutputStream(outStream, System.out), DelegatingOutputStream(errStream, System.err))
@@ -190,25 +190,33 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
             errStream.write(error.readBytes())
             return process.waitFor()
         } catch (e: Exception) {
-            throw PaperweightException("Failed to call git command: $command", e)
+            if (ignoreErr) {
+                return 0
+            } else {
+                throw PaperweightException("Failed to call git command: $command", e)
+            }
         }
     }
 
     fun runSilently(silenceOut: Boolean = true, silenceErr: Boolean = false): Int {
         silence(silenceOut, silenceErr)
-        return run()
+        return run(false)
     }
 
     fun runOut(): Int {
         setup(System.out, System.err)
-        return run()
+        return run(false)
     }
 
     fun execute() {
-        val res = run()
+        val res = run(false)
         if (res != 0) {
             throw PaperweightException("Command finished with $res exit code: $command")
         }
+    }
+
+    fun execute(ignoreErr: Boolean) {
+        run(ignoreErr)
     }
 
     fun executeSilently(silenceOut: Boolean = true, silenceErr: Boolean = false) {
@@ -240,11 +248,18 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
         return String(out.toByteArray(), Charset.defaultCharset())
     }
 
+    fun getText(ignoreErr: Boolean): String {
+        val out = ByteArrayOutputStream()
+        setup(out, out)
+        execute(ignoreErr)
+        return String(out.toByteArray(), Charset.defaultCharset())
+    }
+
     @Suppress("unused")
     fun readText(): String? {
         val out = ByteArrayOutputStream()
         setup(out, System.err)
-        return if (run() == 0) String(out.toByteArray(), Charset.defaultCharset()) else null
+        return if (run(false) == 0) String(out.toByteArray(), Charset.defaultCharset()) else null
     }
 
     class Result(val exit: Int, val out: String)
@@ -257,7 +272,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
         } else {
             setup(out, out)
         }
-        Result(run(), String(out.toByteArray()))
+        Result(run(false), String(out.toByteArray()))
     }
 }
 
