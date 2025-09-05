@@ -164,6 +164,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
 
                 tasks.register<GenerateSources>("generate${name}Sources") {
                     group = "source generation"
+                    description = "Generates sources from ${input.name}"
                     dependsOn(applyAdditionalUpstream)
                     forkName.set(upstream.name)
                     forkUrl.set(upstream.repo)
@@ -196,7 +197,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
             val genPatches = tasks.register<GeneratePatches>("generate${upstream.name.capitalized()}Patches") {
                 dependsOn(depend.map { it })
                 group = "patch generation"
-                description = "Generates base patches from ${upstream.name}"
+                description = "Condenses ${upstream.name} changes for every inputConfig into a corresponding patch file"
                 forkName.set(upstream.name)
                 forkUrl.set(upstream.repo)
                 commitHash.set(upstream.ref)
@@ -215,7 +216,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
 
             val generate = tasks.register("generate${upstream.name.capitalized()}") {
                 group = "generation"
-                description = "Generates base patches and sources from ${upstream.name}"
+                description = "Generates patches and sources from ${upstream.name}"
             }
             genSources { dependsOn(sourceGenDepend.map { it }) }
             generate { dependsOn(genPatches, genSources) }
