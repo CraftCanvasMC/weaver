@@ -144,7 +144,7 @@ abstract class GenerateSources : JavaLauncherTask() {
         )
 
         for (output in outputs) {
-            output.deleteRecursively()
+            output.deleteRecursive()
             when (output) {
                 generatedOutput -> {
                     tempOutput.resolve("src/main/java").copyRecursivelyTo(output)

@@ -150,8 +150,8 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     forkName.set(upstream.name)
                     repoName.set(input.name)
                     workDir.set(workDirFromProp)
-                    atFile.set(input.additionalAts.fileExists(project))
-                    additionalPatch.set(input.additionalPatch.fileExists(project))
+                    atFile.set(input.additionalAts.fileExists())
+                    additionalPatch.set(input.additionalPatch.fileExists())
                 }
             }
 
@@ -171,8 +171,8 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     inputFrom.set(input.name)
                     commitHash.set(upstream.ref)
                     workDir.set(workDirFromProp)
-                    atFile.set(input.additionalAts.fileExists(project))
-                    additionalPatch.set(input.additionalPatch.fileExists(project))
+                    atFile.set(input.additionalAts.fileExists())
+                    additionalPatch.set(input.additionalPatch.fileExists())
                     generateSources.set(input.generateSources.orElse(true))
                     generateResources.set(input.generateResources.orElse(true))
                     generateTestSources.set(input.generateTestSources.orElse(true))
