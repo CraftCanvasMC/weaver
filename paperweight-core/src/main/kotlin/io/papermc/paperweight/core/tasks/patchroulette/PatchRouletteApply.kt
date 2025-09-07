@@ -159,7 +159,7 @@ abstract class PatchRouletteApply : AbstractPatchRouletteTask() {
             )
             val errorTextBuffer = ByteArrayOutputStream()
             applyCommand.setup(System.out, errorTextBuffer)
-            val applyCommandExitCode = applyCommand.run(false)
+            val applyCommandExitCode = applyCommand.run()
             val applyCommandErrorText = String(errorTextBuffer.toByteArray(), Charset.defaultCharset())
             val applyCommandErrorTextContainsUnexpected = applyCommandErrorText.lines()
                 .filter { it.isNotBlank() }

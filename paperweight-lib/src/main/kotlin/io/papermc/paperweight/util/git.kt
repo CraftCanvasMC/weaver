@@ -157,7 +157,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
     private var outStream: OutputStream = UselessOutputStream
     private var errStream: OutputStream = UselessOutputStream
 
-    fun run(ignoreErr: Boolean): Int {
+    fun run(): Int {
         if (paperweightDebug()) {
             // Override all settings for debug
             setup(DelegatingOutputStream(outStream, System.out), DelegatingOutputStream(errStream, System.err))
@@ -190,33 +190,29 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
             errStream.write(error.readBytes())
             return process.waitFor()
         } catch (e: Exception) {
-            if (ignoreErr) {
-                return 0
-            } else {
-                throw PaperweightException("Failed to call git command: $command", e)
-            }
+            throw PaperweightException("Failed to call git command: $command", e)
         }
     }
 
     fun runSilently(silenceOut: Boolean = true, silenceErr: Boolean = false): Int {
         silence(silenceOut, silenceErr)
-        return run(false)
+        return run()
     }
 
     fun runOut(): Int {
         setup(System.out, System.err)
-        return run(false)
+        return run()
     }
 
     fun execute() {
-        val res = run(false)
+        val res = run()
         if (res != 0) {
             throw PaperweightException("Command finished with $res exit code: $command")
         }
     }
 
     fun execute(ignoreErr: Boolean) {
-        run(ignoreErr)
+        run()
     }
 
     fun executeSilently(silenceOut: Boolean = true, silenceErr: Boolean = false) {
@@ -259,7 +255,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
     fun readText(): String? {
         val out = ByteArrayOutputStream()
         setup(out, System.err)
-        return if (run(false) == 0) String(out.toByteArray(), Charset.defaultCharset()) else null
+        return if (run() == 0) String(out.toByteArray(), Charset.defaultCharset()) else null
     }
 
     class Result(val exit: Int, val out: String)
@@ -272,7 +268,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
         } else {
             setup(out, out)
         }
-        Result(run(false), String(out.toByteArray()))
+        Result(run(), String(out.toByteArray()))
     }
 }
 
