@@ -190,7 +190,7 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
             errStream.write(error.readBytes())
             return process.waitFor()
         } catch (e: Exception) {
-                throw PaperweightException("Failed to call git command: $command", e)
+            throw PaperweightException("Failed to call git command: $command", e)
         }
     }
 
