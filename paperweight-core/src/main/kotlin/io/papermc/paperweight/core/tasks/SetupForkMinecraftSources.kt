@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.core.tasks
 
+import io.papermc.paperweight.core.util.ApplyAdditionalMappings
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
@@ -50,9 +51,16 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
 
+    @get:Nested
+    val mapping: ApplyAdditionalMappings = objects.newInstance()
+
     @get:InputFile
     @get:Optional
     abstract val atFile: RegularFileProperty
+
+    @get:InputFile
+    @get:Optional
+    abstract val mappingFile: RegularFileProperty
 
     @get:Optional
     @get:InputDirectory
@@ -89,6 +97,17 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 temporaryDir.toPath(),
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
+        }
+        if (mappingFile.isPresent) {
+            println("Applying additional mappings...")
+            mapping.run(
+                launcher.get(),
+                inputDir.path,
+                outputDir.path,
+                mappingFile.path,
+                temporaryDir.toPath(),
+            )
+            commitAndTag(git, "Mapped", "${identifier.get()} Additional Mappings Data")
         }
 
         git.close()

@@ -57,6 +57,7 @@ abstract class ForkConfig @Inject constructor(
     val buildDataDir: DirectoryProperty = objects.dirFrom(rootDirectory, "build-data")
     val devImports: RegularFileProperty = objects.fileFrom(buildDataDir, "dev-imports.txt")
     val additionalAts: RegularFileProperty = objects.fileFrom(buildDataDir, providers.provider { "$name.at" })
+    val additionalMappings: RegularFileProperty = objects.fileFrom(buildDataDir, "parchment.json")
     val reobfMappingsPatch: RegularFileProperty = objects.fileFrom(buildDataDir, "reobf-mappings-patch.tiny")
 
     val forks: Property<ForkConfig> = objects.property()

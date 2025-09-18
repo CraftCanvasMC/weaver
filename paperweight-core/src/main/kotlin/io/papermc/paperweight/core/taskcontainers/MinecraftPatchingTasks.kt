@@ -35,7 +35,10 @@ import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
+import io.papermc.paperweight.util.path
 import java.nio.file.Path
+import kotlin.io.path.exists
+import kotlin.io.path.readText
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
@@ -57,6 +60,7 @@ class MinecraftPatchingTasks(
     private val resourcePatchDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
     private val additionalAts: RegularFileProperty,
+    private val additionalMappings: RegularFileProperty,
     private val baseSources: Provider<Directory>,
     private val baseResources: Provider<Directory>,
     private val gitFilePatches: Provider<Boolean>,
@@ -200,6 +204,28 @@ class MinecraftPatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
+
+        if (additionalMappings.path.exists() && additionalMappings.path.readText().isNotBlank()) {
+            val applyParchment = tasks.register<SetupForkMinecraftSources>("apply${configName.capitalized()}AdditionalMappings") {
+                description = "Applies additional mappings, along with JDs if applicable to Minecraft sources (after applying base patches)"
+                inputDir.set(applyBasePatches.flatMap { it.output })
+                outputDir.set(layout.cache.resolve(paperTaskOutput()))
+                identifier.set(configName)
+                mappingFile.set(additionalMappings)
+                mapping.jst.from(project.configurations.named(JST_CONFIG))
+            }
+
+            applySourcePatches.configure {
+                base.set(applyParchment.flatMap { it.outputDir })
+                baseRef.set("Mapped")
+            }
+
+            applySourcePatchesFuzzy.configure {
+                base.set(applyParchment.flatMap { it.outputDir })
+                baseRef.set("Mapped")
+            }
+        }
+
         /* uncomment this when we enable validation of ATs since then seperate AT files will be forced, right now this breaks on projects with one AT file for many modules
         val name = "rebuild${namePart}BasePatches"
         if (name in tasks.names) {

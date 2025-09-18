@@ -44,6 +44,7 @@ abstract class PaperExtension @Inject constructor(objects: ObjectFactory, projec
     val buildDataDir: DirectoryProperty = objects.dirFrom(rootDirectory, "build-data")
     val devImports: RegularFileProperty = objects.fileFrom(buildDataDir, "dev-imports.txt")
     val additionalAts: RegularFileProperty = objects.fileFrom(buildDataDir, "paper.at")
+    val additionalMappings: RegularFileProperty = objects.fileFrom(buildDataDir, "parchment.json")
     val reobfMappingsPatch: RegularFileProperty = objects.fileFrom(buildDataDir, "reobf-mappings-patch.tiny")
     val mappingsPatch: RegularFileProperty = objects.fileProperty()
 }

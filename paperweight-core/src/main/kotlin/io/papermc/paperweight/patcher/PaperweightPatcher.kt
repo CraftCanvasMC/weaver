@@ -151,6 +151,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     repoName.set(input.name)
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists(project))
+                    ats.jst.from(project.configurations.named(JST_CONFIG))
                     additionalPatch.set(input.additionalPatch.fileExists(project))
                 }
             }
@@ -172,6 +173,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     commitHash.set(upstream.ref)
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists(project))
+                    ats.jst.from(project.configurations.named(JST_CONFIG))
                     additionalPatch.set(input.additionalPatch.fileExists(project))
                     generateSources.set(input.generateSources.orElse(true))
                     generateResources.set(input.generateResources.orElse(true))
