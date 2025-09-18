@@ -3,8 +3,7 @@ asm = "9.8"
 lorenz = "0.5.8"
 hypo = "1.2.4"
 serialize = "1.8.1"
-jst = "1.0.68+paper.2-SNAPSHOT"
-accessWidener = "2.1.0"
+jst = "1.0.68+canvas.1-SNAPSHOT"
 tinyRemapper = "0.11.2"
 
 [libraries]
@@ -38,10 +37,9 @@ diffpatch = "io.codechicken:DiffPatch:2.0.1.40"
 serialize-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "serialize" }
 serialize-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "serialize" }
 
-jst = { module = "io.papermc.jst:jst-cli-bundle", version.ref = "jst" }
+jst = { module = "io.canvasmc.jst:jst-cli-bundle", version.ref = "jst" }
 # jst = { module = "net.neoforged.jst:jst-cli-bundle", version.ref = "jst" }
 tinyRemapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tinyRemapper" }
-accessWidener = { module = "net.fabricmc:access-widener", version.ref = "accessWidener" }
 
 # test
 mockk = "io.mockk:mockk:1.14.2"

@@ -28,15 +28,19 @@ import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import kotlin.io.path.*
 import org.eclipse.jgit.api.Git
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
+import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 
@@ -58,9 +62,10 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Optional
     abstract val atFile: RegularFileProperty
 
-    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFiles
     @get:Optional
-    abstract val mappingFile: RegularFileProperty
+    abstract val mappingFile: ConfigurableFileCollection
 
     @get:Optional
     @get:InputDirectory
@@ -98,13 +103,13 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
         }
-        if (mappingFile.isPresent) {
+        if (!mappingFile.isEmpty) {
             println("Applying additional mappings...")
             mapping.run(
                 launcher.get(),
                 inputDir.path,
                 outputDir.path,
-                mappingFile.path,
+                mappingFile.singleFile.toPath(),
                 temporaryDir.toPath(),
             )
             commitAndTag(git, "Mapped", "${identifier.get()} Additional Mappings Data")

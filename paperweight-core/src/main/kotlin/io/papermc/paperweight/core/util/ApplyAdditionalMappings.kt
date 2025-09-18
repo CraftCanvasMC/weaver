@@ -76,6 +76,7 @@ abstract class ApplyAdditionalMappings {
             "--enable-parchment",
             "--parchment-mappings=$mappingFile",
             "--hidden-prefix=.git",
+            "--rename=false",
             *jstClasspath.files.map { "--classpath=${it.absolutePath}" }.toTypedArray(),
             inputDir.absolutePathString(),
             outputDir.absolutePathString(),

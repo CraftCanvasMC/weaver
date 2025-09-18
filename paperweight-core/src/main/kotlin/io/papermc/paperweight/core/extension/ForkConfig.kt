@@ -23,6 +23,7 @@
 package io.papermc.paperweight.core.extension
 
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.ADDITIONAL_MAPPINGS_CONFIG
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.Named
@@ -39,7 +40,7 @@ abstract class ForkConfig @Inject constructor(
     private val configName: String,
     providers: ProviderFactory,
     objects: ObjectFactory,
-    project: Project,
+    private val project: Project,
 ) : Named {
     override fun getName(): String {
         return configName
@@ -57,7 +58,6 @@ abstract class ForkConfig @Inject constructor(
     val buildDataDir: DirectoryProperty = objects.dirFrom(rootDirectory, "build-data")
     val devImports: RegularFileProperty = objects.fileFrom(buildDataDir, "dev-imports.txt")
     val additionalAts: RegularFileProperty = objects.fileFrom(buildDataDir, providers.provider { "$name.at" })
-    val additionalMappings: RegularFileProperty = objects.fileFrom(buildDataDir, "parchment.json")
     val reobfMappingsPatch: RegularFileProperty = objects.fileFrom(buildDataDir, "reobf-mappings-patch.tiny")
 
     val forks: Property<ForkConfig> = objects.property()
@@ -68,6 +68,13 @@ abstract class ForkConfig @Inject constructor(
     }.orElse(
         providers.provider { objects.newInstance("paper", false) }
     )
+    val additionalMappings = project.configurations.register(ADDITIONAL_MAPPINGS_CONFIG)
+
+    fun additionalMappings(dep: String) {
+        additionalMappings.configure {
+            dependencies.add(project.dependencies.create(dep))
+        }
+    }
 
     val upstream: UpstreamConfig by lazy {
         upstreamProvider.get()
