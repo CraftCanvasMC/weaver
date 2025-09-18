@@ -213,12 +213,12 @@ class MinecraftPatchingTasks(
 
             applySourcePatches.configure {
                 base.set(applyJavadocMappings.flatMap { it.outputDir })
-                baseRef.set("Mapped")
+                baseRef.set("JDs")
             }
 
             applySourcePatchesFuzzy.configure {
                 base.set(applyJavadocMappings.flatMap { it.outputDir })
-                baseRef.set("Mapped")
+                baseRef.set("JDs")
             }
         }
 

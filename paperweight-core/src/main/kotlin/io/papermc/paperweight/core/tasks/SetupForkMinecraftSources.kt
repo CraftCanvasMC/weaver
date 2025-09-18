@@ -112,7 +112,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 mappingFile.singleFile.toPath(),
                 temporaryDir.toPath(),
             )
-            commitAndTag(git, "Mapped", "${identifier.get()} Additional Mappings Data")
+            commitAndTag(git, "JDs", "${identifier.get()} Javadoc Mappings")
         }
 
         git.close()

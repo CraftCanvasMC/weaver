@@ -68,7 +68,7 @@ abstract class ForkConfig @Inject constructor(
     }.orElse(
         providers.provider { objects.newInstance("paper", false) }
     )
-    val javadocMappings = project.configurations.register(JAVADOC_MAPPINGS_CONFIG)
+    val javadocMappings = project.configurations.register(name + JAVADOC_MAPPINGS_CONFIG)
 
     fun javadocMappings(dep: String) {
         javadocMappings.configure {
