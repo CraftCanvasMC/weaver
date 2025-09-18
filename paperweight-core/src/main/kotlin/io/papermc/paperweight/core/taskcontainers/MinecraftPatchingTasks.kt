@@ -201,23 +201,23 @@ class MinecraftPatchingTasks(
             input.set(setup.flatMap { it.outputDir })
         }
 
-        if (!config.additionalMappings.get().dependencies.isEmpty()) {
-            val applyAdditionalMappings = tasks.register<SetupForkMinecraftSources>("apply${configName.capitalized()}AdditionalMappings") {
-                description = "Applies additional mappings, along with JDs if applicable to Minecraft sources (after applying base patches)"
+        if (config.javadocMappings.get().dependencies.isNotEmpty()) {
+            val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToSources") {
+                description = "Applies javadocs from the specified parchment-compatible mappings to Minecraft sources (after applying base patches)"
                 inputDir.set(applyBasePatches.flatMap { it.output })
                 outputDir.set(layout.cache.resolve(paperTaskOutput()))
                 identifier.set(configName)
-                mappingFile.from(config.additionalMappings)
+                mappingFile.from(config.javadocMappings)
                 mapping.jst.from(project.configurations.named(JST_CONFIG))
             }
 
             applySourcePatches.configure {
-                base.set(applyAdditionalMappings.flatMap { it.outputDir })
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
                 baseRef.set("Mapped")
             }
 
             applySourcePatchesFuzzy.configure {
-                base.set(applyAdditionalMappings.flatMap { it.outputDir })
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
                 baseRef.set("Mapped")
             }
         }

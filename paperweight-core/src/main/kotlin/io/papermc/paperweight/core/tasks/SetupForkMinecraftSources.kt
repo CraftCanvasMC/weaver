@@ -22,7 +22,7 @@
 
 package io.papermc.paperweight.core.tasks
 
-import io.papermc.paperweight.core.util.ApplyAdditionalMappings
+import io.papermc.paperweight.core.util.ApplyJavadocMappings
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
@@ -56,7 +56,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     val ats: ApplySourceATs = objects.newInstance()
 
     @get:Nested
-    val mapping: ApplyAdditionalMappings = objects.newInstance()
+    val mapping: ApplyJavadocMappings = objects.newInstance()
 
     @get:InputFile
     @get:Optional
@@ -104,7 +104,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
         }
         if (!mappingFile.isEmpty) {
-            println("Applying additional mappings...")
+            println("Applying javadoc mappings...")
             mapping.run(
                 launcher.get(),
                 inputDir.path,

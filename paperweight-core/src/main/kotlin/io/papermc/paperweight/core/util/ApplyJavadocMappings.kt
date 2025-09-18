@@ -32,7 +32,7 @@ import org.gradle.api.tasks.CompileClasspath
 import org.gradle.api.tasks.Input
 import org.gradle.jvm.toolchain.JavaLauncher
 
-abstract class ApplyAdditionalMappings {
+abstract class ApplyJavadocMappings {
     @get:Classpath
     abstract val jst: ConfigurableFileCollection
 

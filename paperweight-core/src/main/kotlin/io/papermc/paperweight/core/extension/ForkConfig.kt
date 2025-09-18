@@ -23,7 +23,7 @@
 package io.papermc.paperweight.core.extension
 
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.ADDITIONAL_MAPPINGS_CONFIG
+import io.papermc.paperweight.util.constants.JAVADOC_MAPPINGS_CONFIG
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.Named
@@ -68,10 +68,10 @@ abstract class ForkConfig @Inject constructor(
     }.orElse(
         providers.provider { objects.newInstance("paper", false) }
     )
-    val additionalMappings = project.configurations.register(ADDITIONAL_MAPPINGS_CONFIG)
+    val javadocMappings = project.configurations.register(JAVADOC_MAPPINGS_CONFIG)
 
-    fun additionalMappings(dep: String) {
-        additionalMappings.configure {
+    fun javadocMappings(dep: String) {
+        javadocMappings.configure {
             dependencies.add(project.dependencies.create(dep))
         }
     }
