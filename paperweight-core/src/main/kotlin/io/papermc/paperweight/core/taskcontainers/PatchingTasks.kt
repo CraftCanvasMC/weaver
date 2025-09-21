@@ -71,6 +71,7 @@ class PatchingTasks(
         } else {
             output.set(outputDir)
         }
+
         patches.set(basePatchDir.fileExists())
         baseRef.set("base")
         identifier = "$forkName $patchSetName"
