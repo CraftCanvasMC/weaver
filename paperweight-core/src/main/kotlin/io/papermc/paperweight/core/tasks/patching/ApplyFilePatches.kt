@@ -69,6 +69,10 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Optional
     abstract val base: DirectoryProperty
 
+    @get:Optional
+    @get:Input
+    abstract val baseRef: Property<String>
+
     @get:Input
     @get:Optional
     abstract val identifier: Property<String>
@@ -100,7 +104,7 @@ abstract class ApplyFilePatches : BaseTask() {
             checkoutRepoFromUpstream(
                 git,
                 base,
-                "patchedBase",
+                baseRef.getOrElse("patchedBase"),
                 branchName = "main",
                 ref = true,
             )
@@ -112,7 +116,7 @@ abstract class ApplyFilePatches : BaseTask() {
         if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
             git("checkout", "-b", "main").runSilently(silenceErr = true)
         }
-        git("reset", "--hard", "patchedBase").runSilently(silenceErr = true)
+        git("reset", "--hard", baseRef.getOrElse("patchedBase")).runSilently(silenceErr = true)
         git("gc").runSilently(silenceErr = true)
 
         val result = if (!patches.isPresent) {

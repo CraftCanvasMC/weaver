@@ -200,6 +200,28 @@ class MinecraftPatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
+
+        if (config.javadocMappings.get().dependencies.isNotEmpty()) {
+            val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToSources") {
+                description = "Applies javadocs from the specified parchment-compatible mappings to Minecraft sources (after applying base patches)"
+                inputDir.set(applyBasePatches.flatMap { it.output })
+                outputDir.set(layout.cache.resolve(paperTaskOutput()))
+                identifier.set(configName)
+                mappingFile.from(config.javadocMappings)
+                mapping.jst.from(project.configurations.named(JST_CONFIG))
+            }
+
+            applySourcePatches.configure {
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
+                baseRef.set("JDs")
+            }
+
+            applySourcePatchesFuzzy.configure {
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
+                baseRef.set("JDs")
+            }
+        }
+
         /* uncomment this when we enable validation of ATs since then seperate AT files will be forced, right now this breaks on projects with one AT file for many modules
         val name = "rebuild${namePart}BasePatches"
         if (name in tasks.names) {

@@ -57,7 +57,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
         target.configurations.register(JST_CONFIG) {
             defaultDependencies {
                 // add(project.dependencies.create("net.neoforged.jst:jst-cli-bundle:${LibraryVersions.JST}"))
-                add(target.dependencies.create("io.papermc.jst:jst-cli-bundle:${LibraryVersions.JST}"))
+                add(target.dependencies.create("io.canvasmc.jst:jst-cli-bundle:${LibraryVersions.JST}"))
             }
         }
 
@@ -65,9 +65,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
             repositories {
                 maven(patcher.jstRepo) {
                     name = JST_REPO_NAME
-                    content {
-                        onlyForConfigurations(JST_CONFIG)
-                    }
+                    content { onlyForConfigurations(JST_CONFIG) }
                 }
             }
             afterEvaluate(patcher)
@@ -151,6 +149,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     repoName.set(input.name)
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
+                    ats.jst.from(project.configurations.named(JST_CONFIG))
                     additionalPatch.set(input.additionalPatch.fileExists())
                 }
             }
@@ -172,6 +171,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     commitHash.set(upstream.ref)
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
+                    ats.jst.from(project.configurations.named(JST_CONFIG))
                     additionalPatch.set(input.additionalPatch.fileExists())
                     generateSources.set(input.generateSources.orElse(true))
                     generateResources.set(input.generateResources.orElse(true))

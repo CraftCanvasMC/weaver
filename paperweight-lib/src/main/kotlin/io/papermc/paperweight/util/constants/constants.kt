@@ -34,6 +34,8 @@ const val MC_LIBRARY_URL = "https://libraries.minecraft.net/"
 
 const val MC_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_manifest_v2.json"
 
+const val CANVAS_MAVEN_REPO_URL = "https://maven.canvasmc.io/snapshots"
+
 const val PAPER_MAVEN_REPO_URL = "https://repo.papermc.io/repository/maven-public/"
 
 const val MAVEN_CENTRAL_URL = "https://repo.maven.apache.org/maven2/"
@@ -53,6 +55,7 @@ const val MACHE_MINECRAFT_LIBRARIES_CONFIG = "macheMinecraftLibraries"
 const val MACHE_MINECRAFT_CONFIG = "macheMinecraft"
 const val MAPPED_JAR_OUTGOING_CONFIG = "mappedJarOutgoing"
 const val ASM_OPCODES_VERSION = Opcodes.ASM9
+const val JAVADOC_MAPPINGS_CONFIG = "JavadocMappings"
 const val JST_CONFIG = "javaSourceTransformer"
 const val DEV_BUNDLE_CONFIG = "paperweightDevelopmentBundle"
 const val MOJANG_MAPPED_SERVER_CONFIG = "mojangMappedServer"

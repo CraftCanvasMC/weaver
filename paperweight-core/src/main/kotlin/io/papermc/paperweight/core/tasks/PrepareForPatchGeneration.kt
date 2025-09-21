@@ -25,7 +25,6 @@ package io.papermc.paperweight.core.tasks
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.JavaLauncherTask
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.JST_CONFIG
 import io.papermc.paperweight.util.constants.paperTaskOutput
 import kotlin.io.path.*
 import org.gradle.api.file.DirectoryProperty
@@ -47,9 +46,7 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
     abstract val workDir: DirectoryProperty
 
     @get:Nested
-    val ats: ApplySourceATs = objects.newInstance<ApplySourceATs>().apply {
-        jst.from(project.configurations.named(JST_CONFIG))
-    }
+    val ats: ApplySourceATs = objects.newInstance()
 
     @get:InputFile
     @get:Optional
