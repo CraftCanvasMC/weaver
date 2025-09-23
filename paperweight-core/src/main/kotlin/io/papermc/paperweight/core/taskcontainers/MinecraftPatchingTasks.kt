@@ -38,6 +38,7 @@ import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -201,9 +202,13 @@ class MinecraftPatchingTasks(
             input.set(setup.flatMap { it.outputDir })
         }
 
-        if (config.javadocMappings.get().dependencies.isNotEmpty()) {
+        fun Configuration.hasAnyDependencies(): Boolean {
+            return dependencies.isNotEmpty() || incoming.artifacts.artifactFiles.files.isNotEmpty()
+        }
+
+        if (config.javadocMappings.get().hasAnyDependencies()) {
             val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToSources") {
-                description = "Applies javadocs from the specified parchment-compatible mappings to Minecraft sources (after applying base patches)"
+                description = "Applies javadocs from the specified parchment-compatible mappings in $configName to Minecraft sources (after applying base patches)"
                 inputDir.set(applyBasePatches.flatMap { it.output })
                 outputDir.set(layout.cache.resolve(paperTaskOutput()))
                 identifier.set(configName)

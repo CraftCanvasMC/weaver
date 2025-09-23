@@ -28,6 +28,7 @@ import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -73,6 +74,18 @@ abstract class ForkConfig @Inject constructor(
     fun javadocMappings(dep: String) {
         javadocMappings.configure {
             dependencies.add(project.dependencies.create(dep))
+        }
+    }
+
+    fun javadocMappings(configuration: Configuration) {
+        javadocMappings.configure {
+            incoming.beforeResolve { extendsFrom(configuration) }
+        }
+    }
+
+    fun javadocMappings(configuration: Provider<out Configuration>) {
+        javadocMappings.configure {
+            incoming.beforeResolve { extendsFrom(configuration.get()) }
         }
     }
 
