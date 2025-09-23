@@ -207,8 +207,8 @@ class MinecraftPatchingTasks(
         }
 
         if (config.javadocMappings.get().hasAnyDependencies()) {
-            val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToSources") {
-                description = "Applies javadocs from the specified parchment-compatible mappings in $configName to Minecraft sources (after applying base patches)"
+            val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToMinecraft") {
+                description = "Applies javadocs from the specified parchment-compatible mappings in $configName to Minecraft (after base patch apply)"
                 inputDir.set(applyBasePatches.flatMap { it.output })
                 outputDir.set(layout.cache.resolve(paperTaskOutput()))
                 identifier.set(configName)
