@@ -52,7 +52,7 @@ class PatchingTasks(
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
     private val featurePatchDir: DirectoryProperty,
-    private val additionalAts: RegularFileProperty?,
+    private val additionalAts: RegularFileProperty,
     private val baseDir: Provider<Directory>,
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
@@ -143,7 +143,7 @@ class PatchingTasks(
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${namePart}ATs") {
-            additionalAts?.let { firstFile.set(it.fileExists()) }
+            firstFile.set(additionalAts.fileExists())
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
 
