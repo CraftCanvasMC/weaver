@@ -62,7 +62,7 @@ abstract class PaperweightCore : Plugin<Project> {
 
     override fun apply(target: Project) {
         Git.checkForGit(target.providers)
-        printId<PaperweightCore>("paperweight-core", target.gradle)
+        printId<PaperweightCore>("weaver-core", target.gradle)
 
         val ext = target.extensions.create<PaperweightCoreExtension>(PAPERWEIGHT_EXTENSION, target)
 

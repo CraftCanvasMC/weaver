@@ -44,7 +44,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
 
     override fun apply(target: Project) {
         Git.checkForGit(target.providers)
-        printId<PaperweightPatcher>("paperweight-patcher", target.gradle)
+        printId<PaperweightPatcher>("weaver-patcher", target.gradle)
 
         val patcher = target.extensions.create(PAPERWEIGHT_EXTENSION, PaperweightPatcherExtension::class)
 
@@ -115,7 +115,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 group = "patching"
                 val depend = "apply${upstream.name.capitalized()}Patches"
                 tasks.addAll("applyAllServerPatches")
-                description = "Applies all patches defined in the paperweight-patcher project and the server project. " +
+                description = "Applies all patches defined in the weaver-patcher project and the server project. " +
                     "(equivalent to running '$depend' and then '${tasks.get().single()}' in a second Gradle invocation)"
                 projectDir.set(layout.projectDirectory)
                 dependsOn(depend)
