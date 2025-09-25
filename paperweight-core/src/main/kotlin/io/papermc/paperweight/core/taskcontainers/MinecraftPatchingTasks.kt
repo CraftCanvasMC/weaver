@@ -38,7 +38,6 @@ import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -202,29 +201,21 @@ class MinecraftPatchingTasks(
             input.set(setup.flatMap { it.outputDir })
         }
 
-        fun Configuration.hasAnyDependencies(): Boolean {
-            return dependencies.isNotEmpty() || incoming.artifacts.artifactFiles.files.isNotEmpty()
+        val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToMinecraft") {
+            description = "When applicable, applies javadocs from the specified parchment mappings in $configName to Minecraft for source patch apply"
+            inputDir.set(applyBasePatches.flatMap { it.output })
+            outputDir.set(layout.cache.resolve(paperTaskOutput()))
+            identifier.set(configName)
+            mappingFile.from(config.javadocMappings)
+            mapping.jst.from(project.configurations.named(JST_CONFIG))
         }
 
-        if (config.javadocMappings.get().hasAnyDependencies()) {
-            val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToMinecraft") {
-                description = "Applies javadocs from the specified parchment-compatible mappings in $configName to Minecraft (after base patch apply)"
-                inputDir.set(applyBasePatches.flatMap { it.output })
-                outputDir.set(layout.cache.resolve(paperTaskOutput()))
-                identifier.set(configName)
-                mappingFile.from(config.javadocMappings)
-                mapping.jst.from(project.configurations.named(JST_CONFIG))
-            }
+        applySourcePatches.configure {
+            base.set(applyJavadocMappings.flatMap { it.outputDir })
+        }
 
-            applySourcePatches.configure {
-                base.set(applyJavadocMappings.flatMap { it.outputDir })
-                baseRef.set("JDs")
-            }
-
-            applySourcePatchesFuzzy.configure {
-                base.set(applyJavadocMappings.flatMap { it.outputDir })
-                baseRef.set("JDs")
-            }
+        applySourcePatchesFuzzy.configure {
+            base.set(applyJavadocMappings.flatMap { it.outputDir })
         }
 
         /* uncomment this when we enable validation of ATs since then seperate AT files will be forced, right now this breaks on projects with one AT file for many modules

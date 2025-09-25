@@ -79,13 +79,15 @@ abstract class ForkConfig @Inject constructor(
 
     fun javadocMappings(configuration: Configuration) {
         javadocMappings.configure {
-            incoming.beforeResolve { extendsFrom(configuration) }
+            extendsFrom(configuration)
         }
     }
 
     fun javadocMappings(configuration: Provider<out Configuration>) {
-        javadocMappings.configure {
-            incoming.beforeResolve { extendsFrom(configuration.get()) }
+        configuration.orNull?.let { conf ->
+            javadocMappings.configure {
+                extendsFrom(conf)
+            }
         }
     }
 

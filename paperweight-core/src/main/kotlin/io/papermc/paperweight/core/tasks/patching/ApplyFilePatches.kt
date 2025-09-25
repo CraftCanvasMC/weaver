@@ -73,6 +73,9 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Input
     abstract val baseRef: Property<String>
 
+    @get:Internal
+    abstract val ref: Property<String>
+
     @get:Input
     @get:Optional
     abstract val identifier: Property<String>
@@ -89,6 +92,7 @@ abstract class ApplyFilePatches : BaseTask() {
             gitFilePatches.convention(false)
             moveFailedGitPatchesToRejects.convention(false)
             emitRejects.convention(true)
+            ref.convention(baseRef.orElse("patchedBase"))
         }
     }
 
@@ -97,14 +101,18 @@ abstract class ApplyFilePatches : BaseTask() {
         io.papermc.paperweight.util.Git.checkForGit()
 
         val base = base.pathOrNull
+
         if (base != null && base.toAbsolutePath() != repo.path.toAbsolutePath()) {
             recreateCloneDirectory(repo.path)
+            val checkoutFromJDs = hasJavadocs(base, "JDs")
+            val newRef = if (checkoutFromJDs) "JDs" else ref.get()
+            ref.set(newRef)
 
             val git = Git(repo.path.createDirectories())
             checkoutRepoFromUpstream(
                 git,
                 base,
-                baseRef.getOrElse("patchedBase"),
+                ref.get(),
                 branchName = "main",
                 ref = true,
             )
@@ -116,7 +124,7 @@ abstract class ApplyFilePatches : BaseTask() {
         if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
             git("checkout", "-b", "main").runSilently(silenceErr = true)
         }
-        git("reset", "--hard", baseRef.getOrElse("patchedBase")).runSilently(silenceErr = true)
+        git("reset", "--hard", ref.get()).runSilently(silenceErr = true)
         git("gc").runSilently(silenceErr = true)
 
         val result = if (!patches.isPresent) {
@@ -244,6 +252,12 @@ abstract class ApplyFilePatches : BaseTask() {
         git.tagDelete().setTags("file").call()
         git.tag().setName("file").setTagger(ident).setSigned(false).call()
         git.close()
+    }
+
+    fun hasJavadocs(repoPath: Path, tag: String): Boolean {
+        val git = Git(repoPath)
+        val result = git("tag", "-l", tag).getText().trim()
+        return result == tag
     }
 
     internal open fun mode(): PatchMode {
