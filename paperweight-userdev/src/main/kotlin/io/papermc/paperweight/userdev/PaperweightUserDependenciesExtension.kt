@@ -253,7 +253,7 @@ abstract class PaperweightUserDependenciesExtension(
     }
 
     @Suppress("unchecked_cast")
-    private fun <T : Any> nullAction(): Action<T> {
+    private fun <T> nullAction(): Action<T> {
         return NullAction as Action<T>
     }
 

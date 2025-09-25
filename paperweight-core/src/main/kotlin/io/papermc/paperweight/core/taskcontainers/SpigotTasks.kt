@@ -92,7 +92,7 @@ open class SpigotTasks(
 
     val patchMappings by tasks.registering<PatchMappings> {
         inputMappings.set(cleanupMappings.flatMap { it.outputMappings })
-        patch.set(extension.paper.mappingsPatch.fileExists())
+        patch.set(extension.paper.mappingsPatch.fileExists(project))
 
         fromNamespace.set(SPIGOT_NAMESPACE)
         toNamespace.set(DEOBF_NAMESPACE)

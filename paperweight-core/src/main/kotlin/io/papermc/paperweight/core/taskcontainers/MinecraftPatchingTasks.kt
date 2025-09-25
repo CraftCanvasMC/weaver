@@ -84,7 +84,7 @@ class MinecraftPatchingTasks(
         } else {
             output.set(outputSrc)
         }
-        patches.set(basePatchDir.fileExists())
+        patches.set(basePatchDir.fileExists(project))
         identifier = configName
     }
 
@@ -99,7 +99,7 @@ class MinecraftPatchingTasks(
         } else {
             repo.set(outputSrc)
         }
-        patches.set(sourcePatchDir.fileExists())
+        patches.set(sourcePatchDir.fileExists(project))
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
         identifier = configName
@@ -123,7 +123,7 @@ class MinecraftPatchingTasks(
 
         input.set(baseResources)
         output.set(outputResources)
-        patches.set(resourcePatchDir.fileExists())
+        patches.set(resourcePatchDir.fileExists(project))
         // TODO rejects?
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
         identifier = configName
@@ -144,7 +144,7 @@ class MinecraftPatchingTasks(
             base.set(applySourcePatches.flatMap { it.repo })
         }
         repo.set(outputSrc)
-        patches.set(featurePatchDir.fileExists())
+        patches.set(featurePatchDir.fileExists(project))
     }
 
     val applyPatches = tasks.register<Task>("apply${namePart}Patches") {
@@ -168,18 +168,18 @@ class MinecraftPatchingTasks(
 
     fun setupFork(config: ForkConfig) {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${configName.capitalized()}MinecraftATsFromPatches") {
-            patchDir.set(basePatchDir.fileExists())
-            extraPatchDir.set(featurePatchDir.fileExists())
+            patchDir.set(basePatchDir.fileExists(project))
+            extraPatchDir.set(featurePatchDir.fileExists(project))
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${configName.capitalized()}MinecraftATs") {
-            firstFile.set(additionalAts.fileExists())
+            firstFile.set(additionalAts.fileExists(project))
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
 
         val importLibFiles = tasks.register<ImportLibraryFiles>("import${configName.capitalized()}LibraryFiles") {
             patches.from(config.featurePatchDir, config.sourcePatchDir, config.basePatchDir)
-            devImports.set(config.devImports.fileExists())
+            devImports.set(config.devImports.fileExists(project))
             libraryFileIndex.set(coreTasks.indexLibraryFiles.flatMap { it.outputFile })
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
         }
@@ -262,8 +262,8 @@ class MinecraftPatchingTasks(
 
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_CONFIG))
             ats.jst.from(project.configurations.named(JST_CONFIG))
-            atFile.set(additionalAts.fileExists())
-            atFileOut.set(additionalAts.fileExists())
+            atFile.set(additionalAts.fileExists(project))
+            atFileOut.set(additionalAts.fileExists(project))
         }
 
         val rebuildResourcePatches = tasks.register<RebuildFilePatches>(rebuildResourcePatchesName) {
