@@ -72,7 +72,7 @@ class PatchingTasks(
             output.set(outputDir)
         }
 
-        patches.set(basePatchDir.fileExists(project))
+        patches.set(basePatchDir.fileExists())
         baseRef.set("base")
         identifier = "$forkName $patchSetName"
     }
@@ -88,7 +88,7 @@ class PatchingTasks(
         } else {
             repo.set(outputDir)
         }
-        patches.set(filePatchDir.fileExists(project))
+        patches.set(filePatchDir.fileExists())
         rejectsDir.set(this@PatchingTasks.rejectsDir)
         gitFilePatches.set(this@PatchingTasks.gitFilePatches)
         identifier = "$forkName $patchSetName"
@@ -115,7 +115,7 @@ class PatchingTasks(
         if (readOnly) {
             base.set(applyFilePatches.flatMap { it.repo })
         }
-        patches.set(featurePatchDir.fileExists(project))
+        patches.set(featurePatchDir.fileExists())
     }
 
     val applyPatches = tasks.register<Task>("apply${namePart}Patches") {
@@ -138,12 +138,12 @@ class PatchingTasks(
 
     fun setupUpstream() {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${namePart}ATsFromPatches") {
-            patchDir.set(basePatchDir.fileExists(project))
-            extraPatchDir.set(featurePatchDir.fileExists(project))
+            patchDir.set(basePatchDir.fileExists())
+            extraPatchDir.set(featurePatchDir.fileExists())
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${namePart}ATs") {
-            firstFile.set(additionalAts.fileExists(project))
+            firstFile.set(additionalAts.fileExists())
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
 
