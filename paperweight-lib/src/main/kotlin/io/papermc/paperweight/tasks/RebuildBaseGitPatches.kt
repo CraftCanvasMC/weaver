@@ -70,33 +70,26 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     fun run() {
         val git = Git(inputDir.path)
 
-        // fail fast if someone decides to name a patch with these names to avoid patch corruption
-        val patchedBaseCommitCount = git(
-            "rev-list",
+        // fail fast if someone decides to name a patch with this name to avoid patch corruption
+        val patchedBaseCommit = git(
+            "log",
+            "--format=%H %s",
             "--grep=^${identifier.get()} Base Patches$",
             "base..HEAD"
-        ).getText().lines().filter { it.isNotBlank() }
-        if (patchedBaseCommitCount.size > 1) {
-            val count = patchedBaseCommitCount.size
+        ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
+        if (patchedBaseCommit.size > 1) {
+            val count = patchedBaseCommit.size
             throw PaperweightException(
                 "Exceeded the max amount of commits with the identifier: `${identifier.get()} Base Patches`!\nGot $count commits, expected: 1"
             )
-        }
-        val fileCommitCount = git("rev-list", "--grep=^${identifier.get()} File Patches$", "base..HEAD").getText().lines().filter { it.isNotBlank() }
-        if (fileCommitCount.size > 1) {
-            val count = fileCommitCount.size
+        } else if (patchedBaseCommit.isEmpty()) {
             throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: `${identifier.get()} File Patches`!\nGot $count commits, expected: 1"
+                "Could not find a commit with the identifier: `${identifier.get()} Base Patches`!\nHave you applied patches before rebuilding?"
             )
         }
 
-        // these have to be retrieved dynamically
-        val patchedBaseCommit = git("rev-list", "--grep=^${identifier.get()} Base Patches$", "--max-count=1", "base..HEAD").getText().trim()
-        val fileCommit = git("rev-list", "--grep=^${identifier.get()} File Patches$", "--max-count=1", "base..HEAD").getText().trim()
-
-        // we update the appropriate tags to reflect the new repo state
-        git("tag", "-f", "patchedBase", patchedBaseCommit).executeSilently(silenceErr = true)
-        git("tag", "-f", "file", fileCommit).executeSilently(silenceErr = true)
+        // we update the tag to reflect the new repo state
+        git("tag", "-f", "patchedBase", patchedBaseCommit.joinToString()).executeSilently(silenceErr = true)
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path

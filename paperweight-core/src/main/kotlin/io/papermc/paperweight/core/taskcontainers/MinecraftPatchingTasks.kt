@@ -264,6 +264,7 @@ class MinecraftPatchingTasks(
             ats.jst.from(project.configurations.named(JST_CONFIG))
             atFile.set(additionalAts.fileExists())
             atFileOut.set(additionalAts.fileExists())
+            identifier = configName
         }
 
         val rebuildResourcePatches = tasks.register<RebuildFilePatches>(rebuildResourcePatchesName) {
@@ -274,6 +275,7 @@ class MinecraftPatchingTasks(
             base.set(baseResources)
             patches.set(resourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
+            identifier = configName
         }
 
         val rebuildFilePatches = tasks.register<Task>(rebuildFilePatchesName) {

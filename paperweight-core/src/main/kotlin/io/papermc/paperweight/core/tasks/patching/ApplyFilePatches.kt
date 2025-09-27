@@ -69,10 +69,6 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Optional
     abstract val base: DirectoryProperty
 
-    @get:Optional
-    @get:Input
-    abstract val baseRef: Property<String>
-
     @get:Internal
     abstract val ref: Property<String>
 
@@ -92,7 +88,7 @@ abstract class ApplyFilePatches : BaseTask() {
             gitFilePatches.convention(false)
             moveFailedGitPatchesToRejects.convention(false)
             emitRejects.convention(true)
-            ref.convention(baseRef.orElse("patchedBase"))
+            ref.convention("patchedBase")
         }
     }
 

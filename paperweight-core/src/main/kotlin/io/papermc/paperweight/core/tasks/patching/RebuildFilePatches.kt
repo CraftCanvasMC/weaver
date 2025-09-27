@@ -81,6 +81,9 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
 
+    @get:Input
+    abstract val identifier: Property<String>
+
     override fun init() {
         super.init()
         contextLines.convention(3)
@@ -94,6 +97,29 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val inputDir = input.convertToPath()
 
         val git = Git(inputDir)
+
+        // fail fast if someone decides to name a patch with this name to avoid patch corruption
+        val fileCommit = git(
+            "log",
+            "--format=%H %s",
+            "--grep=^${identifier.get()} File Patches$",
+            "base..HEAD"
+        ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
+        if (fileCommit.size > 1) {
+            val count = fileCommit.size
+            throw PaperweightException(
+                "Exceeded the max amount of commits with the identifier: `${identifier.get()} File Patches`!\nGot $count commits, expected: 1"
+            )
+        } else if (fileCommit.isEmpty()) {
+            throw PaperweightException(
+                "Could not find a commit with the identifier: `${identifier.get()} Base Patches`!\nHave you applied patches before rebuilding?"
+            )
+        }
+
+        // we update the appropriate tag to reflect the new repo state
+        git("tag", "-f", "file", fileCommit.joinToString()).executeSilently(silenceErr = true)
+
+        // now we can safely work with the repo, having updated the tag
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
 

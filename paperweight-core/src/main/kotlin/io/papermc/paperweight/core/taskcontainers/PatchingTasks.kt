@@ -198,6 +198,7 @@ class PatchingTasks(
             input.set(outputDir)
             patches.set(filePatchDir)
             gitFilePatches.set(this@PatchingTasks.gitFilePatches)
+            identifier = "$forkName $patchSetName"
         }
 
         val fixupFilePatches = tasks.register<FixupFilePatches>(fixupFilePatchesName) {
