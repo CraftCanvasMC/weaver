@@ -88,7 +88,14 @@ val shadowJar by tasks.existing(ShadowJar::class) {
 publishing {
     repositories {
         maven("https://maven.canvasmc.io/snapshots") {
-            name = "canvasmc"
+            name = "CanvasMC_Snapshots"
+            credentials {
+                username=System.getenv("PUBLISH_USER")
+                password=System.getenv("PUBLISH_TOKEN")
+            }
+        }
+        maven("https://maven.canvasmc.io/releases") {
+            name = "CanvasMC_Releases"
             credentials {
                 username=System.getenv("PUBLISH_USER")
                 password=System.getenv("PUBLISH_TOKEN")
