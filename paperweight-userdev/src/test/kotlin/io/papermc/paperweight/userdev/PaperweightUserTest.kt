@@ -40,7 +40,7 @@ class PaperweightUserTest {
     @Test
     fun testPluginApplication(@TempDir tmpDir: Path) {
         val project = setupProject(tmpDir)
-        project.pluginManager.apply("io.papermc.paperweight.userdev")
+        project.pluginManager.apply("io.canvasmc.weaver.userdev")
 
         assertNotNull(project.extensions.getByType(PaperweightUserExtension::class))
         assertNotNull(project.dependencies.extensions.getByType(PaperweightUserDependenciesExtension::class))
