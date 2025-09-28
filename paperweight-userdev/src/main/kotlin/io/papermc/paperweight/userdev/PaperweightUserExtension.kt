@@ -50,6 +50,13 @@ abstract class PaperweightUserExtension(
     val injectPaperRepository: Property<Boolean> = objects.property<Boolean>().convention(true)
 
     /**
+     * Whether to inject the Canvas maven repository for use by the dev bundle configuration.
+     *
+     * True by default to allow easily resolving Canvas development bundles.
+     */
+    val injectCanvasRepository: Property<Boolean> = objects.property<Boolean>().convention(true)
+
+    /**
      * Configurations to add the Minecraft server dependency to.
      */
     val addServerDependencyTo: SetProperty<Configuration> = objects.setProperty<Configuration>().convention(
