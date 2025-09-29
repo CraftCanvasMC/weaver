@@ -100,8 +100,8 @@ abstract class ApplyFilePatches : BaseTask() {
 
         if (base != null && base.toAbsolutePath() != repo.path.toAbsolutePath()) {
             recreateCloneDirectory(repo.path)
-            val checkoutFromJDs = hasJavadocs(base, "JDs")
-            val newRef = if (checkoutFromJDs) "JDs" else ref.get()
+            val checkoutFromJDs = hasJavadocs(base, "${identifier.get()}JDs")
+            val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else ref.get()
             ref.set(newRef)
 
             val git = Git(repo.path.createDirectories())
