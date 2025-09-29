@@ -152,7 +152,7 @@ abstract class ApplyBasePatches : ControllableOutputTask() {
     }
 
     private fun commit() {
-        val ident = PersonIdent(PersonIdent("Patched Base", "noreply+automated@papermc.io"), Instant.parse("1997-04-20T13:37:42.69Z"))
+        val ident = PersonIdent(PersonIdent("Base Patches", "noreply+automated@papermc.io"), Instant.parse("1997-04-20T13:37:42.69Z"))
         val git = Git.open(output.path.toFile())
         git.add().addFilepattern(".").call()
         git.commit()
