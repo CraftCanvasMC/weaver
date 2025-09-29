@@ -108,11 +108,11 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         if (fileCommit.size > 1) {
             val count = fileCommit.size
             throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: `${identifier.get()} File Patches`!\nGot $count commits, expected: 1"
+                "Exceeded the max amount of commits with the identifier: '${identifier.get()} File Patches' !\nGot $count commits, expected: 1"
             )
         } else if (fileCommit.isEmpty()) {
             throw PaperweightException(
-                "Could not find a commit with the identifier: `${identifier.get()} Base Patches`!\nHave you applied patches before rebuilding?"
+                "Could not find a commit with the identifier: '${identifier.get()} File Patches' !\nHave you applied patches before rebuilding?"
             )
         }
 

@@ -286,7 +286,7 @@ abstract class PaperweightUser : Plugin<Project> {
         if (hasDevBundle.isFailure || !hasDevBundle.getOrThrow()) {
             val message = "Unable to resolve a dev bundle, which is required for paperweight to function.\n" +
                 "Add a dev bundle to the 'paperweightDevelopmentBundle' configuration (the dependencies.paperweight extension can" +
-                " help with this), and ensure there is a repository to resolve it from (the Paper and Canvas repository is used by default)."
+                " help with this), and ensure there is a repository to resolve it from (the Paper and Canvas repositories are used by default)."
             val ex = PaperweightException(message, hasDevBundle.exceptionOrNull())
             throw ex
             /* TODO migrate this to the Problems API when it comes out of incubating
@@ -295,7 +295,7 @@ abstract class PaperweightUser : Plugin<Project> {
                 id("paperweight-userdev-cannot-resolve-dev-bundle", message)
                 solution(
                     "Add a dev bundle to the 'paperweightDevelopmentBundle' configuration (the dependencies.paperweight extension can" +
-                        " help with this), and ensure there is a repository to resolve it from (the Paper and Canvas repository is used by default)."
+                        " help with this), and ensure there is a repository to resolve it from (the Paper and Canvas repositories are used by default)."
                 )
                 withException(ex)
             }

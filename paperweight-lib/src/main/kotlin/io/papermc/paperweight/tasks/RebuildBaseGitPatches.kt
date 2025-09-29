@@ -80,11 +80,11 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         if (patchedBaseCommit.size > 1) {
             val count = patchedBaseCommit.size
             throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: `${identifier.get()} Base Patches`!\nGot $count commits, expected: 1"
+                "Exceeded the max amount of commits with the identifier: '${identifier.get()} Base Patches' !\nGot $count commits, expected: 1"
             )
         } else if (patchedBaseCommit.isEmpty()) {
             throw PaperweightException(
-                "Could not find a commit with the identifier: `${identifier.get()} Base Patches`!\nHave you applied patches before rebuilding?"
+                "Could not find a commit with the identifier: '${identifier.get()} Base Patches' !\nHave you applied patches before rebuilding?"
             )
         }
 

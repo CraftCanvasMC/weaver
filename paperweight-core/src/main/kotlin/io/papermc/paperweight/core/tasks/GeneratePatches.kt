@@ -114,7 +114,7 @@ abstract class GeneratePatches : BaseTask() {
             "${name.capitalized()} $repoName Patches",
             "-m",
             "Patch generated from ${commitLink(url, commit)}",
-            "--author=Generated Source <noreply+automated@papermc.io>"
+            "--author=Generated <noreply+automated@papermc.io>"
         ).runSilently(silenceErr = true)
     }
     private fun capitalizedName(name: String, api: Boolean): String {
