@@ -207,7 +207,7 @@ class MinecraftPatchingTasks(
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
             identifier.set(configName)
             mappingFile.from(config.javadocMappings)
-            mapping.jst.from(project.configurations.named(JST_CONFIG))
+            mappings.jst.from(project.configurations.named(JST_CONFIG))
         }
 
         applySourcePatches.configure {

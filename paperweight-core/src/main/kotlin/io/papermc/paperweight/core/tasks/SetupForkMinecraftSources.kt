@@ -56,7 +56,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     val ats: ApplySourceATs = objects.newInstance()
 
     @get:Nested
-    val mapping: ApplyJavadocMappings = objects.newInstance()
+    val mappings: ApplyJavadocMappings = objects.newInstance()
 
     @get:InputFile
     @get:Optional
@@ -105,9 +105,9 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
         }
         if (!mappingFile.isEmpty) {
             println("Applying javadoc mappings...")
-            mapping.run(
+            mappings.run(
                 launcher.get(),
-                inputDir.path,
+                outputDir.path,
                 outputDir.path,
                 mappingFile.singleFile.toPath(),
                 temporaryDir.toPath(),
