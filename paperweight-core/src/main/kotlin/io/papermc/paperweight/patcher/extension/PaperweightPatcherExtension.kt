@@ -55,4 +55,20 @@ abstract class PaperweightPatcherExtension @Inject constructor(private val objec
         applyUpstreamNested.convention(false)
         op.execute(this)
     }
+
+    fun NamedDomainObjectContainer<UpstreamConfig>.folia(
+        op: Action<UpstreamConfig>
+    ): NamedDomainObjectProvider<UpstreamConfig> = register("folia") {
+        repo.convention(github("PaperMC", "Folia"))
+        applyUpstreamNested.convention(true)
+        op.execute(this)
+    }
+
+    fun NamedDomainObjectContainer<UpstreamConfig>.canvas(
+        op: Action<UpstreamConfig>
+    ): NamedDomainObjectProvider<UpstreamConfig> = register("canvas") {
+        repo.convention(github("CraftCanvasMC", "Canvas"))
+        applyUpstreamNested.convention(true)
+        op.execute(this)
+    }
 }
