@@ -211,11 +211,15 @@ class MinecraftPatchingTasks(
         }
 
         applySourcePatches.configure {
-            base.set(applyJavadocMappings.flatMap { it.outputDir })
+            if (readOnly) {
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
+            }
         }
 
         applySourcePatchesFuzzy.configure {
-            base.set(applyJavadocMappings.flatMap { it.outputDir })
+            if (readOnly) {
+                base.set(applyJavadocMappings.flatMap { it.outputDir })
+            }
         }
     }
 

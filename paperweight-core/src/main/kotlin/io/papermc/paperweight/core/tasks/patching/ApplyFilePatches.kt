@@ -112,6 +112,10 @@ abstract class ApplyFilePatches : BaseTask() {
                 branchName = "main",
                 ref = true,
             )
+        } else {
+            val checkoutFromJDs = hasJavadocs(repo.path, "${identifier.get()}JDs")
+            val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else ref.get()
+            ref.set(newRef)
         }
 
         val repoPath = repo.path
