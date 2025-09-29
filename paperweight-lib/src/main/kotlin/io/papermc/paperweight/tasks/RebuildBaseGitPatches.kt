@@ -71,25 +71,25 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         val git = Git(inputDir.path)
 
         // fail fast if someone decides to name a patch with this name to avoid patch corruption
-        val patchedBaseCommit = git(
+        val basepatchesCommit = git(
             "log",
             "--format=%H %s",
             "--grep=^${identifier.get()} Base Patches$",
             "base..HEAD"
         ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
-        if (patchedBaseCommit.size > 1) {
-            val count = patchedBaseCommit.size
+        if (basepatchesCommit.size > 1) {
+            val count = basepatchesCommit.size
             throw PaperweightException(
                 "Exceeded the max amount of commits with the identifier: '${identifier.get()} Base Patches' !\nGot $count commits, expected: 1"
             )
-        } else if (patchedBaseCommit.isEmpty()) {
+        } else if (basepatchesCommit.isEmpty()) {
             throw PaperweightException(
                 "Could not find a commit with the identifier: '${identifier.get()} Base Patches' !\nHave you applied patches before rebuilding?"
             )
         }
 
         // we update the tag to reflect the new repo state
-        git("tag", "-f", "patchedBase", patchedBaseCommit.joinToString()).executeSilently(silenceErr = true)
+        git("tag", "-f", "basepatches", basepatchesCommit.joinToString()).executeSilently(silenceErr = true)
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -122,7 +122,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         }
 
         val base = "base"
-        val stop = "patchedBase~1" // ~1 cuz we dont want to rebuild the marker commit
+        val stop = "basepatches~1" // ~1 cuz we dont want to rebuild the marker commit
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
         if (commitCount <= 0) return // nothing to rebuild

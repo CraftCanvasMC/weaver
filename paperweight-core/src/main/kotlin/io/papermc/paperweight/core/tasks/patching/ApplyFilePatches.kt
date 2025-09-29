@@ -88,7 +88,7 @@ abstract class ApplyFilePatches : BaseTask() {
             gitFilePatches.convention(false)
             moveFailedGitPatchesToRejects.convention(false)
             emitRejects.convention(true)
-            ref.convention("patchedBase")
+            ref.convention("basepatches")
         }
     }
 

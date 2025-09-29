@@ -161,8 +161,8 @@ abstract class ApplyBasePatches : ControllableOutputTask() {
             .setAllowEmpty(true)
             .setSign(false)
             .call()
-        git.tagDelete().setTags("patchedBase").call()
-        git.tag().setName("patchedBase").setTagger(ident).setSigned(false).call()
+        git.tagDelete().setTags("basepatches").call()
+        git.tag().setName("basepatches").setTagger(ident).setSigned(false).call()
         git.close()
     }
 
