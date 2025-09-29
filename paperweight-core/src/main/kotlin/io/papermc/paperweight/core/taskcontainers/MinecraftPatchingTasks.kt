@@ -217,14 +217,6 @@ class MinecraftPatchingTasks(
         applySourcePatchesFuzzy.configure {
             base.set(applyJavadocMappings.flatMap { it.outputDir })
         }
-
-        /* uncomment this when we enable validation of ATs since then seperate AT files will be forced, right now this breaks on projects with one AT file for many modules
-        val name = "rebuild${namePart}BasePatches"
-        if (name in tasks.names) {
-            tasks.named<RebuildBaseGitPatches>(name) {
-                base.set(setup.flatMap { it.outputDir })
-            }
-         */
     }
 
     private fun setupWritable() {
