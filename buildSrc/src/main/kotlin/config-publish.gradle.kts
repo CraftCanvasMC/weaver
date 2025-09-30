@@ -6,7 +6,15 @@ plugins {
     id("com.gradle.plugin-publish")
 }
 
+fun version(): String = version.toString()
 val noRelocate = project.hasProperty("disable-relocation")
+if (noRelocate) {
+    if (version().contains("-SNAPSHOT")) {
+        version = version().substringBefore("-SNAPSHOT") + "-NO-RELOCATE-SNAPSHOT"
+    } else {
+        version = version() + "-NO-RELOCATE"
+    }
+}
 
 val shade: Configuration by configurations.creating
 configurations.implementation {
