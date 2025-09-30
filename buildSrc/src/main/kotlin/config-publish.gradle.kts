@@ -27,7 +27,7 @@ fun ShadowJar.configureStandard() {
     }
 
     exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "OSGI-INF/**", "*.profile", "module-info.class", "ant_tasks/**", "OSGI-OPT/**", "META-INF/*.pro")
-    
+
     mergeServiceFiles()
 }
 
