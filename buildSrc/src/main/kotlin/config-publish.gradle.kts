@@ -19,6 +19,7 @@ configurations.shadowRuntimeElements {
 
 fun ShadowJar.configureStandard() {
     configurations = listOf(shade)
+    duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
     dependencies {
         exclude(dependency("org.jetbrains.kotlin:.*:.*"))
@@ -26,7 +27,7 @@ fun ShadowJar.configureStandard() {
     }
 
     exclude("META-INF/*.SF", "META-INF/*.DSA", "META-INF/*.RSA", "OSGI-INF/**", "*.profile", "module-info.class", "ant_tasks/**", "OSGI-OPT/**", "META-INF/*.pro")
-
+    
     mergeServiceFiles()
 }
 
