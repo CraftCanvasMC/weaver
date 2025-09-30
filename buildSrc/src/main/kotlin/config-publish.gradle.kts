@@ -101,15 +101,15 @@ publishing {
         maven("https://maven.canvasmc.io/snapshots") {
             name = "CanvasMC_Snapshots"
             credentials {
-                username=System.getenv("PUBLISH_USER")
-                password=System.getenv("PUBLISH_TOKEN")
+                username = providers.environmentVariable("PUBLISH_USER").orNull
+                password = providers.environmentVariable("PUBLISH_TOKEN").orNull
             }
         }
         maven("https://maven.canvasmc.io/releases") {
             name = "CanvasMC_Releases"
             credentials {
-                username=System.getenv("PUBLISH_USER")
-                password=System.getenv("PUBLISH_TOKEN")
+                username = providers.environmentVariable("PUBLISH_USER").orNull
+                password = providers.environmentVariable("PUBLISH_TOKEN").orNull
             }
         }
     }
