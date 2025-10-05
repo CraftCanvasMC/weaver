@@ -25,6 +25,7 @@ package io.papermc.paperweight.core.tasks
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.JavaLauncherTask
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.cache
 import io.papermc.paperweight.util.constants.paperTaskOutput
 import kotlin.io.path.*
 import org.gradle.api.file.DirectoryProperty
@@ -63,7 +64,7 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
     override fun init() {
         super.init()
-        outputDir.set(layout.buildDirectory.dir(paperTaskOutput("patchgen-work")))
+        outputDir.set(layout.cache.resolve(paperTaskOutput()))
     }
 
     @TaskAction
@@ -77,7 +78,7 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
             workDirectory.resolve("$outputName/${repoName.get()}")
         }
         val outputDir = outputDir.get().asFile.toPath().resolve(repoName.get())
-        val outputDirPath = outputDir.cleanFile()
+        val outputDirPath = outputDir.cleanDir()
         sourceDir.copyRecursivelyTo(outputDirPath)
 
         if (additionalPatch.isPresent) {

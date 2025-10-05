@@ -68,7 +68,7 @@ abstract class GeneratePatches : BaseTask() {
     abstract val tempOutput: DirectoryProperty
 
     override fun init() {
-        tempOutput.set(layout.buildDirectory.dir(paperTaskOutput(name)))
+        tempOutput.set(layout.cache.resolve(paperTaskOutput()))
     }
 
     @TaskAction
@@ -80,7 +80,7 @@ abstract class GeneratePatches : BaseTask() {
         val inputDirs = preparedSource.files.map { it.toPath() }
 
         val outputToPatchesDirectory = patchesDirOutput.getOrElse(true)
-        val outputDir = outputDir.getOrElse(layout.buildDirectory.dir(paperTaskOutput(name)).get())
+        val outputDir = outputDir.getOrElse(layout.buildDirectory.dir(paperTaskOutput()).get())
         val cacheOutput = tempOutput.get().asFile.toPath()
         val tempOutput = cacheOutput.cleanFile()
         val outputDirPath = outputDir.asFile.toPath()

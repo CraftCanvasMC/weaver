@@ -30,6 +30,7 @@ import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.paperTaskOutput
 import java.nio.file.Path
 import kotlin.io.path.*
 import org.cadixdev.at.AccessTransformSet
@@ -123,17 +124,10 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
 
-        // here we zip the parent commit's repo state and store it as our baseDir for later comparison overriding the baseDir prop
         val baseCommit = git("rev-parse", "HEAD~1").getText().trim()
-        val baseDir = temporaryDir.toPath().resolve("base")
-        val zippedTree = temporaryDir.toPath().resolve("base.zip")
+        val baseDir = layout.cache.resolve(paperTaskOutput())
 
-        if (baseDir.exists()) baseDir.deleteRecursive()
-        if (zippedTree.exists()) zippedTree.deleteForcefully()
-
-        git("archive", "--format=zip", baseCommit, "-o", zippedTree.absolutePathString()).executeSilently(silenceErr = true)
-
-        unzip(zippedTree, baseDir)
+        git("worktree", "add", baseDir.absolutePathString(), baseCommit).executeSilently(silenceErr = true)
 
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
@@ -161,6 +155,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             rebuildWithDiffPatch(baseDir, inputDir, patchDir)
         }
 
+        git("worktree", "remove", baseDir.absolutePathString(), "--force").executeSilently(silenceErr = true)
         git("switch", "-").executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
