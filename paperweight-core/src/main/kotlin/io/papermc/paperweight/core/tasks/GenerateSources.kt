@@ -93,7 +93,7 @@ abstract class GenerateSources : JavaLauncherTask() {
 
     override fun init() {
         super.init()
-        tempOutput.set(layout.buildDirectory.dir(paperTaskOutput(name)))
+        tempOutput.set(layout.cache.resolve(paperTaskOutput()))
     }
 
     @TaskAction
@@ -111,11 +111,13 @@ abstract class GenerateSources : JavaLauncherTask() {
         val outputName = inputFrom.get().substringBefore("-")
         val workDirectory = workDir.get().asFile.toPath()
 
-        val sourceDir = workDirectory.resolve("$outputName/${inputFrom.get()}")
+        val sourceDir = workDirectory.resolve("$outputName/${inputFrom.get()}/src")
         if (!sourceDir.exists()) return
+        val srcDirs = sourceDir.listDirectoryEntries().filter { it.isDirectory() }
+        if (srcDirs.size == 1 && srcDirs.first().name == "minecraft") return
         sourceDir.copyRecursivelyTo(tempOutput)
 
-        val atDirPath = tempOutput.resolve("src/main/java")
+        val atDirPath = tempOutput.resolve("main/java")
         val patchDir = tempOutput
 
         if (additionalPatch.isPresent) {
@@ -141,34 +143,57 @@ abstract class GenerateSources : JavaLauncherTask() {
         )
 
         for (output in outputs) {
-            output.deleteRecursive()
-            when (output) {
-                generatedOutput -> {
-                    tempOutput.resolve("src/main/java").copyRecursivelyTo(output)
-                }
+            val sourceDir = when (output) {
+                generatedOutput -> tempOutput.resolve("main/java")
+                generatedResourcesOutput -> tempOutput.resolve("main/resources")
+                generatedTestOutput -> tempOutput.resolve("test/java")
+                generatedTestResourcesOutput -> tempOutput.resolve("test/resources")
+                else -> continue
+            }
+            val packageRegex = Regex("""^\s*package\s+([\w.]+)\s*;""", RegexOption.MULTILINE)
+            val packagesToRemove = mutableSetOf<String>()
+            val packages = mutableSetOf<String>()
 
-                generatedResourcesOutput -> {
-                    tempOutput.resolve("src/main/resources").copyRecursivelyTo(output)
-                }
-
-                generatedTestOutput -> {
-                    tempOutput.resolve("src/test/java").copyRecursivelyTo(output)
-                }
-
-                generatedTestResourcesOutput -> {
-                    tempOutput.resolve("src/test/resources").copyRecursivelyTo(output)
-                }
+            sourceDir.filesMatchingRecursive("*.java").forEach {
+                val content = it.readText()
+                val pkg = packageRegex.find(content)?.groups?.get(1)?.value
+                if (pkg != null) packages += pkg
             }
 
-            output.filesMatchingRecursive("*.java").forEach {
+            output.filesMatchingRecursive("package-info.java").forEach {
                 val content = it.readText()
-                it.writeText("// Generated from ${commitLink(url, commit)}\n$content")
+                val pkg = packageRegex.find(content)?.groups?.get(1)?.value
+                if (pkg != null) {
+                    if (content.contains(" * @apiNote Generated from <a href=\"${commitLink(url, commit)}\">${forkName.get()}</a>")) {
+                        packagesToRemove += pkg
+                    }
+                }
+            }
+            packagesToRemove.forEach { pkg ->
+                val dir = output.resolve(pkg.replace('.', '/'))
+                dir.cleanDir()
+            }
+            packages.forEach { pkg ->
+                val srcDir = sourceDir.resolve(pkg.replace('.', '/'))
+                val dir = output.resolve(pkg.replace('.', '/'))
+                if (srcDir.exists() && srcDir.listDirectoryEntries().isNotEmpty()) {
+                    srcDir.copyRecursivelyTo(dir)
+                    val packageInfo = dir.resolve("package-info.java")
+                    val javadoc = buildString {
+                        appendLine("/**")
+                        appendLine(" * @apiNote Generated from <a href=\"${commitLink(url, commit)}\">${forkName.get()}</a>")
+                        appendLine(" */")
+                        appendLine("package $pkg;")
+                    }
+                    packageInfo.writeText(javadoc)
+                }
             }
         }
     }
 
     private fun commitLink(url: String, hash: String): String {
         val cleanUrl = url.removeSuffix(".git")
+        if (cleanUrl.contains("github.com")) return "$cleanUrl/tree/$hash"
         return "$cleanUrl/commit/$hash"
     }
 }

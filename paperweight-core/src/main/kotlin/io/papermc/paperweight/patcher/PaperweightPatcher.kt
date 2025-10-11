@@ -164,7 +164,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 tasks.register<GenerateSources>("generate${name}Sources") {
                     group = "source generation"
                     description = "Generates sources from ${input.name}"
-                    dependsOn(applyAdditionalUpstream)
+                    dependsOn(checkoutTask)
                     forkName.set(upstream.name)
                     forkUrl.set(upstream.repo)
                     inputFrom.set(input.name)
