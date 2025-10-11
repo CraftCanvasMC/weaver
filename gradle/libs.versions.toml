@@ -1,5 +1,5 @@
 [versions]
-asm = "9.8"
+asm = "9.9"
 lorenz = "0.5.8"
 hypo = "1.2.4"
 serialize = "1.9.0"
@@ -13,7 +13,7 @@ asm-tree = { module = "org.ow2.asm:asm-tree", version.ref = "asm" }
 httpclient = "org.apache.httpcomponents:httpclient:4.5.14"
 kotson = "com.github.salomonbrys.kotson:kotson:2.5.0"
 coroutines = "org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2"
-jgit = "org.eclipse.jgit:org.eclipse.jgit:7.3.0.202506031305-r"
+jgit = "org.eclipse.jgit:org.eclipse.jgit:7.4.0.202509020913-r"
 gson = "com.google.code.gson:gson:2.13.2"
 
 cadix-lorenz-core = { module = "org.cadixdev:lorenz", version.ref = "lorenz" }
@@ -42,11 +42,11 @@ jst = { module = "io.canvasmc.jst:jst-cli-bundle", version.ref = "jst" }
 tinyRemapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tinyRemapper" }
 
 # test
-mockk = "io.mockk:mockk:1.14.5"
+mockk = "io.mockk:mockk:1.14.6"
 
 # Gradle
 gradle-licenser = "net.kyori:indra-licenser-spotless:3.2.0"
-gradle-spotless = "com.diffplug.spotless:spotless-plugin-gradle:7.2.1"
+gradle-spotless = "com.diffplug.spotless:spotless-plugin-gradle:8.0.0"
 gradle-shadow = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:9.2.2"
 gradle-kotlin-dsl = "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.2.0"
 gradle-plugin-kotlin = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin" }
