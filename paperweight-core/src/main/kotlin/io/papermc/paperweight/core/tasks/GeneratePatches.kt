@@ -33,6 +33,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
 
+@UntrackedTask(because = "GeneratePatches should always run when requested.")
 abstract class GeneratePatches : BaseTask() {
     @get:Input
     abstract val forkName: Property<String>
@@ -61,7 +62,6 @@ abstract class GeneratePatches : BaseTask() {
     abstract val apiProjectDir: DirectoryProperty
 
     @get:OutputDirectory
-    @get:Optional
     abstract val outputDir: DirectoryProperty
 
     @get:Internal
@@ -80,7 +80,7 @@ abstract class GeneratePatches : BaseTask() {
         val inputDirs = preparedSource.files.map { it.toPath() }
 
         val outputToPatchesDirectory = patchesDirOutput.getOrElse(true)
-        val outputDir = outputDir.getOrElse(layout.buildDirectory.dir(paperTaskOutput()).get())
+        val outputDir = outputDir.get()
         val cacheOutput = tempOutput.get().asFile.toPath()
         val tempOutput = cacheOutput.cleanFile()
         val outputDirPath = outputDir.asFile.toPath()

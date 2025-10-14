@@ -206,7 +206,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 patchesDirOutput.set(upstream.patchGenerationConfig.patchesDirOutput)
                 serverProjectDir.set(serverProject)
                 apiProjectDir.set(apiProject)
-                outputDir.set(upstream.patchGenerationConfig.outputDir)
+                outputDir.set(upstream.patchGenerationConfig.outputDir.orElse(project.layout.cacheDir(paperTaskOutput())))
             }
 
             val genSources = tasks.register("generate${upstream.name.capitalized()}Sources") {

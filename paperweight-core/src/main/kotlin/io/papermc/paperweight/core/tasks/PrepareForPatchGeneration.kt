@@ -34,7 +34,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.newInstance
 
-@UntrackedTask(because = "PrepareForPatchGeneration should always run when requested")
+@UntrackedTask(because = "PrepareForPatchGeneration doesn't have stable inputs.")
 abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
     @get:Input
@@ -44,6 +44,7 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
     abstract val repoName: Property<String>
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val workDir: DirectoryProperty
 
     @get:Nested
@@ -51,12 +52,12 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.NONE)
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val atFile: RegularFileProperty
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.NONE)
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val additionalPatch: RegularFileProperty
 
     @get:OutputDirectory

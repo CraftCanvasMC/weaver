@@ -34,6 +34,7 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.kotlin.dsl.newInstance
 
+@UntrackedTask(because = "GenerateSources should always run when requested.")
 abstract class GenerateSources : JavaLauncherTask() {
     @get:Input
     abstract val forkName: Property<String>
@@ -48,7 +49,7 @@ abstract class GenerateSources : JavaLauncherTask() {
     abstract val inputFrom: Property<String>
 
     @get:InputDirectory
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val workDir: DirectoryProperty
 
     @get:Internal
@@ -59,7 +60,7 @@ abstract class GenerateSources : JavaLauncherTask() {
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.NONE)
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val atFile: RegularFileProperty
 
     @get:InputFile
