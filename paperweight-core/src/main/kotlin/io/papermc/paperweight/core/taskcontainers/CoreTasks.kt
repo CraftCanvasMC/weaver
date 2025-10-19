@@ -230,7 +230,7 @@ class CoreTasks(
                 cfg.featurePatchDir,
                 cfg.additionalAts,
                 upstreamTasks.first.applyFeaturePatches.flatMap { it.repo },
-                upstreamTasks.first.applyResourcePatches.flatMap { it.output },
+                upstreamTasks.first.applyResourcePatches.flatMap { it.repo },
                 project.coreExt.gitFilePatches,
                 project.coreExt.filterPatches,
                 outputRoot,

@@ -29,7 +29,6 @@ import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
-import io.papermc.paperweight.core.tasks.patching.ApplyResourceFilePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
@@ -117,15 +116,16 @@ class MinecraftPatchingTasks(
         configureApplyFilePatches()
     }
 
-    val applyResourcePatches = tasks.register<ApplyResourceFilePatches>("apply${namePart}ResourcePatches") {
+    val applyResourcePatches = tasks.register<ApplyFilePatches>("apply${namePart}ResourcePatches") {
         group()
         description = "Applies $configName file patches to the Minecraft resources"
 
-        input.set(baseResources)
-        output.set(outputResources)
+        base.set(baseResources)
+        repo.set(outputResources)
         patches.set(resourcePatchDir.fileExists())
         // TODO rejects?
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
+        baseRef.set("main")
         identifier = configName
     }
 

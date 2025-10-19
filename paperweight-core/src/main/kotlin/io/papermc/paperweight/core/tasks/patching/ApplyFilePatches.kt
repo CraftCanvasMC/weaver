@@ -36,7 +36,6 @@ import kotlin.io.path.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.PersonIdent
 import org.gradle.api.file.DirectoryProperty
-import org.gradle.api.logging.LogLevel
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.api.tasks.options.Option
@@ -70,7 +69,7 @@ abstract class ApplyFilePatches : BaseTask() {
     abstract val base: DirectoryProperty
 
     @get:Internal
-    abstract val ref: Property<String>
+    abstract val baseRef: Property<String>
 
     @get:Input
     @get:Optional
@@ -88,7 +87,7 @@ abstract class ApplyFilePatches : BaseTask() {
             gitFilePatches.convention(false)
             moveFailedGitPatchesToRejects.convention(false)
             emitRejects.convention(true)
-            ref.convention("basepatches")
+            baseRef.convention("basepatches")
         }
     }
 
@@ -97,35 +96,47 @@ abstract class ApplyFilePatches : BaseTask() {
         io.papermc.paperweight.util.Git.checkForGit()
 
         val base = base.pathOrNull
-
-        if (base != null && base.toAbsolutePath() != repo.path.toAbsolutePath()) {
-            recreateCloneDirectory(repo.path)
-            val checkoutFromJDs = hasJavadocs(base, "${identifier.get()}JDs")
-            val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else ref.get()
-            ref.set(newRef)
-
-            val git = Git(repo.path.createDirectories())
-            checkoutRepoFromUpstream(
-                git,
-                base,
-                ref.get(),
-                branchName = "main",
-                ref = true,
-            )
-        } else {
-            val checkoutFromJDs = hasJavadocs(repo.path, "${identifier.get()}JDs")
-            val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else ref.get()
-            ref.set(newRef)
-        }
-
         val repoPath = repo.path
-        val git = Git(repoPath)
 
-        if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
-            git("checkout", "-b", "main").runSilently(silenceErr = true)
+        if (base != null && baseRef.get() == "main") {
+            recreateCloneDirectory(repoPath)
+            checkoutRepoFromUpstream(
+                Git(repoPath),
+                base,
+                "main",
+                "upstream",
+                "main",
+                true,
+            )
+            setupGitHook(repoPath)
+            tagBase()
+        } else {
+            if (base != null && base.toAbsolutePath() != repoPath.toAbsolutePath()) {
+                recreateCloneDirectory(repoPath)
+                val checkoutFromJDs = hasJavadocs(base, "${identifier.get()}JDs")
+                val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
+                baseRef.set(newRef)
+
+                val git = Git(repoPath.createDirectories())
+                checkoutRepoFromUpstream(
+                    git,
+                    base,
+                    baseRef.get(),
+                    branchName = "main",
+                    ref = true,
+                )
+            } else {
+                val checkoutFromJDs = hasJavadocs(repoPath, "${identifier.get()}JDs")
+                val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
+                baseRef.set(newRef)
+            }
+            val git = Git(repoPath)
+            if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
+                git("checkout", "-b", "main").runSilently(silenceErr = true)
+            }
+            git("reset", "--hard", baseRef.get()).runSilently(silenceErr = true)
+            git("gc").runSilently(silenceErr = true)
         }
-        git("reset", "--hard", ref.get()).runSilently(silenceErr = true)
-        git("gc").runSilently(silenceErr = true)
 
         val result = if (!patches.isPresent) {
             commit()
@@ -156,6 +167,14 @@ abstract class ApplyFilePatches : BaseTask() {
         } else {
             target.createDirectories()
         }
+    }
+
+    private fun tagBase() {
+        val git = Git.open(repo.path.toFile())
+        val ident = PersonIdent("base", "noreply+automated@papermc.io")
+        git.tagDelete().setTags("base").call()
+        git.tag().setName("base").setTagger(ident).setSigned(false).call()
+        git.close()
     }
 
     private fun shouldApplyWithGit(repoPath: Path): Boolean {
@@ -237,6 +256,13 @@ abstract class ApplyFilePatches : BaseTask() {
         }
 
         return result.summary?.changedFiles
+    }
+
+    private fun setupGitHook(outputPath: Path) {
+        val hook = outputPath.resolve(".git/hooks/post-rewrite")
+        hook.parent.createDirectories()
+        hook.writeText(javaClass.getResource("/post-rewrite.sh")!!.readText())
+        hook.toFile().setExecutable(true)
     }
 
     private fun commit() {
