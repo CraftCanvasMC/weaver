@@ -106,7 +106,7 @@ abstract class ApplyFilePatches : BaseTask() {
                 "main",
                 "upstream",
                 "main",
-                true,
+                false,
             )
             setupGitHook(repoPath)
             tagBase()

@@ -265,8 +265,8 @@ class MinecraftPatchingTasks(
             group()
             description = "Rebuilds $configName file patches to the Minecraft resources"
 
-            input.set(outputResources)
             base.set(baseResources)
+            input.set(outputResources)
             patches.set(resourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
             identifier = configName
