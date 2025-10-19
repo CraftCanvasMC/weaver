@@ -168,8 +168,8 @@ class MinecraftPatchingTasks(
 
     fun setupFork(config: ForkConfig) {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${configName.capitalized()}MinecraftATsFromPatches") {
-            basePatchDir.set(basePatchDir.fileExists())
-            featurePatchDir.set(featurePatchDir.fileExists())
+            basePatchDir.set(this@MinecraftPatchingTasks.basePatchDir.fileExists())
+            featurePatchDir.set(this@MinecraftPatchingTasks.featurePatchDir.fileExists())
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${configName.capitalized()}MinecraftATs") {
