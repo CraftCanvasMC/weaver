@@ -40,6 +40,9 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty
 
+    @get:Input
+    abstract val baseRef: Property<String>
+
     @get:OutputDirectory
     abstract val patchDir: DirectoryProperty
 
@@ -91,19 +94,12 @@ abstract class RebuildGitPatches : ControllableOutputTask() {
         }
 
         val git = Git(inputDir.path)
-        val base = "file"
-        val stop = "HEAD"
-        val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
-
-        if (commitCount <= 0) return // nothing to rebuild
-
-        val range = "$base..$stop"
         git("fetch", "--all", "--prune", "--no-prune-tags").runSilently(silenceErr = true)
         git(
             "format-patch",
             "--diff-algorithm=myers", "--zero-commit", "--full-index", "--no-signature", "--no-stat", "-N",
             "-o", patchFolder.absolutePathString(),
-            range
+            baseRef.get()
         ).executeSilently()
         val patchDirGit = Git(patchFolder)
         patchDirGit("add", "-A", ".").executeSilently()

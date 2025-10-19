@@ -31,7 +31,8 @@ import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.*
+import io.papermc.paperweight.util.constants.JST_CONFIG
+import io.papermc.paperweight.util.constants.paperTaskOutput
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -61,22 +62,6 @@ class PatchingTasks(
 ) {
     private val namePart: String = if (readOnly) "${forkName.capitalized()}${patchSetName.capitalized()}" else patchSetName.capitalized()
 
-    private fun ApplyBasePatches.configureApplyBasePatches() {
-        group = taskGroup
-        description = "Applies $patchSetName base patches"
-
-        input.set(baseDir)
-        if (readOnly) {
-            output.set(layout.cache.resolve(paperTaskOutput()))
-        } else {
-            output.set(outputDir)
-        }
-
-        patches.set(basePatchDir.fileExists())
-        baseRef.set("base")
-        identifier = "$forkName $patchSetName"
-    }
-
     private fun ApplyFilePatches.configureApplyFilePatches() {
         group = taskGroup
         description = "Applies $patchSetName file patches"
@@ -92,6 +77,20 @@ class PatchingTasks(
         rejectsDir.set(this@PatchingTasks.rejectsDir)
         gitFilePatches.set(this@PatchingTasks.gitFilePatches)
         identifier = "$forkName $patchSetName"
+    }
+
+    private fun ApplyBasePatches.configureApplyBasePatches() {
+        group = taskGroup
+        description = "Applies $patchSetName base patches"
+
+        input.set(baseDir)
+        if (readOnly) {
+            output.set(layout.cache.resolve(paperTaskOutput()))
+        } else {
+            output.set(outputDir)
+        }
+
+        patches.set(basePatchDir.fileExists())
     }
 
     val applyBasePatches = tasks.register<ApplyBasePatches>("apply${namePart}BasePatches") {
@@ -138,8 +137,8 @@ class PatchingTasks(
 
     fun setupUpstream() {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${namePart}ATsFromPatches") {
-            patchDir.set(basePatchDir.fileExists())
-            extraPatchDir.set(featurePatchDir.fileExists())
+            basePatchDir.set(basePatchDir.fileExists())
+            featurePatchDir.set(featurePatchDir.fileExists())
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${namePart}ATs") {
@@ -180,6 +179,8 @@ class PatchingTasks(
             base.set(baseDir) // correct task execution order -> unused
             inputDir.set(outputDir)
             patchDir.set(basePatchDir)
+            baseRef.set("base")
+            stopRef.set("basepatches~1") // ~1 cuz we dont want to rebuild the marker commit
             filterPatches.set(this@PatchingTasks.filterPatches)
             identifier = "$forkName $patchSetName"
         }
@@ -209,6 +210,7 @@ class PatchingTasks(
 
             inputDir.set(outputDir)
             patchDir.set(featurePatchDir)
+            baseRef.set("file")
             filterPatches.set(this@PatchingTasks.filterPatches)
         }
 

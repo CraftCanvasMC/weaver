@@ -51,7 +51,6 @@ class PaperclipTasks(
     private val mcVersion: Provider<String>,
     private val rootName: Provider<String>
 ) {
-
     init {
         val (createBundlerJar, createPaperclipJar, createPublisherJar) = project.createTasks("mojmap")
         val (createReobfBundlerJar, createReobfPaperclipJar, createReobfPublisherJar) = project.createTasks("reobf")

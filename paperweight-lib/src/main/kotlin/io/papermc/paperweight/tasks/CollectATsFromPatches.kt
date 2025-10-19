@@ -45,7 +45,11 @@ abstract class CollectATsFromPatches : BaseTask() {
 
     @get:InputDirectory
     @get:Optional
-    abstract val patchDir: DirectoryProperty
+    abstract val basePatchDir: DirectoryProperty
+
+    @get:InputDirectory
+    @get:Optional
+    abstract val featurePatchDir: DirectoryProperty
 
     @get:InputDirectory
     @get:Optional
@@ -63,7 +67,10 @@ abstract class CollectATsFromPatches : BaseTask() {
     fun run() {
         outputFile.path.deleteForcefully()
         val patches = mutableListOf<Path>()
-        patchDir.orNull?.let {
+        basePatchDir.orNull?.let {
+            patches += it.path.listDirectoryEntries("*.patch")
+        }
+        featurePatchDir.orNull?.let {
             patches += it.path.listDirectoryEntries("*.patch")
         }
         extraPatchDir.orNull?.let {
