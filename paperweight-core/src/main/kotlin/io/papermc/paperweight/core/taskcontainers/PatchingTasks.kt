@@ -91,6 +91,8 @@ class PatchingTasks(
         }
 
         patches.set(basePatchDir.fileExists())
+        baseRef.set("base")
+        identifier = "$forkName $patchSetName"
     }
 
     val applyBasePatches = tasks.register<ApplyBasePatches>("apply${namePart}BasePatches") {
@@ -209,6 +211,7 @@ class PatchingTasks(
             dependsOn(rebuildFilePatches)
 
             inputDir.set(outputDir)
+            baseRef.set("file")
             patchDir.set(featurePatchDir)
             baseRef.set("file")
             filterPatches.set(this@PatchingTasks.filterPatches)
