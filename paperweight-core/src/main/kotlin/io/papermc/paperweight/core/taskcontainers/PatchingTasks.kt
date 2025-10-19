@@ -211,7 +211,6 @@ class PatchingTasks(
             dependsOn(rebuildFilePatches)
 
             inputDir.set(outputDir)
-            baseRef.set("file")
             patchDir.set(featurePatchDir)
             baseRef.set("file")
             filterPatches.set(this@PatchingTasks.filterPatches)

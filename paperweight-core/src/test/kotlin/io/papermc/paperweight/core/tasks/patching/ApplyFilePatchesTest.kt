@@ -58,7 +58,7 @@ class ApplyFilePatchesTest : TaskTest() {
         task.output.set(output)
         task.identifier.set("test")
 
-        task2.base.set(task2.output)
+        task2.base.set(task.output)
         task2.repo.set(output)
         task2.patches.set(patches)
         task2.verbose.set(true)
