@@ -161,7 +161,7 @@ abstract class PaperweightCore : Plugin<Project> {
             mappedJar,
             reobfJar,
             ext.minecraftVersion,
-            target.rootProject.name.lowercase()
+            target.provider { target.rootProject.name.lowercase() }
         )
 
         target.afterEvaluate {

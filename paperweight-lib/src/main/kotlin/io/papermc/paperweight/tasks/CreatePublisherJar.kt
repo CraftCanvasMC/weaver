@@ -22,17 +22,9 @@
 
 package io.papermc.paperweight.tasks
 
-import io.papermc.paperweight.util.*
 import java.nio.file.Path
-import kotlin.io.path.*
-import org.gradle.api.tasks.*
-import org.gradle.kotlin.dsl.*
 
 // dummy task
 abstract class CreatePublisherJar : ZippedTask() {
-    override fun init() {
-        super.init()
-    }
-
     override fun run(rootDir: Path) {}
 }

@@ -104,7 +104,7 @@ fun Task.reobfRequiresDebug() {
         if (!paperweightDebug()) {
             throw PaperweightException(
                 "Reobfuscated server jars are no longer supported and only exist for debugging purposes.\n" +
-                    "If you are attempting to build a paperclip or bundler jar, use the 'mojmap' variant instead of 'reobf'.\n" +
+                    "If you are attempting to build a publisher, paperclip or bundler jar, use the 'mojmap' variant instead of 'reobf'.\n" +
                     "Enable paperweight debug mode to bypass this error.\n"
             )
         }
