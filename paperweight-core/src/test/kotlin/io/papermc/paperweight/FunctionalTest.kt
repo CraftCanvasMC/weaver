@@ -113,6 +113,7 @@ class FunctionalTest {
             .withArguments("rebuildPatches", "--stacktrace", "-Dfake=true")
             .withDebug(debug)
             .build()
+
         assertEquals(rebP2.task(":test-server:rebuildPatches")?.outcome, TaskOutcome.SUCCESS)
         assertEquals(
             testResource.resolve("fake-patches/expected/0001-Test-Base.patch").readText(),

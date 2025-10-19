@@ -45,6 +45,12 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     @get:InputDirectory
     abstract val base: DirectoryProperty // we dont need this at all but we use this to trick gradle into the correct task execution order
 
+    @get:Input
+    abstract val baseRef: Property<String>
+
+    @get:Input
+    abstract val stopRef: Property<String>
+
     @get:OutputDirectory
     abstract val patchDir: DirectoryProperty
 
@@ -121,8 +127,8 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             patchFolder.createDirectories()
         }
 
-        val base = "base"
-        val stop = "basepatches~1" // ~1 cuz we dont want to rebuild the marker commit
+        val base = baseRef.get()
+        val stop = stopRef.get()
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
         if (commitCount <= 0) return // nothing to rebuild

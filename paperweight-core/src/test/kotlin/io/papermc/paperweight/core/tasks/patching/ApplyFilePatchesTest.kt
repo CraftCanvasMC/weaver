@@ -30,15 +30,15 @@ import org.gradle.kotlin.dsl.*
 import org.junit.jupiter.api.io.TempDir
 
 class ApplyFilePatchesTest : TaskTest() {
-    private lateinit var task2: ApplyBasePatches
-    private lateinit var task: ApplyFilePatches
+    private lateinit var task: ApplyBasePatches
+    private lateinit var task2: ApplyFilePatches
 
     @BeforeTest
     fun setup() {
         val project = setupProject()
-        task2 = project.tasks.register("applyBasePatches", ApplyBasePatches::class).get()
-        task = project.tasks.register("applyPatches", ApplyFilePatches::class) {
-            dependsOn(task2)
+        task = project.tasks.register("applyBasePatches", ApplyBasePatches::class).get()
+        task2 = project.tasks.register("applyPatches", ApplyFilePatches::class) {
+            dependsOn(task)
         }
             .get()
     }
@@ -54,18 +54,18 @@ class ApplyFilePatchesTest : TaskTest() {
 
         setupGitRepo(input, "main")
 
-        task2.input.set(input)
-        task2.output.set(output)
-        task2.identifier.set("test")
-
-        task.base.set(task2.output)
-        task.repo.set(output)
-        task.patches.set(patches)
-        task.verbose.set(true)
+        task.input.set(input)
+        task.output.set(output)
         task.identifier.set("test")
 
-        task2.run()
+        task2.base.set(task2.output)
+        task2.repo.set(output)
+        task2.patches.set(patches)
+        task2.verbose.set(true)
+        task2.identifier.set("test")
+
         task.run()
+        task2.run()
 
         val testOutput = testResource.resolve("output")
         compareDir(tempDir, testOutput, "source")

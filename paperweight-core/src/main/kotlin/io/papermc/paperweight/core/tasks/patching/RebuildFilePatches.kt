@@ -232,7 +232,6 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             .summary(verbose.get())
             .build()
             .operate()
-
         return result.summary?.changedFiles
     }
 

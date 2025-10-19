@@ -74,20 +74,6 @@ class MinecraftPatchingTasks(
 
     private val namePart = if (readOnly) "${configName.capitalized()}Minecraft" else if (paper) "" else "Minecraft"
 
-    private fun ApplyBasePatches.configureApplyBasePatches() {
-        group()
-        description = "Applies $configName base patches to the Minecraft sources"
-
-        input.set(baseSources)
-        if (readOnly) {
-            output.set(outputSrcFile)
-        } else {
-            output.set(outputSrc)
-        }
-        patches.set(basePatchDir.fileExists())
-        identifier = configName
-    }
-
     private fun ApplyFilePatches.configureApplyFilePatches() {
         group()
         description = "Applies $configName file patches to the Minecraft sources"
@@ -102,6 +88,20 @@ class MinecraftPatchingTasks(
         patches.set(sourcePatchDir.fileExists())
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
+        identifier = configName
+    }
+
+    private fun ApplyBasePatches.configureApplyBasePatches() {
+        group()
+        description = "Applies $configName base patches to the Minecraft sources"
+
+        input.set(baseSources)
+        if (readOnly) {
+            output.set(outputSrcFile)
+        } else {
+            output.set(outputSrc)
+        }
+        patches.set(basePatchDir.fileExists())
         identifier = configName
     }
 
@@ -168,8 +168,8 @@ class MinecraftPatchingTasks(
 
     fun setupFork(config: ForkConfig) {
         val collectAccessTransform = tasks.register<CollectATsFromPatches>("collect${configName.capitalized()}MinecraftATsFromPatches") {
-            patchDir.set(basePatchDir.fileExists())
-            extraPatchDir.set(featurePatchDir.fileExists())
+            basePatchDir.set(basePatchDir.fileExists())
+            featurePatchDir.set(featurePatchDir.fileExists())
         }
 
         val mergeCollectedAts = tasks.register<MergeAccessTransforms>("merge${configName.capitalized()}MinecraftATs") {
@@ -184,7 +184,7 @@ class MinecraftPatchingTasks(
             libraries.from(coreTasks.indexLibraryFiles.map { it.libraries })
         }
 
-        val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}MinecraftSetup") {
+        val setup = tasks.register<SetupForkMinecraftSources>("run${configName.capitalized()}Setup") {
             description = "Applies $configName ATs and library imports to Minecraft sources"
 
             inputDir.set(baseSources)
@@ -239,6 +239,8 @@ class MinecraftPatchingTasks(
             base.set(baseSources) // workaround to achieve the correct task execution order
             inputDir.set(outputSrc)
             patchDir.set(basePatchDir)
+            baseRef.set("base")
+            stopRef.set("basepatches~1") // ~1 cuz we dont want to rebuild the marker commit
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
             identifier = configName
         }
@@ -283,6 +285,7 @@ class MinecraftPatchingTasks(
 
             inputDir.set(outputSrc)
             patchDir.set(featurePatchDir)
+            baseRef.set("file")
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 
