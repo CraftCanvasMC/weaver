@@ -48,7 +48,7 @@ abstract class GeneratePatches : BaseTask() {
     abstract val inputFrom: Property<String>
 
     @get:InputFiles
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val preparedSource: ConfigurableFileCollection
 
     @get:Input

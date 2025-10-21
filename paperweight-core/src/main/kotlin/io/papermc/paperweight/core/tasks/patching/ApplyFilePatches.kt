@@ -49,6 +49,14 @@ abstract class ApplyFilePatches : BaseTask() {
     )
     abstract val verbose: Property<Boolean>
 
+    @get:Optional
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputDirectory
+    abstract val input: DirectoryProperty
+
+    @get:OutputDirectory
+    abstract val output: DirectoryProperty
+
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputDirectory
     @get:Optional
@@ -60,13 +68,6 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Optional
     @get:Input
     abstract val gitFilePatches: Property<Boolean>
-
-    @get:OutputDirectory
-    abstract val output: DirectoryProperty
-
-    @get:InputDirectory
-    @get:Optional
-    abstract val input: DirectoryProperty
 
     @get:Internal
     abstract val baseRef: Property<String>

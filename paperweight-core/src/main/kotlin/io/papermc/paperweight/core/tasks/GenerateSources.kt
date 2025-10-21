@@ -60,7 +60,7 @@ abstract class GenerateSources : JavaLauncherTask() {
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val atFile: RegularFileProperty
 
     @get:InputFile

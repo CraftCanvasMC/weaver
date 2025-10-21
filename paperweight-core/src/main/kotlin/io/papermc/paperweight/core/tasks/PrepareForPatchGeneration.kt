@@ -52,12 +52,12 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val atFile: RegularFileProperty
 
     @get:InputFile
     @get:Optional
-    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val additionalPatch: RegularFileProperty
 
     @get:OutputDirectory
