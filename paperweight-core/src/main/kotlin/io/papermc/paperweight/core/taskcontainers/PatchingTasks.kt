@@ -68,10 +68,10 @@ class PatchingTasks(
         dependsOn(applyBasePatches)
 
         if (readOnly) {
-            base.set(applyBasePatches.flatMap { it.output })
-            repo.set(layout.cache.resolve(paperTaskOutput()))
+            input.set(applyBasePatches.flatMap { it.output })
+            output.set(layout.cache.resolve(paperTaskOutput()))
         } else {
-            repo.set(outputDir)
+            output.set(outputDir)
         }
         patches.set(filePatchDir.fileExists())
         rejectsDir.set(this@PatchingTasks.rejectsDir)
@@ -114,7 +114,7 @@ class PatchingTasks(
 
         repo.set(outputDir)
         if (readOnly) {
-            base.set(applyFilePatches.flatMap { it.repo })
+            base.set(applyFilePatches.flatMap { it.output })
         }
         patches.set(featurePatchDir.fileExists())
     }

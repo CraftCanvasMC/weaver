@@ -22,7 +22,6 @@
 
 package io.papermc.paperweight.core.extension
 
-import javax.annotation.Nullable
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.Named
@@ -72,34 +71,18 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
                 return setName
             }
 
-            @get:Nullable
             abstract val generateSources: Property<Boolean>
-
-            @get:Nullable
             abstract val generateResources: Property<Boolean>
-
-            @get:Nullable
             abstract val generateTestSources: Property<Boolean>
-
-            @get:Nullable
             abstract val generateTestResources: Property<Boolean>
 
-            @get:Nullable
             abstract val sourcesOutputDir: DirectoryProperty
-
-            @get:Nullable
             abstract val resourcesOutputDir: DirectoryProperty
-
-            @get:Nullable
             abstract val testSourcesOutputDir: DirectoryProperty
-
-            @get:Nullable
             abstract val testResourcesOutputDir: DirectoryProperty
 
-            @get:Nullable
             abstract val additionalAts: RegularFileProperty
 
-            @get:Nullable
             abstract val additionalPatch: RegularFileProperty
         }
     }
@@ -107,10 +90,8 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
     abstract class PatchGenerationConfig @Inject constructor(
         objects: ObjectFactory
     ) {
-        @get:Nullable
         abstract val outputDir: DirectoryProperty
 
-        @get:Nullable
         abstract val patchesDirOutput: Property<Boolean>
 
         val inputConfig: NamedDomainObjectContainer<InputConfig> = objects.domainObjectContainer(
@@ -126,10 +107,8 @@ abstract class AdditionalUpstreamConfig @Inject constructor(
                 return setName
             }
 
-            @get:Nullable
             abstract val additionalAts: RegularFileProperty
 
-            @get:Nullable
             abstract val additionalPatch: RegularFileProperty
         }
     }

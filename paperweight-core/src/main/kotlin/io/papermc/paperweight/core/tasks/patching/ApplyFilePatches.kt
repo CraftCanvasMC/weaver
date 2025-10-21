@@ -62,11 +62,11 @@ abstract class ApplyFilePatches : BaseTask() {
     abstract val gitFilePatches: Property<Boolean>
 
     @get:OutputDirectory
-    abstract val repo: DirectoryProperty
+    abstract val output: DirectoryProperty
 
     @get:InputDirectory
     @get:Optional
-    abstract val base: DirectoryProperty
+    abstract val input: DirectoryProperty
 
     @get:Internal
     abstract val baseRef: Property<String>
@@ -95,42 +95,44 @@ abstract class ApplyFilePatches : BaseTask() {
     open fun run() {
         io.papermc.paperweight.util.Git.checkForGit()
 
-        val base = base.pathOrNull
-        val repoPath = repo.path
+        val input = input.pathOrNull
+        val outputPath = output.path
 
-        if (base != null && baseRef.get() == "main") {
-            recreateCloneDirectory(repoPath)
+        // special handling for resource patches
+        if (input != null && baseRef.get() == "main") {
+            recreateCloneDirectory(outputPath)
             checkoutRepoFromUpstream(
-                Git(repoPath),
-                base,
+                Git(outputPath),
+                input,
                 "main",
                 "upstream",
-                "main",
-                false,
+                baseRef.get(),
+                false, // we need to set ref to false for patching to properly work
             )
-            setupGitHook(repoPath)
+            setupGitHook(outputPath)
             tagBase()
         } else {
-            if (base != null && base.toAbsolutePath() != repoPath.toAbsolutePath()) {
-                recreateCloneDirectory(repoPath)
-                val checkoutFromJDs = hasJavadocs(base, "${identifier.get()}JDs")
+            // rest of the original logic
+            if (input != null && input.toAbsolutePath() != outputPath.toAbsolutePath()) {
+                recreateCloneDirectory(outputPath)
+                val checkoutFromJDs = hasJavadocs(input, "${identifier.get()}JDs")
                 val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
                 baseRef.set(newRef)
 
-                val git = Git(repoPath.createDirectories())
+                val git = Git(outputPath.createDirectories())
                 checkoutRepoFromUpstream(
                     git,
-                    base,
+                    input,
                     baseRef.get(),
                     branchName = "main",
                     ref = true,
                 )
             } else {
-                val checkoutFromJDs = hasJavadocs(repoPath, "${identifier.get()}JDs")
+                val checkoutFromJDs = hasJavadocs(outputPath, "${identifier.get()}JDs")
                 val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
                 baseRef.set(newRef)
             }
-            val git = Git(repoPath)
+            val git = Git(outputPath)
             if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
                 git("checkout", "-b", "main").runSilently(silenceErr = true)
             }
@@ -141,8 +143,8 @@ abstract class ApplyFilePatches : BaseTask() {
         val result = if (!patches.isPresent) {
             commit()
             0
-        } else if (gitFilePatches.get() && shouldApplyWithGit(repoPath)) {
-            applyWithGit(repoPath)
+        } else if (gitFilePatches.get() && shouldApplyWithGit(outputPath)) {
+            applyWithGit(outputPath)
         } else {
             applyWithDiffPatch()
         }
@@ -170,16 +172,16 @@ abstract class ApplyFilePatches : BaseTask() {
     }
 
     private fun tagBase() {
-        val git = Git.open(repo.path.toFile())
+        val git = Git.open(output.path.toFile())
         val ident = PersonIdent("base", "noreply+automated@papermc.io")
         git.tagDelete().setTags("base").call()
         git.tag().setName("base").setTagger(ident).setSigned(false).call()
         git.close()
     }
 
-    private fun shouldApplyWithGit(repoPath: Path): Boolean {
+    private fun shouldApplyWithGit(outputPath: Path): Boolean {
         val patchFiles = patches.path.filesMatchingRecursive("*.patch")
-        val git = Git(repoPath)
+        val git = Git(outputPath)
         val canApply = patchFiles.any { patch ->
             val result = git("apply", "--check", patch.absolutePathString()).getText(ignoreErr = true)
             result.contains("error: corrupt patch at line")
@@ -187,12 +189,12 @@ abstract class ApplyFilePatches : BaseTask() {
         return !canApply
     }
 
-    private fun applyWithGit(repoPath: Path): Int {
-        val git = Git(repoPath)
+    private fun applyWithGit(outputPath: Path): Int {
+        val git = Git(outputPath)
         val patchFiles = patches.path.filesMatchingRecursive("*.patch")
         if (moveFailedGitPatchesToRejects.get() && rejectsDir.isPresent) {
             patchFiles.forEach { patch ->
-                val patchPathFromGit = repoPath.relativize(patch)
+                val patchPathFromGit = outputPath.relativize(patch)
                 val responseCode =
                     git(
                         "-c",
@@ -207,7 +209,7 @@ abstract class ApplyFilePatches : BaseTask() {
                     responseCode == 1 -> {
                         val relativePatch = patches.path.relativize(patch)
                         val failedFile = relativePatch.parent.resolve(relativePatch.fileName.toString().substringBeforeLast(".patch"))
-                        if (repoPath.resolve(failedFile).exists()) {
+                        if (outputPath.resolve(failedFile).exists()) {
                             git("reset", "--", failedFile.pathString).executeSilently(silenceOut = !verbose.get(), silenceErr = !verbose.get())
                             git("restore", failedFile.pathString).executeSilently(silenceOut = !verbose.get(), silenceErr = !verbose.get())
                         }
@@ -218,7 +220,7 @@ abstract class ApplyFilePatches : BaseTask() {
                 }
             }
         } else {
-            val patchStrings = patchFiles.map { repoPath.relativize(it).pathString }
+            val patchStrings = patchFiles.map { outputPath.relativize(it).pathString }
             patchStrings.chunked(12).forEach {
                 git("apply", "--3way", *it.toTypedArray()).executeSilently(silenceOut = !verbose.get(), silenceErr = !verbose.get())
             }
@@ -232,9 +234,9 @@ abstract class ApplyFilePatches : BaseTask() {
     private fun applyWithDiffPatch(): Int? {
         val builder = PatchOperation.builder()
             .logTo(logger::lifecycle)
-            .baseInput(DiffInput.MultiInput.folder(repo.path))
+            .baseInput(DiffInput.MultiInput.folder(output.path))
             .patchesInput(DiffInput.MultiInput.folder(patches.path))
-            .patchedOutput(DiffOutput.MultiOutput.folder(repo.path))
+            .patchedOutput(DiffOutput.MultiOutput.folder(output.path))
             .level(if (verbose.get()) io.codechicken.diffpatch.util.LogLevel.ALL else io.codechicken.diffpatch.util.LogLevel.INFO)
             .mode(mode())
             .minFuzz(minFuzz())
@@ -267,7 +269,7 @@ abstract class ApplyFilePatches : BaseTask() {
 
     private fun commit() {
         val ident = PersonIdent(PersonIdent("File", "noreply+automated@papermc.io"), Instant.parse("1997-04-20T13:37:42.69Z"))
-        val git = Git.open(repo.path.toFile())
+        val git = Git.open(output.path.toFile())
         git.add().addFilepattern(".").call()
         git.commit()
             .setMessage("${identifier.get()} File Patches")
@@ -280,8 +282,8 @@ abstract class ApplyFilePatches : BaseTask() {
         git.close()
     }
 
-    fun hasJavadocs(repoPath: Path, tag: String): Boolean {
-        val git = Git(repoPath)
+    fun hasJavadocs(outputPath: Path, tag: String): Boolean {
+        val git = Git(outputPath)
         val result = git("tag", "-l", tag).getText().trim()
         return result == tag
     }

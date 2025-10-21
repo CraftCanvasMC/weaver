@@ -1,6 +1,6 @@
 --- a/Test.java
 +++ b/Test.java
-@@ -7,7 +_,7 @@
+@@ -7,10 +_,10 @@
      }
  
      public String getTest() {
@@ -8,4 +8,8 @@
 +        return this.test; // WOOOO SOURCE
      }
  
-     public final String getTest2() {
+     public String getTest2() {
+-        return this.test + "2";
++        return this.test + "2"; // Woo
+     }
+ }

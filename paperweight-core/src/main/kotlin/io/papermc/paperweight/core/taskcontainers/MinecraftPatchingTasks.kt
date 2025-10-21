@@ -79,10 +79,10 @@ class MinecraftPatchingTasks(
         dependsOn(applyBasePatches)
 
         if (readOnly) {
-            base.set(applyBasePatches.flatMap { it.output })
-            repo.set(outputSrcFile)
+            input.set(applyBasePatches.flatMap { it.output })
+            output.set(outputSrcFile)
         } else {
-            repo.set(outputSrc)
+            output.set(outputSrc)
         }
         patches.set(sourcePatchDir.fileExists())
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
@@ -120,8 +120,8 @@ class MinecraftPatchingTasks(
         group()
         description = "Applies $configName file patches to the Minecraft resources"
 
-        base.set(baseResources)
-        repo.set(outputResources)
+        input.set(baseResources)
+        output.set(outputResources)
         patches.set(resourcePatchDir.fileExists())
         // TODO rejects?
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
@@ -141,7 +141,7 @@ class MinecraftPatchingTasks(
         dependsOn(applyFilePatches)
 
         if (readOnly) {
-            base.set(applySourcePatches.flatMap { it.repo })
+            base.set(applySourcePatches.flatMap { it.output })
         }
         repo.set(outputSrc)
         patches.set(featurePatchDir.fileExists())
@@ -211,11 +211,11 @@ class MinecraftPatchingTasks(
         }
 
         applySourcePatches.configure {
-            base.set(applyJavadocMappings.flatMap { it.outputDir })
+            input.set(applyJavadocMappings.flatMap { it.outputDir })
         }
 
         applySourcePatchesFuzzy.configure {
-            base.set(applyJavadocMappings.flatMap { it.outputDir })
+            input.set(applyJavadocMappings.flatMap { it.outputDir })
         }
     }
 

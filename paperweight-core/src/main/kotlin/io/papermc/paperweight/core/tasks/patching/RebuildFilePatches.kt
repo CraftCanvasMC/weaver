@@ -61,6 +61,9 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:InputDirectory
     abstract val base: DirectoryProperty
 
+    @get:Internal
+    abstract val baseDir: DirectoryProperty
+
     @get:OutputDirectory
     abstract val patches: DirectoryProperty
 
@@ -90,12 +93,14 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         contextLines.convention(3)
         verbose.convention(false)
         gitFilePatches.convention(false)
+        baseDir.set(layout.cache.resolve(paperTaskOutput()))
     }
 
     @TaskAction
     fun run() {
         val patchDir = patches.path.cleanDir()
         val inputDir = input.convertToPath()
+        val baseDir = baseDir.convertToPath()
 
         val git = Git(inputDir)
 
@@ -124,10 +129,8 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         git("stash", "push").executeSilently(silenceErr = true)
         git("checkout", "file").executeSilently(silenceErr = true)
 
-        val baseCommit = git("rev-parse", "HEAD~1").getText().trim()
-        val baseDir = layout.cache.resolve(paperTaskOutput())
-
-        git("worktree", "add", baseDir.absolutePathString(), baseCommit).executeSilently(silenceErr = true)
+        val baseCommit = "file~1"
+        git("worktree", "add", "--force", baseDir.absolutePathString(), baseCommit).executeSilently(silenceErr = true)
 
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
@@ -155,7 +158,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             rebuildWithDiffPatch(baseDir, inputDir, patchDir)
         }
 
-        git("worktree", "remove", baseDir.absolutePathString(), "--force").executeSilently(silenceErr = true)
+        git("worktree", "remove", "--force", baseDir.absolutePathString()).executeSilently(silenceErr = true)
         git("switch", "-").executeSilently(silenceErr = true)
         if (filesWithNewAts.isNotEmpty()) {
             try {
@@ -235,7 +238,6 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         return result.summary?.changedFiles
     }
 
-    // TODO: look into moving this earlier in the source tree, still most of it is broken anyway
     private fun handleAts(
         baseDir: Path,
         inputDir: Path,
