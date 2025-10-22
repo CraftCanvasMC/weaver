@@ -75,25 +75,19 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     @TaskAction
     fun run() {
         val git = Git(inputDir.path)
-
-        // fail fast if someone decides to name a patch with this name to avoid patch corruption
         val basepatchesCommit = git(
             "log",
             "--format=%H %s",
             "--grep=^${identifier.get()} Base Patches$",
             "base..HEAD"
         ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
+        // fail fast if someone decides to name a patch with this name to avoid patch corruption
         if (basepatchesCommit.size > 1) {
-            val count = basepatchesCommit.size
             throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: '${identifier.get()} Base Patches' !\nGot $count commits, expected: 1"
-            )
-        } else if (basepatchesCommit.isEmpty()) {
-            throw PaperweightException(
-                "Could not find a commit with the identifier: '${identifier.get()} Base Patches' !\nHave you applied patches before rebuilding?"
+                "Exceeded the max amount of commits with the identifier: '${identifier.get()} Base Patches' !\n" +
+                    "Got ${basepatchesCommit.size} commits, expected: 1"
             )
         }
-
         // we update the tag to reflect the new repo state
         git("tag", "-f", "basepatches", basepatchesCommit.joinToString()).executeSilently(silenceErr = true)
 

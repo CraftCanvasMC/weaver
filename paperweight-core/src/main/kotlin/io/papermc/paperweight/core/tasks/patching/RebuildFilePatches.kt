@@ -103,25 +103,19 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val baseDir = baseDir.convertToPath()
 
         val git = Git(inputDir)
-
-        // fail fast if someone decides to name a patch with this name to avoid patch corruption
         val fileCommit = git(
             "log",
             "--format=%H %s",
             "--grep=^${identifier.get()} File Patches$",
             "base..HEAD"
         ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
+        // fail fast if someone decides to name a patch with this name to avoid patch corruption
         if (fileCommit.size > 1) {
-            val count = fileCommit.size
             throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: '${identifier.get()} File Patches' !\nGot $count commits, expected: 1"
-            )
-        } else if (fileCommit.isEmpty()) {
-            throw PaperweightException(
-                "Could not find a commit with the identifier: '${identifier.get()} File Patches' !\nHave you applied patches before rebuilding?"
+                "Exceeded the max amount of commits with the identifier: '${identifier.get()} File Patches' !\n" +
+                    "Got ${fileCommit.size} commits, expected: 1"
             )
         }
-
         // we update the appropriate tag to reflect the new repo state
         git("tag", "-f", "file", fileCommit.joinToString()).executeSilently(silenceErr = true)
 
