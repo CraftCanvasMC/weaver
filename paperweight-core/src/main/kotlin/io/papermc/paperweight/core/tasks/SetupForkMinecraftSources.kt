@@ -26,6 +26,7 @@ import io.papermc.paperweight.core.util.ApplyJavadocMappings
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
+import io.papermc.paperweight.util.constants.paperTaskOutput
 import kotlin.io.path.*
 import org.eclipse.jgit.api.Git
 import org.gradle.api.file.ConfigurableFileCollection
@@ -36,6 +37,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
@@ -51,6 +53,12 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
+
+    @get:Internal
+    abstract val atWorkingDir: DirectoryProperty
+
+    @get:Internal
+    abstract val mappingsWorkingDir: DirectoryProperty
 
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
@@ -73,6 +81,12 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
 
     @get:Input
     abstract val identifier: Property<String>
+
+    override fun init() {
+        super.init()
+        atWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_atWorkingDir")))
+        mappingsWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_mappingsWorkingDir")))
+    }
 
     @TaskAction
     fun run() {
@@ -99,7 +113,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 outputDir.path,
                 outputDir.path,
                 atFile.path,
-                temporaryDir.toPath(),
+                atWorkingDir.path,
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
         }
@@ -110,7 +124,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 outputDir.path,
                 outputDir.path,
                 mappingFile.singleFile.toPath(),
-                temporaryDir.toPath(),
+                mappingsWorkingDir.path,
             )
             commitAndTag(git, "${identifier.get()}JDs", "${identifier.get()} Javadoc Mappings")
         }
