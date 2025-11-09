@@ -26,5 +26,5 @@ jobs:
       - name: Create release and changelog
         uses: MC-Machinations/auto-release-changelog@v1.1.3
         with:
-          token: ${{ secrets.SUMMARY_TOKEN }}
+          token: ${{ secrets.GITHUB_TOKEN }}
           title: weaver ${{ steps.vars.outputs.tag }}
