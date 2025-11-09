@@ -292,3 +292,12 @@ fun checkoutRepoFromUpstream(
         .executeSilently(silenceErr = true)
     git("gc").runSilently(silenceErr = true)
 }
+
+fun validateSingleCommit(identifier: Provider<String>, kind: String, commits: List<String>) {
+    if (commits.size != 1) {
+        throw PaperweightException(
+            "Invalid amount of commits with the identifier: '${identifier.get()} $kind Patches'!\n" +
+                "Got ${commits.size} commits, expected: 1"
+        )
+    }
+}

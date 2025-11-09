@@ -108,14 +108,16 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
             "--format=%H %s",
             "--grep=^${identifier.get()} File Patches$",
             "base..HEAD"
-        ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
-        // fail fast if someone decides to name a patch with this name to avoid patch corruption
-        if (fileCommit.size > 1) {
-            throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: '${identifier.get()} File Patches' !\n" +
-                    "Got ${fileCommit.size} commits, expected: 1"
-            )
-        }
+        ).getText()
+            .lineSequence()
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .map { it.substringBefore(" ") }
+            .toList()
+
+        // throw if false, since that means the repo state is corrupted and we can't rebuild safely
+        validateSingleCommit(identifier, "File", fileCommit)
+
         // we update the appropriate tag to reflect the new repo state
         git("tag", "-f", "file", fileCommit.joinToString()).executeSilently(silenceErr = true)
 

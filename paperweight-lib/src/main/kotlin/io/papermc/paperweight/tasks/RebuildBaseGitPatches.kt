@@ -22,7 +22,6 @@
 
 package io.papermc.paperweight.tasks
 
-import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.util.*
 import java.nio.file.Path
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -80,14 +79,16 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             "--format=%H %s",
             "--grep=^${identifier.get()} Base Patches$",
             "base..HEAD"
-        ).getText().lines().filter { it.isNotBlank() }.map { it.substringBefore(" ") }
-        // fail fast if someone decides to name a patch with this name to avoid patch corruption
-        if (basepatchesCommit.size > 1) {
-            throw PaperweightException(
-                "Exceeded the max amount of commits with the identifier: '${identifier.get()} Base Patches' !\n" +
-                    "Got ${basepatchesCommit.size} commits, expected: 1"
-            )
-        }
+        ).getText()
+            .lineSequence()
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .map { it.substringBefore(" ") }
+            .toList()
+
+        // throw if false, since that means the repo state is corrupted and we can't rebuild safely
+        validateSingleCommit(identifier, "Base", basepatchesCommit)
+
         // we update the tag to reflect the new repo state
         git("tag", "-f", "basepatches", basepatchesCommit.joinToString()).executeSilently(silenceErr = true)
 
