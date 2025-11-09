@@ -201,8 +201,8 @@ class MinecraftPatchingTasks(
             input.set(setup.flatMap { it.outputDir })
         }
 
-        val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("applyJavadocMappingsFrom${configName.capitalized()}ToMinecraft") {
-            description = "When applicable, applies javadocs from the specified parchment mappings in $configName to Minecraft for source patch apply"
+        val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("apply${configName.capitalized()}JavadocMappings") {
+            description = "Applies javadocs from the specified parchment mappings in $configName to Minecraft sources"
             inputDir.set(applyBasePatches.flatMap { it.output })
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
             identifier.set(configName)
