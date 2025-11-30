@@ -67,6 +67,13 @@ abstract class PaperweightUserExtension(
     )
 
     /**
+     * Whether to inject the server jar into the generated compile/runtime configurations
+     *
+     * True by defaults.
+     */
+    val injectServerJar: Property<Boolean> = objects.property<Boolean>().convention(true)
+
+    /**
      * Whether to patch dependencies to exclude `junit:junit` from the transitive dependencies of `com.googlecode.json-simple:json-simple`.
      *
      * True by default to avoid `junit:junit` appearing on the `compileClasspath` with older versions of Paper.

@@ -112,6 +112,7 @@ abstract class PaperweightUser : Plugin<Project> {
         val setupTask = target.tasks.register("paperweightUserdevSetup", UserdevSetupTask::class) {
             group = GENERAL_TASK_GROUP
             launcher.set(userdev.javaLauncher)
+            injectServerJar.set(userdev.injectServerJar)
         }
 
         target.dependencies.extensions.create(
