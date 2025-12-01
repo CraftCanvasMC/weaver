@@ -112,7 +112,6 @@ abstract class PaperweightUser : Plugin<Project> {
         val setupTask = target.tasks.register("paperweightUserdevSetup", UserdevSetupTask::class) {
             group = GENERAL_TASK_GROUP
             launcher.set(userdev.javaLauncher)
-            injectServerJar.set(userdev.injectServerJar)
         }
 
         target.dependencies.extensions.create(
@@ -122,7 +121,7 @@ abstract class PaperweightUser : Plugin<Project> {
             target.dependencyFactory,
         )
 
-        createConfigurations(target, target.provider { userdevSetup }, setupTask)
+        createConfigurations(target, target.provider { userdevSetup }, setupTask, userdev)
 
         val reobfJar by target.tasks.registering<RemapJar> {
             group = GENERAL_TASK_GROUP
@@ -322,6 +321,7 @@ abstract class PaperweightUser : Plugin<Project> {
         target: Project,
         userdevSetup: Provider<UserdevSetup>,
         setupTask: TaskProvider<UserdevSetupTask>,
+        userdev: PaperweightUserExtension,
     ) {
         target.configurations.register(MACHE_CONFIG) {
             dependenciesFrom { userdevSetup.get().mache }
@@ -353,14 +353,14 @@ abstract class PaperweightUser : Plugin<Project> {
         target.configurations.register(MOJANG_MAPPED_SERVER_CONFIG) {
             defaultDependencies {
                 userdevSetup.get()
-                    .populateCompileConfiguration(createContext(target, setupTask), this)
+                    .populateCompileConfiguration(createContext(target, setupTask), this, userdev.injectServerJar)
             }
         }
 
         target.configurations.register(MOJANG_MAPPED_SERVER_RUNTIME_CONFIG) {
             defaultDependencies {
                 userdevSetup.get()
-                    .populateRuntimeConfiguration(createContext(target, setupTask), this)
+                    .populateRuntimeConfiguration(createContext(target, setupTask), this, userdev.injectServerJar)
             }
         }
     }

@@ -42,6 +42,7 @@ import java.nio.file.Path
 import kotlin.io.path.*
 import org.gradle.api.artifacts.DependencySet
 import org.gradle.api.file.FileCollection
+import org.gradle.api.provider.Property
 import org.gradle.kotlin.dsl.*
 
 class SetupHandlerImpl(
@@ -151,13 +152,23 @@ class SetupHandlerImpl(
         return dispatcher
     }
 
-    override fun populateCompileConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+    override fun populateCompileConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        if (injectServerJar.get()) {
+            dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+        }
         dependencySet.add(context.dependencyFactory.create(context.devBundleCoordinates))
     }
 
-    override fun populateRuntimeConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        populateCompileConfiguration(context, dependencySet)
+    override fun populateRuntimeConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        populateCompileConfiguration(context, dependencySet, injectServerJar)
     }
 
     @Volatile

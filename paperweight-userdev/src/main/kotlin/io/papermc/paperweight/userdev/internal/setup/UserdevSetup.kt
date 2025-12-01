@@ -66,12 +66,20 @@ abstract class UserdevSetup : BuildService<UserdevSetup.Parameters>, SetupHandle
     }
 
     // begin delegate to setup
-    override fun populateCompileConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        setup.populateCompileConfiguration(context, dependencySet)
+    override fun populateCompileConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        setup.populateCompileConfiguration(context, dependencySet, injectServerJar)
     }
 
-    override fun populateRuntimeConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        setup.populateRuntimeConfiguration(context, dependencySet)
+    override fun populateRuntimeConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        setup.populateRuntimeConfiguration(context, dependencySet, injectServerJar)
     }
 
     override fun generateArtifacts(context: SetupHandler.ExecutionContext): SetupHandler.ArtifactsResult {

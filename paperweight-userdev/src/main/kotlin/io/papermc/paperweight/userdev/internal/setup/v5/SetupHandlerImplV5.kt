@@ -39,6 +39,7 @@ import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import kotlin.io.path.*
 import org.gradle.api.artifacts.DependencySet
+import org.gradle.api.provider.Property
 import org.gradle.jvm.toolchain.JavaLanguageVersion
 import org.gradle.kotlin.dsl.*
 
@@ -184,8 +185,14 @@ class SetupHandlerImplV5(
         return dispatcher
     }
 
-    override fun populateCompileConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+    override fun populateCompileConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        if (injectServerJar.get()) {
+            dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+        }
         listOfNotNull(
             bundle.config.apiCoordinates,
             bundle.config.mojangApiCoordinates
@@ -197,8 +204,14 @@ class SetupHandlerImplV5(
         }
     }
 
-    override fun populateRuntimeConfiguration(context: SetupHandler.ConfigurationContext, dependencySet: DependencySet) {
-        dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+    override fun populateRuntimeConfiguration(
+        context: SetupHandler.ConfigurationContext,
+        dependencySet: DependencySet,
+        injectServerJar: Property<Boolean>
+    ) {
+        if (injectServerJar.get()) {
+            dependencySet.add(context.dependencyFactory.create(context.layout.files(context.setupTask.flatMap { it.mappedServerJar })))
+        }
         listOfNotNull(
             bundle.config.apiCoordinates,
             bundle.config.mojangApiCoordinates

@@ -37,6 +37,7 @@ import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.FileCollection
 import org.gradle.api.file.ProjectLayout
 import org.gradle.api.logging.Logger
+import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.logging.progress.ProgressLogger
 import org.gradle.internal.logging.progress.ProgressLoggerFactory
@@ -46,9 +47,9 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.workers.WorkerExecutor
 
 interface SetupHandler {
-    fun populateCompileConfiguration(context: ConfigurationContext, dependencySet: DependencySet)
+    fun populateCompileConfiguration(context: ConfigurationContext, dependencySet: DependencySet, injectServerJar: Property<Boolean>)
 
-    fun populateRuntimeConfiguration(context: ConfigurationContext, dependencySet: DependencySet)
+    fun populateRuntimeConfiguration(context: ConfigurationContext, dependencySet: DependencySet, injectServerJar: Property<Boolean>)
 
     data class ArtifactsResult(
         val mainOutput: Path,
