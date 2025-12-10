@@ -42,7 +42,7 @@ class PaperCheckstyleTest {
     @Test
     fun testPluginApplication(@TempDir tmpDir: Path) {
         val project = setupProject(tmpDir)
-        project.pluginManager.apply("io.papermc.paperweight.paper-checkstyle")
+        project.pluginManager.apply("io.canvasmc.weaver.paper-checkstyle")
 
         assertNotNull(project.plugins.getPlugin(PaperCheckstylePlugin::class))
         assertNotNull(project.extensions.getByType(CheckstyleExtension::class))
