@@ -28,7 +28,6 @@ import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.PAPER_PATH
 import io.papermc.paperweight.util.constants.paperTaskOutput
 import java.util.concurrent.TimeUnit
 import kotlin.io.path.*
@@ -60,6 +59,10 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
 
+    @get:OutputDirectory
+    @get:Optional
+    abstract val oldOutputDir: DirectoryProperty
+
     @get:Internal
     abstract val atWorkingDir: DirectoryProperty
 
@@ -88,6 +91,9 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Input
     abstract val identifier: Property<String>
 
+    @get:Internal
+    abstract val forkName: Property<String>
+
     @get:Input
     @get:Optional
     abstract val oldCommit: Property<String>
@@ -100,6 +106,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
         atWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_atWorkingDir")))
         mappingsWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_mappingsWorkingDir")))
         additionalRemoteName.convention("old")
+        forkName.convention(project.coreExt.activeFork.map { it.name.capitalized() })
     }
 
     @TaskAction
@@ -151,12 +158,12 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     }
 
     private fun setupOld() {
-        val name = project.coreExt.activeFork.get().name.capitalized()
+        val name = forkName.get()
         logger.lifecycle("Setting up $name commit ${oldCommit.get()} to use as base for 3-way apply...")
 
         val rootProjectDir = layout.projectDirectory.dir("../").path
-        val oldDir = layout.cache.resolve("$PAPER_PATH/old$name/${oldCommit.get()}")
-        val oldLog = layout.cache.resolve("$PAPER_PATH/old$name/${oldCommit.get()}.log")
+        val oldDir = oldOutputDir.get().path.resolve(oldCommit.get())
+        val oldLog = oldOutputDir.get().path.resolve("${oldCommit.get()}.log")
 
         val oldGit: Git
         if (oldDir.exists()) {

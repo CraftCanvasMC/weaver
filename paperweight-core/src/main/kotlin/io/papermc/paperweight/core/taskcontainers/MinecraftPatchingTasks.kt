@@ -194,6 +194,7 @@ class MinecraftPatchingTasks(
 
             if (project.hasProperty("old${configName.capitalized()}Commit")) {
                 oldCommit.convention(project.providers.gradleProperty("old${configName.capitalized()}Commit"))
+                oldOutputDir.set(layout.cache.resolve("$PAPER_PATH/old${configName.capitalized()}"))
             }
             libraryImports.set(importLibFiles.flatMap { it.outputDir })
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
