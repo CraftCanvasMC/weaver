@@ -202,7 +202,6 @@ abstract class PaperweightCore : Plugin<Project> {
                 mappedJar,
             )
 
-            val name = coreExt.activeFork.get().name
             if (coreExt.updatingMinecraft.oldPaperCommit.isPresent) {
                 tasks.paperPatchingTasks.applyBasePatches.configure {
                     additionalRemote = layout.cache.resolve(
@@ -220,7 +219,8 @@ abstract class PaperweightCore : Plugin<Project> {
                     coreExt.paper.rejectsDir,
                     layout.projectDirectory.dir("src/minecraft/java"),
                 )
-            } else if (target.hasProperty("old${name}Commit")) {
+            } else if (coreExt.activeFork.isPresent && target.hasProperty("old${coreExt.activeFork.get().name}Commit")) {
+                val name = coreExt.activeFork.get().name
                 // old commit fetching for forks through a gradle property
                 target.tasks.named<ApplyBasePatches>("applyMinecraftBasePatches").configure {
                     additionalRemote = layout.cache.resolve(
