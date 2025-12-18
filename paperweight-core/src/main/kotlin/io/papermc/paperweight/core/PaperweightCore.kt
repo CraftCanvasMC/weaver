@@ -28,6 +28,8 @@ import io.papermc.paperweight.core.extension.PaperweightCoreExtension
 import io.papermc.paperweight.core.taskcontainers.CoreTasks
 import io.papermc.paperweight.core.taskcontainers.DevBundleTasks
 import io.papermc.paperweight.core.taskcontainers.PaperclipTasks
+import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
+import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patchroulette.PatchRouletteTasks
 import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.core.util.createBuildTasks
@@ -200,6 +202,7 @@ abstract class PaperweightCore : Plugin<Project> {
                 mappedJar,
             )
 
+            val name = coreExt.activeFork.get().name
             if (coreExt.updatingMinecraft.oldPaperCommit.isPresent) {
                 tasks.paperPatchingTasks.applyBasePatches.configure {
                     additionalRemote = layout.cache.resolve(
@@ -215,6 +218,25 @@ abstract class PaperweightCore : Plugin<Project> {
                     "paper",
                     coreExt.minecraftVersion,
                     coreExt.paper.rejectsDir,
+                    layout.projectDirectory.dir("src/minecraft/java"),
+                )
+            } else if (target.hasProperty("old${name}Commit")) {
+                // old commit fetching for forks through a gradle property
+                target.tasks.named<ApplyBasePatches>("applyMinecraftBasePatches").configure {
+                    additionalRemote = layout.cache.resolve(
+                        "$PAPER_PATH/old${name.capitalized()}/${target.providers.gradleProperty("old${name.capitalized()}Commit").get()}" +
+                            "/$name-server/src/minecraft/java"
+                    ).absolutePathString()
+                }
+                target.tasks.named<ApplyFilePatches>("applyMinecraftSourcePatches").configure {
+                    emitRejects = false
+                } // if we ever make features/base emit rejects by default, we should update this.
+
+                PatchRouletteTasks(
+                    target,
+                    name.lowercase(),
+                    coreExt.minecraftVersion,
+                    coreExt.activeFork.get().rejectsDir,
                     layout.projectDirectory.dir("src/minecraft/java"),
                 )
             }

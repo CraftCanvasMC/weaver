@@ -192,6 +192,9 @@ class MinecraftPatchingTasks(
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
             identifier.set(configName)
 
+            if (project.hasProperty("old${configName.capitalized()}Commit")) {
+                oldCommit.convention(project.providers.gradleProperty("old${configName.capitalized()}Commit"))
+            }
             libraryImports.set(importLibFiles.flatMap { it.outputDir })
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
             ats.jst.from(project.configurations.named(JST_CONFIG))
