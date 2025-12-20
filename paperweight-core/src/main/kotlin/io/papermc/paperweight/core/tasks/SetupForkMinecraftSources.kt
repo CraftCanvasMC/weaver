@@ -106,7 +106,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
         atWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_atWorkingDir")))
         mappingsWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_mappingsWorkingDir")))
         additionalRemoteName.convention("old")
-        forkName.convention(project.coreExt.activeFork.map { it.name.capitalized() })
+        forkName.convention(project.coreExt.activeFork.map { it.name })
     }
 
     @TaskAction
@@ -159,7 +159,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
 
     private fun setupOld() {
         val name = forkName.get()
-        logger.lifecycle("Setting up $name commit ${oldCommit.get()} to use as base for 3-way apply...")
+        logger.lifecycle("Setting up ${name.capitalized()} commit ${oldCommit.get()} to use as base for 3-way apply...")
 
         val rootProjectDir = layout.projectDirectory.dir("../").path
         val oldDir = oldOutputDir.get().path.resolve(oldCommit.get())
@@ -230,7 +230,20 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
             errFuture.get(500L, TimeUnit.MILLISECONDS)
 
             if (exit != 0) {
-                throw PaperweightException("Failed to apply old $name, see log at $oldLog")
+                throw PaperweightException("Failed to apply old ${name.capitalized()}, see log at $oldLog")
+            } else {
+                // for object generation
+                val process1 = ProcessBuilder("git", "rebase", "ROOT", "--force").directory(oldDir.resolve("$name-server/src/minecraft/java")).start()
+                val outFuture1 = redirect(process1.inputStream, logOut)
+                val errFuture1 = redirect(process1.errorStream, logOut)
+                val exit1 = process1.waitFor()
+
+                outFuture1.get(500L, TimeUnit.MILLISECONDS)
+                errFuture1.get(500L, TimeUnit.MILLISECONDS)
+
+                if (exit1 != 0) {
+                    throw PaperweightException("Failed to rebase commits in old ${name.capitalized()}, see log at $oldLog")
+                }
             }
         }
     }
