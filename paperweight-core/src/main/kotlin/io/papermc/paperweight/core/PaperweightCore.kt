@@ -219,7 +219,7 @@ abstract class PaperweightCore : Plugin<Project> {
                     coreExt.paper.rejectsDir,
                     layout.projectDirectory.dir("src/minecraft/java"),
                 )
-            } else if (coreExt.activeFork.isPresent && target.hasProperty("old${coreExt.activeFork.get().name}Commit")) {
+            } else if (coreExt.activeFork.isPresent && target.hasProperty("old${coreExt.activeFork.get().name.capitalized()}Commit")) {
                 val name = coreExt.activeFork.get().name
                 // old commit fetching for forks through a gradle property
                 target.tasks.named<ApplyBasePatches>("applyMinecraftBasePatches").configure {
