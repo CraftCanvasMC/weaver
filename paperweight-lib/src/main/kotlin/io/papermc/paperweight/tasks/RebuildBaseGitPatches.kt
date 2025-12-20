@@ -86,11 +86,13 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
             .map { it.substringBefore(" ") }
             .toList()
 
-        // throw if false, since that means the repo state is corrupted and we can't rebuild safely
-        validateSingleCommit(identifier, "Base", basepatchesCommit)
+        // throw if above 1, since that means the repo state is corrupted and we can't rebuild safely
+        val commitNumber = validateSingleOrNullCommit(identifier, "Base", basepatchesCommit)
 
         // we update the tag to reflect the new repo state
-        git("tag", "-f", "basepatches", basepatchesCommit.joinToString()).executeSilently(silenceErr = true)
+        if (commitNumber == 1) {
+            git("tag", "-f", "basepatches", basepatchesCommit.joinToString()).executeSilently(silenceErr = true)
+        }
 
         val what = inputDir.path.name
         val patchFolder = patchDir.path
@@ -123,7 +125,7 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
         }
 
         val base = baseRef.get()
-        val stop = stopRef.get()
+        val stop = if (commitNumber == 1) stopRef.get() else "HEAD" // HEAD if null commit
         val commitCount = git("rev-list", "--count", "$base..$stop").getText().trim().toInt()
 
         if (commitCount <= 0) return // nothing to rebuild

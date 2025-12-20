@@ -293,6 +293,17 @@ fun checkoutRepoFromUpstream(
     git("gc").runSilently(silenceErr = true)
 }
 
+fun validateSingleOrNullCommit(identifier: Provider<String>, kind: String, commits: List<String>): Int {
+    // > 1 hack bc its possible we were in the middle of rebasing
+    if (commits.size > 1) {
+        throw PaperweightException(
+            "Invalid amount of commits with the identifier: '${identifier.get()} $kind Patches'!\n" +
+                "Got ${commits.size} commits, expected: ≤1"
+        )
+    }
+    return commits.size
+}
+
 fun validateSingleCommit(identifier: Provider<String>, kind: String, commits: List<String>) {
     if (commits.size != 1) {
         throw PaperweightException(
