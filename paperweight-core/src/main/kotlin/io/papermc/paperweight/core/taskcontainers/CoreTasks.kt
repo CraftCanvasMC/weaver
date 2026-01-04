@@ -275,7 +275,7 @@ class CoreTasks(
                     description = "Applies all Minecraft and upstream server base patches " +
                         "(equivalent to '${serverTasks.applyBasePatches.name} applyServerBasePatches')"
                     dependsOn(serverTasks.applyBasePatches)
-                    dependsOn("applyServerBaseFeaturePatches")
+                    dependsOn("applyServerBasePatches")
                 }
                 val applyAllServerFilePatches = project.tasks.register("applyAllServerFilePatches") {
                     group = "patching"
