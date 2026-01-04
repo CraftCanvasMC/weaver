@@ -23,7 +23,6 @@
 package io.papermc.paperweight.core.tasks
 
 import io.papermc.paperweight.PaperweightException
-import io.papermc.paperweight.core.util.ApplyJavadocMappings
 import io.papermc.paperweight.core.util.ApplySourceATs
 import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.tasks.*
@@ -34,20 +33,16 @@ import kotlin.io.path.*
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.api.ResetCommand
 import org.eclipse.jgit.transport.URIish
-import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.InputFile
-import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Nested
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputDirectory
-import org.gradle.api.tasks.PathSensitive
-import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 
@@ -66,23 +61,12 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Internal
     abstract val atWorkingDir: DirectoryProperty
 
-    @get:Internal
-    abstract val mappingsWorkingDir: DirectoryProperty
-
     @get:Nested
     val ats: ApplySourceATs = objects.newInstance()
-
-    @get:Nested
-    val mappings: ApplyJavadocMappings = objects.newInstance()
 
     @get:InputFile
     @get:Optional
     abstract val atFile: RegularFileProperty
-
-    @get:PathSensitive(PathSensitivity.NONE)
-    @get:InputFiles
-    @get:Optional
-    abstract val mappingFile: ConfigurableFileCollection
 
     @get:Optional
     @get:InputDirectory
@@ -104,7 +88,6 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     override fun init() {
         super.init()
         atWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_atWorkingDir")))
-        mappingsWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_mappingsWorkingDir")))
         additionalRemoteName.convention("old")
         forkName.convention(project.coreExt.activeFork.map { it.name.capitalized() })
     }
@@ -141,17 +124,6 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 atWorkingDir.path,
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
-        }
-        if (!mappingFile.isEmpty) {
-            println("Applying javadoc mappings...")
-            mappings.run(
-                launcher.get(),
-                outputDir.path,
-                outputDir.path,
-                mappingFile.singleFile.toPath(),
-                mappingsWorkingDir.path,
-            )
-            commitAndTag(git, "${identifier.get()}JDs", "${identifier.get()} Javadoc Mappings")
         }
 
         git.close()

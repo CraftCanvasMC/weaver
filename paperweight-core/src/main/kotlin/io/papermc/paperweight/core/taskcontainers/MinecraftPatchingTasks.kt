@@ -205,22 +205,11 @@ class MinecraftPatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
-
-        val applyJavadocMappings = tasks.register<SetupForkMinecraftSources>("apply${configName.capitalized()}JavadocMappings") {
-            description = "Applies javadocs from the specified parchment mappings in $configName to Minecraft sources"
-            inputDir.set(applyBasePatches.flatMap { it.output })
-            outputDir.set(layout.cache.resolve(paperTaskOutput()))
-            identifier.set(configName)
-            mappingFile.from(config.javadocMappings)
-            mappings.jst.from(project.configurations.named(JST_CONFIG))
-        }
-
-        applySourcePatches.configure {
-            input.set(applyJavadocMappings.flatMap { it.outputDir })
-        }
-
-        applySourcePatchesFuzzy.configure {
-            input.set(applyJavadocMappings.flatMap { it.outputDir })
+        val name = "rebuild${namePart}BasePatches"
+        if (name in tasks.names) {
+            tasks.named<RebuildBaseGitPatches>(name) {
+                base.set(setup.flatMap { it.outputDir })
+            }
         }
     }
 

@@ -149,7 +149,7 @@ class PatchingTasks(
         }
 
         val setup = tasks.register<SetupForkSources>("run${namePart}Setup") {
-            description = "Applies $forkName ATs to non-minecraft sources"
+            description = "Applies $forkName ATs to $namePart sources"
             inputDir.set(baseDir)
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
             identifier.set(namePart)
@@ -159,6 +159,12 @@ class PatchingTasks(
 
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
+        }
+        val name = "rebuild${namePart}BasePatches"
+        if (name in tasks.names) {
+            tasks.named<RebuildBaseGitPatches>(name) {
+                base.set(setup.flatMap { it.outputDir })
+            }
         }
     }
 

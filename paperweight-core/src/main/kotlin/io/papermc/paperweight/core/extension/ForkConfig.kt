@@ -23,12 +23,10 @@
 package io.papermc.paperweight.core.extension
 
 import io.papermc.paperweight.util.*
-import io.papermc.paperweight.util.constants.JAVADOC_MAPPINGS_CONFIG
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.Named
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.model.ObjectFactory
@@ -41,7 +39,7 @@ abstract class ForkConfig @Inject constructor(
     private val configName: String,
     providers: ProviderFactory,
     objects: ObjectFactory,
-    private val project: Project,
+    project: Project,
 ) : Named {
     override fun getName(): String {
         return configName
@@ -69,19 +67,6 @@ abstract class ForkConfig @Inject constructor(
     }.orElse(
         providers.provider { objects.newInstance("paper", false) }
     )
-    val javadocMappings = project.configurations.register(name + JAVADOC_MAPPINGS_CONFIG)
-
-    fun javadocMappings(dep: String) {
-        javadocMappings.configure {
-            dependencies.add(project.dependencies.create(dep))
-        }
-    }
-
-    fun javadocMappings(configuration: Provider<Configuration>) {
-        javadocMappings.configure {
-            extendsFrom(configuration.get())
-        }
-    }
 
     val upstream: UpstreamConfig by lazy {
         upstreamProvider.get()

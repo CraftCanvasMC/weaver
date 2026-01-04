@@ -35,6 +35,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.provider.SetProperty
 import org.gradle.kotlin.dsl.*
 
@@ -93,6 +94,7 @@ abstract class UpstreamConfig @Inject constructor(
 
     abstract class DirectoryPatchSet @Inject constructor(
         objects: ObjectFactory,
+        providers: ProviderFactory,
         private val setName: String,
     ) : Named {
         override fun getName(): String = setName
@@ -102,7 +104,7 @@ abstract class UpstreamConfig @Inject constructor(
 
         abstract val outputDir: DirectoryProperty
         val buildDataDir: DirectoryProperty = objects.directoryProperty().convention(outputDir.dir("../build-data"))
-        val additionalAts: RegularFileProperty = objects.fileProperty().convention(buildDataDir.file("$name.at"))
+        val additionalAts: RegularFileProperty = objects.fileFrom(buildDataDir, providers.provider { "$name.at" })
 
         abstract val patchesDir: DirectoryProperty
         val rejectsDir: DirectoryProperty = objects.dirFrom(patchesDir, "rejected")
@@ -113,8 +115,9 @@ abstract class UpstreamConfig @Inject constructor(
 
     abstract class RepoPatchSet @Inject constructor(
         objects: ObjectFactory,
+        providers: ProviderFactory,
         name: String,
-    ) : DirectoryPatchSet(objects, name) {
+    ) : DirectoryPatchSet(objects, providers, name) {
         abstract val upstreamRepo: Property<DirectoryPatchSet>
 
         fun Provider<ForkConfig>.patchedRepo(name: String): Provider<DirectoryPatchSet> =

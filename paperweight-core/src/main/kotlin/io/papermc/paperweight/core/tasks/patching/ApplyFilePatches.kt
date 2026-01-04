@@ -49,9 +49,9 @@ abstract class ApplyFilePatches : BaseTask() {
     )
     abstract val verbose: Property<Boolean>
 
-    @get:Optional
     @get:PathSensitive(PathSensitivity.NONE)
     @get:InputDirectory
+    @get:Optional
     abstract val input: DirectoryProperty
 
     @get:OutputDirectory
@@ -69,7 +69,7 @@ abstract class ApplyFilePatches : BaseTask() {
     @get:Input
     abstract val gitFilePatches: Property<Boolean>
 
-    @get:Internal
+    @get:Input
     abstract val baseRef: Property<String>
 
     @get:Input
@@ -96,15 +96,14 @@ abstract class ApplyFilePatches : BaseTask() {
     open fun run() {
         io.papermc.paperweight.util.Git.checkForGit()
 
-        val input = input.pathOrNull
         val outputPath = output.path
 
         // special handling for resource patches
-        if (input != null && baseRef.get() == "main") {
+        if (input.pathOrNull != null && baseRef.get() == "main") {
             recreateCloneDirectory(outputPath)
             checkoutRepoFromUpstream(
                 Git(outputPath),
-                input,
+                input.path,
                 "main",
                 "upstream",
                 baseRef.get(),
@@ -114,24 +113,16 @@ abstract class ApplyFilePatches : BaseTask() {
             tagBase()
         } else {
             // rest of the original logic
-            if (input != null && input.toAbsolutePath() != outputPath.toAbsolutePath()) {
+            if (input.pathOrNull != null && input.path.toAbsolutePath() != outputPath.toAbsolutePath()) {
                 recreateCloneDirectory(outputPath)
-                val checkoutFromJDs = hasJavadocs(input, "${identifier.get()}JDs")
-                val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
-                baseRef.set(newRef)
-
                 val git = Git(outputPath.createDirectories())
                 checkoutRepoFromUpstream(
                     git,
-                    input,
+                    input.path,
                     baseRef.get(),
                     branchName = "main",
                     ref = true,
                 )
-            } else {
-                val checkoutFromJDs = hasJavadocs(outputPath, "${identifier.get()}JDs")
-                val newRef = if (checkoutFromJDs) "${identifier.get()}JDs" else baseRef.get()
-                baseRef.set(newRef)
             }
             val git = Git(outputPath)
             if (git("checkout", "main").runSilently(silenceErr = true) != 0) {
@@ -281,12 +272,6 @@ abstract class ApplyFilePatches : BaseTask() {
         git.tagDelete().setTags("file").call()
         git.tag().setName("file").setTagger(ident).setSigned(false).call()
         git.close()
-    }
-
-    fun hasJavadocs(outputPath: Path, tag: String): Boolean {
-        val git = Git(outputPath)
-        val result = git("tag", "-l", tag).getText().trim()
-        return result == tag
     }
 
     internal open fun mode(): PatchMode {
