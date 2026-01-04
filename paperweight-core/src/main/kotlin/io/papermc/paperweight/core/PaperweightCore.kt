@@ -105,7 +105,7 @@ abstract class PaperweightCore : Plugin<Project> {
         target.configurations.register(JST_CONFIG) {
             defaultDependencies {
                 // add(project.dependencies.create("net.neoforged.jst:jst-cli-bundle:${LibraryVersions.JST}"))
-                add(target.dependencies.create("io.canvasmc.jst:jst-cli-bundle:${LibraryVersions.JST}"))
+                add(target.dependencies.create("io.papermc.jst:jst-cli-bundle:${LibraryVersions.JST}"))
             }
         }
 

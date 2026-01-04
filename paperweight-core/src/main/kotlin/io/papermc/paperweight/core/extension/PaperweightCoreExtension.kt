@@ -40,7 +40,7 @@ abstract class PaperweightCoreExtension @Inject constructor(objects: ObjectFacto
     val bundlerJarName: Property<String> = objects.property<String>().convention("paper")
 
     val macheRepo: Property<String> = objects.property<String>().convention(PAPER_MAVEN_REPO_URL)
-    val jstRepo: Property<String> = objects.property<String>().convention(CANVAS_MAVEN_REPO_URL)
+    val jstRepo: Property<String> = objects.property<String>().convention(PAPER_MAVEN_REPO_URL)
 
     val gitFilePatches: Property<Boolean> = objects.property<Boolean>().convention(false)
     val filterPatches: Property<Boolean> = objects.property<Boolean>().convention(true)

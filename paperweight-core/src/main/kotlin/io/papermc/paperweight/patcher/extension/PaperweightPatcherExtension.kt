@@ -24,7 +24,7 @@ package io.papermc.paperweight.patcher.extension
 
 import io.papermc.paperweight.core.extension.AdditionalUpstreamConfig
 import io.papermc.paperweight.core.extension.UpstreamConfig
-import io.papermc.paperweight.util.constants.CANVAS_MAVEN_REPO_URL
+import io.papermc.paperweight.util.constants.PAPER_MAVEN_REPO_URL
 import javax.inject.Inject
 import org.gradle.api.Action
 import org.gradle.api.NamedDomainObjectContainer
@@ -38,7 +38,7 @@ abstract class PaperweightPatcherExtension @Inject constructor(private val objec
 
     val gitFilePatches: Property<Boolean> = objects.property<Boolean>().convention(false)
     val filterPatches: Property<Boolean> = objects.property<Boolean>().convention(true)
-    val jstRepo: Property<String> = objects.property<String>().convention(CANVAS_MAVEN_REPO_URL)
+    val jstRepo: Property<String> = objects.property<String>().convention(PAPER_MAVEN_REPO_URL)
 
     val upstreams: NamedDomainObjectContainer<UpstreamConfig> = objects.domainObjectContainer(UpstreamConfig::class) {
         objects.newInstance(it, true)
