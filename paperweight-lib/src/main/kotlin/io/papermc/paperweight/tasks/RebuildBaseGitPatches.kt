@@ -40,7 +40,6 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty
 
-    @get:Optional
     @get:InputDirectory
     abstract val base: DirectoryProperty // we dont need this at all but we use this to trick gradle into the correct task execution order
 

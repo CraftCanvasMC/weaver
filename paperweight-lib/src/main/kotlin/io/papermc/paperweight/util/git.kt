@@ -297,7 +297,7 @@ fun checkoutRepoFromUpstream(
 }
 
 fun validateSingleOrNullCommit(identifier: Provider<String>, kind: String, commits: List<String>): Int {
-    // > 1 hack bc its possible we were in the middle of rebasing
+    // > 1 hack bc its possible we encountered an apply error so the marker commit wasn't generated
     if (commits.size > 1) {
         throw PaperweightException(
             "Invalid amount of commits with the identifier: '${identifier.get()} $kind Patches'!\n" +
