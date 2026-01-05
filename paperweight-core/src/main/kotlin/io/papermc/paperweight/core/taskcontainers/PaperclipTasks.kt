@@ -49,7 +49,7 @@ class PaperclipTasks(
     mojangJar: Provider<RegularFile>,
     reobfJar: Provider<RegularFile>,
     private val mcVersion: Provider<String>,
-    private val rootName: Provider<String>
+    private val forkName: Provider<String>
 ) {
     init {
         val (createBundlerJar, createPaperclipJar, createPublisherJar) = project.createTasks("mojmap")
@@ -116,7 +116,7 @@ class PaperclipTasks(
             }
         } else {
             val buildNum = project.providers.environmentVariable("BUILD_NUMBER").orElse("local")
-            rootName.zip(buildNum) { name, build ->
+            forkName.zip(buildNum) { name, build ->
                 "$name-build.$build.jar"
             }
         }
