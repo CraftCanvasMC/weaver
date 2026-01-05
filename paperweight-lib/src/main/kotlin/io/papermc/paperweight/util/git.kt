@@ -212,7 +212,10 @@ class Command(private val processBuilder: ProcessBuilder, private val command: S
     }
 
     fun execute(ignoreErr: Boolean) {
-        run()
+        val res = run()
+        if (!ignoreErr && res != 0) {
+            throw PaperweightException("Command finished with $res exit code: $command")
+        }
     }
 
     fun executeSilently(silenceOut: Boolean = true, silenceErr: Boolean = false) {
