@@ -68,6 +68,9 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Optional
     abstract val atFile: RegularFileProperty
 
+    @get:Input
+    abstract val validateAts: Property<Boolean>
+
     @get:Optional
     @get:InputDirectory
     abstract val libraryImports: DirectoryProperty
@@ -122,6 +125,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
                 outputDir.path,
                 atFile.path,
                 atWorkingDir.path,
+                validate = validateAts.get(),
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
         }
