@@ -56,6 +56,9 @@ abstract class SetupForkSources : JavaLauncherTask() {
     abstract val atFile: RegularFileProperty
 
     @get:Input
+    abstract val validateAts: Property<Boolean>
+
+    @get:Input
     abstract val identifier: Property<String>
 
     @TaskAction
@@ -73,6 +76,7 @@ abstract class SetupForkSources : JavaLauncherTask() {
                 outputDir.path,
                 atFile.path,
                 temporaryDir.toPath(),
+                validate = validateAts.get(),
             )
             commitAndTag(git, "ATs", "${identifier.get()} ATs")
         }

@@ -63,6 +63,9 @@ abstract class GenerateSources : JavaLauncherTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val atFile: RegularFileProperty
 
+    @get:Input
+    abstract val validateAts: Property<Boolean>
+
     @get:InputFile
     @get:Optional
     @get:PathSensitive(PathSensitivity.NONE)
@@ -132,7 +135,8 @@ abstract class GenerateSources : JavaLauncherTask() {
                 atDirPath,
                 atDirPath,
                 atFile.path,
-                temporaryDir.toPath()
+                temporaryDir.toPath(),
+                validate = validateAts.get(),
             )
         }
 

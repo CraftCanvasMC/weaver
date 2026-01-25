@@ -55,6 +55,9 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
     @get:PathSensitive(PathSensitivity.NONE)
     abstract val atFile: RegularFileProperty
 
+    @get:Input
+    abstract val validateAts: Property<Boolean>
+
     @get:InputFile
     @get:Optional
     @get:PathSensitive(PathSensitivity.NONE)
@@ -93,7 +96,8 @@ abstract class PrepareForPatchGeneration : JavaLauncherTask() {
                 outputDirPath,
                 outputDirPath,
                 atFile.path,
-                temporaryDir.toPath()
+                temporaryDir.toPath(),
+                validate = validateAts.get(),
             )
         }
     }
