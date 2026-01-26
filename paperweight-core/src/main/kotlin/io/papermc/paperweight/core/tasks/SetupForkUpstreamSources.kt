@@ -40,7 +40,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.kotlin.dsl.*
 
-abstract class SetupForkSources : JavaLauncherTask() {
+abstract class SetupForkUpstreamSources : JavaLauncherTask() {
 
     @get:InputDirectory
     abstract val inputDir: DirectoryProperty

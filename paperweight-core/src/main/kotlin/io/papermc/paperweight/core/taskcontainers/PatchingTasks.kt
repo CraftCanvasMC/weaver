@@ -22,7 +22,7 @@
 
 package io.papermc.paperweight.core.taskcontainers
 
-import io.papermc.paperweight.core.tasks.SetupForkSources
+import io.papermc.paperweight.core.tasks.SetupForkUpstreamSources
 import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
@@ -149,7 +149,7 @@ class PatchingTasks(
             secondFile.set(collectAccessTransform.flatMap { it.outputFile })
         }
 
-        val setup = tasks.register<SetupForkSources>("run${namePart}Setup") {
+        val setup = tasks.register<SetupForkUpstreamSources>("run${namePart}Setup") {
             description = "Applies $forkName ATs to $namePart sources"
             inputDir.set(baseDir)
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
@@ -202,6 +202,9 @@ class PatchingTasks(
             input.set(outputDir)
             patches.set(filePatchDir)
             gitFilePatches.set(this@PatchingTasks.gitFilePatches)
+            ats.jst.from(project.configurations.named(JST_CONFIG))
+            atFile.set(additionalAts.fileExists())
+            atFileOut.set(additionalAts.fileExists())
             identifier = "$forkName $patchSetName"
         }
 
