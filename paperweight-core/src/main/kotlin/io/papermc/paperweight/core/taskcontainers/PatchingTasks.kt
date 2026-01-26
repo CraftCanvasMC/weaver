@@ -29,7 +29,6 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
-import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.JST_CONFIG
@@ -50,6 +49,7 @@ class PatchingTasks(
     private val patchSetName: String,
     private val taskGroup: String,
     private val readOnly: Boolean,
+    private val validateAts: Provider<Boolean>,
     private val basePatchDir: DirectoryProperty,
     private val filePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
@@ -156,7 +156,7 @@ class PatchingTasks(
             identifier.set(namePart)
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
             ats.jst.from(project.configurations.named(JST_CONFIG))
-            validateAts.set(project.coreExt.validateAts)
+            validateAts.set(this@PatchingTasks.validateAts)
         }
 
         applyBasePatches.configure {

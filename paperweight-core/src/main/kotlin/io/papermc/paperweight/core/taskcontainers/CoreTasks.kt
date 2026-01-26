@@ -254,6 +254,7 @@ class CoreTasks(
                 } else {
                     "upstream server patching"
                 },
+                project.coreExt.validateAts,
                 project.coreExt.gitFilePatches,
                 project.coreExt.filterPatches,
                 null,

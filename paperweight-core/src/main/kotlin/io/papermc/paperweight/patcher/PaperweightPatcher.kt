@@ -28,7 +28,6 @@ import io.papermc.paperweight.core.tasks.GeneratePatches
 import io.papermc.paperweight.core.tasks.GenerateSources
 import io.papermc.paperweight.core.tasks.PrepareForPatchGeneration
 import io.papermc.paperweight.core.tasks.RunNestedBuild
-import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.patcher.extension.PaperweightPatcherExtension
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
@@ -100,6 +99,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 checkoutTask.flatMap { it.outputDir },
                 !isBaseExecution,
                 "patching",
+                patcher.validateAts,
                 patcher.gitFilePatches,
                 patcher.filterPatches,
                 applyUpstream,
@@ -151,7 +151,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
                     ats.jst.from(project.configurations.named(JST_CONFIG))
-                    validateAts.set(project.coreExt.validateAts)
+                    validateAts.set(patcher.validateAts)
                     additionalPatch.set(input.additionalPatch.fileExists())
                 }
             }
@@ -174,7 +174,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
                     ats.jst.from(project.configurations.named(JST_CONFIG))
-                    validateAts.set(project.coreExt.validateAts)
+                    validateAts.set(patcher.validateAts)
                     additionalPatch.set(input.additionalPatch.fileExists())
                     generateSources.set(input.generateSources.orElse(true))
                     generateResources.set(input.generateResources.orElse(true))
