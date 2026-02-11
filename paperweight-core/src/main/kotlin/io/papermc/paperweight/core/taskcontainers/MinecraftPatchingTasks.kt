@@ -202,7 +202,7 @@ class MinecraftPatchingTasks(
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
             ats.jst.from(project.configurations.named(JST_CONFIG))
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_LIBRARIES_CONFIG))
-            validateAts.set(project.coreExt.validateAts)
+            validateATs.set(project.coreExt.validateATs)
         }
 
         applyBasePatches.configure {

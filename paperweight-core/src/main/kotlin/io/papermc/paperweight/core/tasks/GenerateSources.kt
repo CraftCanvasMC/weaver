@@ -64,7 +64,7 @@ abstract class GenerateSources : JavaLauncherTask() {
     abstract val atFile: RegularFileProperty
 
     @get:Input
-    abstract val validateAts: Property<Boolean>
+    abstract val validateATs: Property<Boolean>
 
     @get:InputFile
     @get:Optional
@@ -136,7 +136,7 @@ abstract class GenerateSources : JavaLauncherTask() {
                 atDirPath,
                 atFile.path,
                 temporaryDir.toPath(),
-                validate = validateAts.get(),
+                validate = validateATs.get(),
             )
         }
 

@@ -29,7 +29,6 @@ import io.papermc.paperweight.core.tasks.RunNestedBuild
 import io.papermc.paperweight.core.tasks.patching.ApplySingleFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildSingleFilePatches
 import io.papermc.paperweight.util.*
-import kotlin.io.path.*
 import org.gradle.api.Project
 import org.gradle.api.file.Directory
 import org.gradle.api.provider.Provider
@@ -43,7 +42,7 @@ class UpstreamConfigTasks(
     private val upstreamDir: Provider<Directory>,
     private val readOnly: Boolean,
     private val taskGroup: String,
-    private val validateAts: Provider<Boolean>,
+    private val validateATs: Provider<Boolean>,
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
     private val setupUpstream: TaskProvider<out RunNestedBuild>?,
@@ -125,7 +124,7 @@ class UpstreamConfigTasks(
             cfg.name,
             taskGroup,
             readOnly,
-            validateAts,
+            validateATs,
             cfg.basePatchDir,
             cfg.filePatchDir,
             cfg.rejectsDir,

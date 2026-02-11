@@ -99,7 +99,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 checkoutTask.flatMap { it.outputDir },
                 !isBaseExecution,
                 "patching",
-                patcher.validateAts,
+                patcher.validateATs,
                 patcher.gitFilePatches,
                 patcher.filterPatches,
                 applyUpstream,
@@ -151,7 +151,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
                     ats.jst.from(project.configurations.named(JST_CONFIG))
-                    validateAts.set(patcher.validateAts)
+                    validateATs.set(patcher.validateATs)
                     additionalPatch.set(input.additionalPatch.fileExists())
                 }
             }
@@ -174,7 +174,7 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     workDir.set(workDirFromProp)
                     atFile.set(input.additionalAts.fileExists())
                     ats.jst.from(project.configurations.named(JST_CONFIG))
-                    validateAts.set(patcher.validateAts)
+                    validateATs.set(patcher.validateATs)
                     additionalPatch.set(input.additionalPatch.fileExists())
                     generateSources.set(input.generateSources.orElse(true))
                     generateResources.set(input.generateResources.orElse(true))
