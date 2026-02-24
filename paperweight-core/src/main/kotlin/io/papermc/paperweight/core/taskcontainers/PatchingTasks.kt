@@ -165,7 +165,9 @@ class PatchingTasks(
                 project.subprojects.mapNotNull {
                     if (!it.plugins.hasPlugin(PaperweightCore::class)) {
                         it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             )
             validateAts.set(this@PatchingTasks.validateAts)
@@ -220,7 +222,9 @@ class PatchingTasks(
                 project.subprojects.mapNotNull {
                     if (!it.plugins.hasPlugin(PaperweightCore::class)) {
                         it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
-                    } else null
+                    } else {
+                        null
+                    }
                 }
             )
             ats.jst.from(project.configurations.named(JST_CONFIG))
