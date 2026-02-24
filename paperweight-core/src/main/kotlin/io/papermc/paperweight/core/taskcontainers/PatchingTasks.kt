@@ -22,6 +22,7 @@
 
 package io.papermc.paperweight.core.taskcontainers
 
+import io.papermc.paperweight.core.PaperweightCore
 import io.papermc.paperweight.core.tasks.SetupForkUpstreamSources
 import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
@@ -161,8 +162,10 @@ class PatchingTasks(
             ats.jst.from(project.configurations.named(JST_CONFIG))
             ats.jstClasspath.from(
                 project.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME),
-                project.subprojects.map {
-                    it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
+                project.subprojects.mapNotNull {
+                    if (!it.plugins.hasPlugin(PaperweightCore::class)) {
+                        it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
+                    } else null
                 }
             )
             validateAts.set(this@PatchingTasks.validateAts)
@@ -214,8 +217,10 @@ class PatchingTasks(
 
             ats.jstClasspath.from(
                 project.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME),
-                project.subprojects.map {
-                    it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
+                project.subprojects.mapNotNull {
+                    if (!it.plugins.hasPlugin(PaperweightCore::class)) {
+                        it.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME).map { it.files }
+                    } else null
                 }
             )
             ats.jst.from(project.configurations.named(JST_CONFIG))
