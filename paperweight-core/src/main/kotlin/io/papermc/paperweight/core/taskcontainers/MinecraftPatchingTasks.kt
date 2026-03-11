@@ -212,7 +212,6 @@ class MinecraftPatchingTasks(
             mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny").fileExists())
             ats.set(mergeCollectedAts.flatMap { it.outputFile })
             // pull as many jars as possible
-            classpathJars.from(coreTasks.filterVanillaJar.flatMap { it.outputJar }) // vanilla jar with includes
             classpathJars.from(coreTasks.macheRemapJar.flatMap { it.outputJar }) // remapped mache jar
             classpathJars.from(coreTasks.extractFromBundler.flatMap { it.serverJar }) // pure vanilla jar
             classpathJars.from(coreTasks.extractFromBundler.map { it.serverLibraryJars.asFileTree }) // libraries

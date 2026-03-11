@@ -53,6 +53,7 @@ repositories {
         mavenContent { releasesOnly() }
     }
     gradlePluginPortal()
+    mavenLocal()
 }
 
 dependencies {

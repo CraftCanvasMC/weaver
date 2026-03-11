@@ -113,7 +113,12 @@ abstract class RemapPatches : BaseTask() {
             return
         }
 
-        val patchesToSkip = inputElements.flatMap { it.listDirectoryEntries("*.patch").sorted() }
+        if (inputElements.size == 1) {
+            println("No patches to remap, only 1 patch set found")
+            return
+        }
+
+        val patchesToSkip = inputElements.dropLast(1).flatMap { it.listDirectoryEntries("*.patch").sorted() }
         val patchesToRemap = inputElements.last().listDirectoryEntries("*.patch").sorted()
 
         if (patchesToRemap.isEmpty()) {

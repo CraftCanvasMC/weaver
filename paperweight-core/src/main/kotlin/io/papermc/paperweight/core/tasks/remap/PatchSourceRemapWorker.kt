@@ -26,6 +26,7 @@ import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
 import kotlin.io.path.*
+import kotlin.io.path.copyTo
 import org.cadixdev.at.AccessTransformSet
 import org.cadixdev.lorenz.MappingSet
 import org.cadixdev.mercury.Mercury
@@ -47,35 +48,19 @@ class PatchSourceRemapWorker(
 
         merc.processors.addAll(
             listOf(
-                MercuryRemapper.create(mappings),
+                MercuryRemapper.createSimple(mappings),
                 AccessTransformerRewriter.create(ats)
             )
         )
 
         merc.isGracefulClasspathChecks = true
-        merc.sourceCompatibility = "21"
-        merc.isFlexibleAnonymousClassMemberLookups = true
-        merc.isGracefulJavadocClasspathChecks = true
     }
 
     fun remap() {
-        setup()
-
         println("mapping to $OFFICIAL_NAMESPACE")
 
-        merc.rewrite(inputDir, outputDir)
+        merc.rewrite(inputDir, outputDir.cleanDir())
 
-        cleanup()
-    }
-
-    private fun setup() {
-        outputDir.deleteRecursive()
-        outputDir.createDirectories()
-    }
-
-    private fun cleanup() {
-        inputDir.deleteRecursive()
-        outputDir.moveTo(inputDir)
-        outputDir.deleteRecursive()
+        outputDir.copyRecursivelyTo(inputDir, overwrite = true)
     }
 }
