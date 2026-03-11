@@ -98,6 +98,7 @@ const val OBF_NAMESPACE = "official"
 const val SPIGOT_NAMESPACE = "spigot"
 const val LEGACY_DEOBF_NAMESPACE = "mojang+yarn"
 const val DEOBF_NAMESPACE = "mojang"
+const val OFFICIAL_NAMESPACE = "official"
 const val MAPPINGS_NAMESPACE_MANIFEST_KEY = "paperweight-mappings-namespace"
 
 private const val DATA_PATH = "$PAPER_PATH/data"

@@ -31,6 +31,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
+import io.papermc.paperweight.core.tasks.remap.RemapPatches
 import io.papermc.paperweight.core.util.coreExt
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
@@ -203,6 +204,19 @@ class MinecraftPatchingTasks(
             ats.jst.from(project.configurations.named(JST_CONFIG))
             ats.jstClasspath.from(project.configurations.named(MACHE_MINECRAFT_LIBRARIES_CONFIG))
             validateATs.set(project.coreExt.validateATs)
+        }
+
+        val remapPatches = tasks.register<RemapPatches>("remap${namePart}Patches") {
+            upstreamRepoDir.set(setup.flatMap { it.outputDir })
+            inputPatchDir.convention(basePatchDir.dir("unmapped").fileExists())
+            mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny"))
+            ats.set(mergeCollectedAts.flatMap { it.outputFile })
+            classpathJars.from(coreTasks.macheRemapJar, coreTasks.extractFromBundler)
+            decompJar.set(coreTasks.macheDecompileJar.flatMap { it.outputJar })
+            devImports.set(config.devImports.fileExists())
+            mcLibrarySourcesDir.set(coreTasks.downloadMcLibrariesSources.flatMap { it.outputDir })
+            runtimeClasspath.from(project.configurations["runtimeClasspath"])
+            outputPatchDir.convention(basePatchDir.dir("remapped"))
         }
 
         applyBasePatches.configure {

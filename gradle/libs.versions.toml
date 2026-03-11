@@ -23,6 +23,7 @@ cadix-lorenz-asm = { module = "org.cadixdev:lorenz-asm", version.ref = "lorenz" 
 cadix-lorenz-proguard = { module = "org.cadixdev:lorenz-io-proguard", version.ref = "lorenz" }
 cadix-atlas = "org.cadixdev:atlas:0.2.1"
 cadix-at = "org.cadixdev:at:0.1.0-rc1"
+cadix-mercury = "org.cadixdev:mercury:0.1.0"
 
 hypo-model = { module = "dev.denwav.hypo:hypo-model", version.ref = "hypo" }
 hypo-core = { module = "dev.denwav.hypo:hypo-core", version.ref = "hypo" }
@@ -59,6 +60,6 @@ zCheckstyle = { module = "com.puppycrawl.tools:checkstyle", version.ref = "check
 
 [bundles]
 asm = ["asm-core", "asm-tree"]
-cadix = ["cadix-lorenz-core", "cadix-lorenz-asm", "cadix-lorenz-proguard", "cadix-atlas", "cadix-at"]
+cadix = ["cadix-lorenz-core", "cadix-lorenz-asm", "cadix-lorenz-proguard", "cadix-atlas", "cadix-at", "cadix-mercury"]
 hypo = ["hypo-model", "hypo-core", "hypo-hydrate", "hypo-asm-core", "hypo-asm-hydrate", "hypo-mappings"]
 kotson = ["kotson", "gson"]
