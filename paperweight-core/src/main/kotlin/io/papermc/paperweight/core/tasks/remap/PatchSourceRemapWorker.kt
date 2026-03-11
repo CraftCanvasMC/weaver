@@ -53,6 +53,9 @@ class PatchSourceRemapWorker(
         )
 
         merc.isGracefulClasspathChecks = true
+        merc.sourceCompatibility = "21"
+        merc.isFlexibleAnonymousClassMemberLookups = true
+        merc.isGracefulJavadocClasspathChecks = true
     }
 
     fun remap() {

@@ -127,11 +127,11 @@ abstract class RemapPatches : BaseTask() {
 
         // This should pull in any libraries needed for type bindings
         val configFiles = runtimeClasspath.files.filter {
-            it.name.endsWith(".jar")
+            it.toPath().isLibraryJar
         }.map { it.toPath() }
 
         val classpathFiles = classpathJars.files.filter {
-            it.name.endsWith(".jar")
+            it.toPath().isLibraryJar
         }.map { it.toPath() } + configFiles
 
         // Remap output directory, after each output this directory will be re-named to the input directory below for
