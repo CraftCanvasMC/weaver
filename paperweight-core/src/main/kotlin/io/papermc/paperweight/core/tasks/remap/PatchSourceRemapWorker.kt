@@ -25,8 +25,6 @@ package io.papermc.paperweight.core.tasks.remap
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
-import kotlin.io.path.*
-import kotlin.io.path.copyTo
 import org.cadixdev.at.AccessTransformSet
 import org.cadixdev.lorenz.MappingSet
 import org.cadixdev.mercury.Mercury

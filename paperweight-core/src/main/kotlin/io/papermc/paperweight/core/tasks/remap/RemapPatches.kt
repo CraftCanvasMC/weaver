@@ -108,18 +108,14 @@ abstract class RemapPatches : BaseTask() {
 
         // Check patches
         val inputElements = inputPatchDir.path.listDirectoryEntries().sorted()
-        if (inputElements.any { it.isRegularFile() }) {
-            println("Remap patch input directory must only contain directories or patch files, not both")
-            return
-        }
 
         if (inputElements.size == 1) {
             println("No patches to remap, only 1 patch set found")
             return
         }
 
-        val patchesToSkip = inputElements.dropLast(1).flatMap { it.listDirectoryEntries("*.patch").sorted() }
-        val patchesToRemap = inputElements.last().listDirectoryEntries("*.patch").sorted()
+        val patchesToSkip = inputElements.dropLast(1).flatMap { it.filesMatchingRecursive("*.patch").sorted() }
+        val patchesToRemap = inputElements.last().filesMatchingRecursive("*.patch").sorted()
 
         if (patchesToRemap.isEmpty()) {
             println("No input patches to remap found")

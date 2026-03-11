@@ -31,9 +31,8 @@ class PatchApplier(
     private val remappedBranch: String,
     private val unmappedBranch: String,
     private val ignoreGitIgnore: Boolean,
-    targetDir: Path
+    targetDir: Path,
 ) {
-
     private val git = Git(targetDir)
 
     private var commitMessage: String? = null
@@ -43,21 +42,13 @@ class PatchApplier(
     private val remappedBaseTag: String = "remapped-base"
 
     fun checkoutRemapped() {
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         println("Switching to $remappedBranch without losing changes")
         git("symbolic-ref", "HEAD", "refs/heads/$remappedBranch").executeSilently()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
     }
 
     fun checkoutOld() {
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         println("Resetting back to $unmappedBranch branch")
         git("checkout", unmappedBranch).executeSilently()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
     }
 
     fun commitPlain(message: String) {
@@ -66,24 +57,14 @@ class PatchApplier(
     }
 
     fun createBranches() {
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         git("checkout", "-b", unmappedBranch).executeSilently()
         git("branch", remappedBranch).executeSilently()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
     }
 
     fun commitInitialRemappedSource() {
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         git(*Git.add(ignoreGitIgnore, ".")).executeSilently()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         git("commit", "-m", "Initial Remapped Source", "--author=Initial <auto@mated.null>").executeSilently()
         git("tag", remappedBaseTag).executeSilently()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
     }
 
     fun recordCommit() {
@@ -110,11 +91,7 @@ class PatchApplier(
     }
 
     fun applyPatch(patch: Path) {
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         val result = git("am", "--3way", "--ignore-whitespace", patch.absolutePathString()).runOut()
-        git("branch").executeSilently()
-        git("remote", "-v").executeSilently()
         if (result != 0) {
             throw RuntimeException("Patch failed to apply: $patch")
         }
