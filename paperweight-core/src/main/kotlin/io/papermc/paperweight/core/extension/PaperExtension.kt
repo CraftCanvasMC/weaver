@@ -35,6 +35,7 @@ abstract class PaperExtension @Inject constructor(objects: ObjectFactory, projec
     val paperServerDir: DirectoryProperty = objects.dirFrom(rootDirectory, "paper-server")
     val serverPatchesDir: DirectoryProperty = objects.dirFrom(paperServerDir, "patches")
     val rejectsDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "rejected")
+    val unmappedPatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "unmapped")
     val basePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "base")
     val sourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "sources")
     val resourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "resources")

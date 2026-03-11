@@ -52,6 +52,7 @@ class MinecraftPatchingTasks(
     paper: Boolean,
     private val coreTasks: CoreTasks,
     private val readOnly: Boolean,
+    private val unmappedPatchDir: DirectoryProperty,
     private val basePatchDir: DirectoryProperty,
     private val sourcePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
@@ -206,9 +207,11 @@ class MinecraftPatchingTasks(
             validateATs.set(project.coreExt.validateATs)
         }
 
-        val remapPatches = tasks.register<RemapPatches>("remap${namePart}Patches") {
+        tasks.register<RemapPatches>("remap${namePart}Patches") {
+            description = "NOT FOR TYPICAL USE: Attempt to remap patches to specified mappings."
+
             upstreamRepoDir.set(setup.flatMap { it.outputDir })
-            inputPatchDir.convention(basePatchDir.dir("unmapped").fileExists())
+            inputPatchDir.convention(unmappedPatchDir.fileExists())
             mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny").fileExists())
             ats.set(mergeCollectedAts.flatMap { it.outputFile })
             // pull as many jars as possible
@@ -218,7 +221,7 @@ class MinecraftPatchingTasks(
             runtimeClasspath.from(
                 project.configurations["runtimeClasspath"],
             )
-            outputPatchDir.convention(basePatchDir.dir("remapped"))
+            outputPatchDir.convention(unmappedPatchDir.dir("remapped"))
         }
 
         applyBasePatches.configure {

@@ -49,6 +49,7 @@ abstract class ForkConfig @Inject constructor(
     val serverDirectory: DirectoryProperty = objects.dirFrom(rootDirectory, providers.provider { "$name-server" })
     val serverPatchesDir: DirectoryProperty = objects.dirFrom(serverDirectory, "minecraft-patches")
     val rejectsDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "rejected")
+    val unmappedPatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "unmapped")
     val basePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "base")
     val sourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "sources")
     val resourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "resources")
