@@ -209,13 +209,15 @@ class MinecraftPatchingTasks(
         val remapPatches = tasks.register<RemapPatches>("remap${namePart}Patches") {
             upstreamRepoDir.set(setup.flatMap { it.outputDir })
             inputPatchDir.convention(basePatchDir.dir("unmapped").fileExists())
-            mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny"))
+            mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny").fileExists())
             ats.set(mergeCollectedAts.flatMap { it.outputFile })
-            classpathJars.from(coreTasks.macheRemapJar, coreTasks.extractFromBundler)
-            decompJar.set(coreTasks.macheDecompileJar.flatMap { it.outputJar })
-            devImports.set(config.devImports.fileExists())
-            mcLibrarySourcesDir.set(coreTasks.downloadMcLibrariesSources.flatMap { it.outputDir })
-            runtimeClasspath.from(project.configurations["runtimeClasspath"])
+            // pull as many jars as possible
+            classpathJars.from(coreTasks.spigotRemapJar.flatMap { it.outputJar })
+            classpathJars.from(coreTasks.macheRemapJar.flatMap { it.outputJar })
+            classpathJars.from(coreTasks.extractFromBundler.flatMap { it.serverJar })
+            runtimeClasspath.from(
+                project.configurations["runtimeClasspath"],
+            )
             outputPatchDir.convention(basePatchDir.dir("remapped"))
         }
 

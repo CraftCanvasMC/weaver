@@ -43,7 +43,6 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
 import org.gradle.kotlin.dsl.*
-import org.gradle.kotlin.dsl.get
 
 abstract class RemapPatches : BaseTask() {
 
@@ -64,15 +63,6 @@ abstract class RemapPatches : BaseTask() {
 
     @get:InputDirectory
     abstract val upstreamRepoDir: DirectoryProperty
-
-    @get:InputFile
-    abstract val decompJar: RegularFileProperty
-
-    @get:InputDirectory
-    abstract val mcLibrarySourcesDir: DirectoryProperty
-
-    @get:InputFile
-    abstract val devImports: RegularFileProperty
 
     @get:Input
     abstract val ignoreGitIgnore: Property<Boolean>
@@ -136,8 +126,13 @@ abstract class RemapPatches : BaseTask() {
         val mappings = MappingFormats.TINY.read(mappingsFile.path, DEOBF_NAMESPACE, OFFICIAL_NAMESPACE)
 
         // This should pull in any libraries needed for type bindings
-        val configFiles = runtimeClasspath.files.map { it.toPath() }
-        val classpathFiles = classpathJars.map { it.toPath() } + configFiles
+        val configFiles = runtimeClasspath.files.filter {
+            it.name.endsWith(".jar")
+        }.map { it.toPath() }
+
+        val classpathFiles = classpathJars.files.filter {
+            it.name.endsWith(".jar")
+        }.map { it.toPath() } + configFiles
 
         // Remap output directory, after each output this directory will be re-named to the input directory below for
         // the next remap operation
