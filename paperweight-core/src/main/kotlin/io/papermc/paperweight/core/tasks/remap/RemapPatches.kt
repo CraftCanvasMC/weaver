@@ -58,9 +58,6 @@ abstract class RemapPatches : BaseTask() {
     @get:Classpath
     abstract val classpathJars: ConfigurableFileCollection
 
-    @get:Classpath
-    abstract val runtimeClasspath: ConfigurableFileCollection
-
     @get:InputDirectory
     abstract val upstreamRepoDir: DirectoryProperty
 
@@ -107,14 +104,18 @@ abstract class RemapPatches : BaseTask() {
         }
 
         // Check patches
-        val inputElements = inputPatchDir.get().path.listDirectoryEntries().sorted()
+        val inputElements = inputPatchDir.path.listDirectoryEntries().sorted()
+        if (inputElements.any { it.isRegularFile() }) {
+            println("Remap patch input directory must only contain directories or patch files, not both")
+            return
+        }
 
         if (inputElements.size == 1) {
             println("No patches to remap, only 1 patch set found")
             return
         }
 
-        val patchesToSkip = inputElements.dropLast(1).flatMap { it.listDirectoryEntries("*.patch") }.sorted()
+        val patchesToSkip = inputElements.dropLast(1).flatMap { it.listDirectoryEntries("*.patch").sorted() }
         // val filePatchesToSkip = inputElements.dropLast(1).flatMap { it.filesMatchingRecursive("*.patch") }.sorted()
         val patchesToRemap = inputElements.last().listDirectoryEntries("*.patch").sorted()
         // val filePatchesToRemap = inputElements.last().filesMatchingRecursive("*.patch").sorted()
@@ -129,13 +130,9 @@ abstract class RemapPatches : BaseTask() {
         val mappings = MappingFormats.TINY.read(mappingsFile.path, DEOBF_NAMESPACE, OFFICIAL_NAMESPACE)
 
         // This should pull in any libraries needed for type bindings
-        val configFiles = runtimeClasspath.files.filter {
-            it.toPath().isLibraryJar
-        }.map { it.toPath() }
-
         val classpathFiles = classpathJars.files.filter {
             it.toPath().isLibraryJar
-        }.map { it.toPath() } + configFiles
+        }.map { it.toPath() }
 
         // Remap output directory, after each output this directory will be re-named to the input directory below for
         // the next remap operation

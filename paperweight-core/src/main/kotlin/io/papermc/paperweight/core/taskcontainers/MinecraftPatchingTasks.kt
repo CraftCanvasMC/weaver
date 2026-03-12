@@ -42,6 +42,7 @@ import org.gradle.api.Task
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
+import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.*
@@ -53,6 +54,7 @@ class MinecraftPatchingTasks(
     private val coreTasks: CoreTasks,
     private val readOnly: Boolean,
     private val unmappedPatchDir: DirectoryProperty,
+    private val remappedPatchDir: DirectoryProperty,
     private val basePatchDir: DirectoryProperty,
     private val sourcePatchDir: DirectoryProperty,
     private val rejectsDir: DirectoryProperty,
@@ -211,17 +213,17 @@ class MinecraftPatchingTasks(
             description = "NOT FOR TYPICAL USE: Attempt to remap patches to specified mappings."
 
             upstreamRepoDir.set(setup.flatMap { it.outputDir })
-            inputPatchDir.convention(unmappedPatchDir.fileExists())
-            mappingsFile.convention(config.buildDataDir.file("parchment-unobf.tiny").fileExists())
+            inputPatchDir.set(unmappedPatchDir.fileExists())
+            mappingsFile.set(config.remapMappings.fileExists())
             ats.set(mergeCollectedAts.flatMap { it.outputFile })
             // pull as many jars as possible
             classpathJars.from(coreTasks.macheRemapJar.flatMap { it.outputJar }) // remapped mache jar
             classpathJars.from(coreTasks.extractFromBundler.flatMap { it.serverJar }) // pure vanilla jar
             classpathJars.from(coreTasks.extractFromBundler.map { it.serverLibraryJars.asFileTree }) // libraries
-            runtimeClasspath.from(
-                project.configurations["runtimeClasspath"],
+            classpathJars.from(
+                project.configurations.named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
             )
-            outputPatchDir.convention(unmappedPatchDir.dir("remapped"))
+            outputPatchDir.set(remappedPatchDir)
         }
 
         applyBasePatches.configure {

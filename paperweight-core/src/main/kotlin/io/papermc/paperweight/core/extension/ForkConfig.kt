@@ -50,6 +50,7 @@ abstract class ForkConfig @Inject constructor(
     val serverPatchesDir: DirectoryProperty = objects.dirFrom(serverDirectory, "minecraft-patches")
     val rejectsDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "rejected")
     val unmappedPatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "unmapped")
+    val remappedPatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "remapped")
     val basePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "base")
     val sourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "sources")
     val resourcePatchDir: DirectoryProperty = objects.dirFrom(serverPatchesDir, "resources")
@@ -59,6 +60,7 @@ abstract class ForkConfig @Inject constructor(
     val devImports: RegularFileProperty = objects.fileFrom(buildDataDir, "dev-imports.txt")
     val additionalAts: RegularFileProperty = objects.fileFrom(buildDataDir, providers.provider { "$name.at" })
     val reobfMappingsPatch: RegularFileProperty = objects.fileFrom(buildDataDir, "reobf-mappings-patch.tiny")
+    val remapMappings: RegularFileProperty = objects.fileFrom(buildDataDir, "remap-mappings.tiny")
 
     val forks: Property<ForkConfig> = objects.property()
     val forksPaper: Property<Boolean> = objects.property<Boolean>().convention(forks.map { false }.orElse(true))
