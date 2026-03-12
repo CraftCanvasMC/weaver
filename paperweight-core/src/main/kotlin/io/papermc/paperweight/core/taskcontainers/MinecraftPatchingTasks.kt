@@ -210,7 +210,8 @@ class MinecraftPatchingTasks(
         }
 
         tasks.register<RemapPatches>("remap${namePart}Patches") {
-            description = "NOT FOR TYPICAL USE: Attempt to remap patches to specified mappings."
+            group = if (readOnly) "upstream remapping" else "remapping"
+            description = "NOT FOR TYPICAL USE: Attempt to remap $configName unmapped patches to specified mappings."
 
             upstreamRepoDir.set(setup.flatMap { it.outputDir })
             inputPatchDir.set(unmappedPatchDir.fileExists())
