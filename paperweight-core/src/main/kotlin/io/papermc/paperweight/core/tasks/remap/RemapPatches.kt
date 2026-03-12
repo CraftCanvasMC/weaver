@@ -114,8 +114,8 @@ abstract class RemapPatches : BaseTask() {
             return
         }
 
-        val patchesToSkip = inputElements.dropLast(1).flatMap { it.filesMatchingRecursive("*.patch").sorted() }
-        val patchesToRemap = inputElements.last().filesMatchingRecursive("*.patch").sorted()
+        val patchesToSkip = inputElements.dropLast(1).flatMap { it.filesMatchingRecursive("*.patch") + it.listDirectoryEntries("*.patch") }.sorted()
+        val patchesToRemap = inputElements.last().let { it.filesMatchingRecursive("*.patch") + it.listDirectoryEntries("*.patch") }.sorted()
 
         if (patchesToRemap.isEmpty()) {
             println("No input patches to remap found")
