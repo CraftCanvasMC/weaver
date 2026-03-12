@@ -22,16 +22,22 @@
 
 package io.papermc.paperweight.core.tasks.remap
 
+import io.codechicken.diffpatch.cli.PatchOperation
+import io.codechicken.diffpatch.match.FuzzyLineMatcher
+import io.codechicken.diffpatch.util.Input as DiffInput
+import io.codechicken.diffpatch.util.Output as DiffOutput
+import io.codechicken.diffpatch.util.PatchMode
 import io.papermc.paperweight.PaperweightException
 import io.papermc.paperweight.util.*
 import java.nio.file.Path
 import kotlin.io.path.*
+import org.gradle.internal.cc.base.logger
 
 class PatchApplier(
     private val remappedBranch: String,
     private val unmappedBranch: String,
     private val ignoreGitIgnore: Boolean,
-    targetDir: Path,
+    private val targetDir: Path,
 ) {
     private val git = Git(targetDir)
 
@@ -95,6 +101,32 @@ class PatchApplier(
         if (result != 0) {
             throw RuntimeException("Patch failed to apply: $patch")
         }
+    }
+
+    fun applyFilePatch(patches: List<Path>) {
+        val patchesDir = targetDir.resolve("../patches").cleanDir()
+        patches.forEach { patch -> patch.copyRecursivelyTo(patchesDir) }
+        val builder = PatchOperation.builder()
+            .logTo(logger::lifecycle)
+            .baseInput(DiffInput.MultiInput.folder(targetDir))
+            .patchesInput(DiffInput.MultiInput.folder(patchesDir))
+            .patchedOutput(DiffOutput.MultiOutput.folder(targetDir))
+            .level(io.codechicken.diffpatch.util.LogLevel.INFO)
+            .mode(PatchMode.OFFSET)
+            .minFuzz(FuzzyLineMatcher.DEFAULT_MIN_MATCH_SCORE)
+            .summary(false)
+            .lineEnding("\n")
+            .ignorePrefix(".git")
+
+            val result = builder.build().operate()
+
+            commitPlain("File Patches")
+
+            if (result.exit != 0) {
+                val total = (result.summary?.failedMatches ?: 0) + (result.summary?.exactMatches ?: 0) +
+                    (result.summary?.accessMatches ?: 0) + (result.summary?.offsetMatches ?: 0) + (result.summary?.fuzzyMatches ?: 0)
+                throw Exception("Failed to apply ${result.summary?.failedMatches}/$total hunks")
+            }
     }
 
     fun generatePatches(target: Path) {
