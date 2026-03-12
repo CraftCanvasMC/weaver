@@ -36,7 +36,8 @@ class PatchSourceRemapWorker(
     ats: AccessTransformSet,
     classpath: Collection<Path>,
     private val inputDir: Path,
-    private val outputDir: Path
+    private val outputDir: Path,
+    simpleRemap: Boolean,
 ) {
 
     private val merc: Mercury = Mercury()
@@ -44,12 +45,13 @@ class PatchSourceRemapWorker(
     init {
         merc.classPath.addAll(classpath)
 
-        merc.processors.addAll(
-            listOf(
-                MercuryRemapper.createSimple(mappings),
-                AccessTransformerRewriter.create(ats)
-            )
-        )
+        merc.processors.add(AccessTransformerRewriter.create(ats))
+
+        if (simpleRemap) {
+            merc.processors.add(MercuryRemapper.createSimple(mappings))
+        } else {
+            merc.processors.add(MercuryRemapper.create(mappings))
+        }
 
         merc.isGracefulClasspathChecks = true
     }

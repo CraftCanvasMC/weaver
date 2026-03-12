@@ -81,11 +81,19 @@ abstract class RemapPatches : BaseTask() {
     )
     abstract val limitPatches: Property<String>
 
+    @get:Internal
+    @get:Option(
+        option = "simple-remap",
+        description = "Whether to use simple remap. Needed if your mappings file doesn't touch class/package names"
+    )
+    abstract val simpleRemap: Property<Boolean>
+
     @get:Inject
     abstract val providers: ProviderFactory
 
     override fun init() {
         continueRemapping.convention(false)
+        simpleRemap.convention(true)
         ignoreGitIgnore.convention(Git.ignoreProperty(providers)).finalizeValueOnRead()
     }
 
@@ -116,11 +124,9 @@ abstract class RemapPatches : BaseTask() {
         }
 
         val patchesToSkip = inputElements.dropLast(1).flatMap { it.listDirectoryEntries("*.patch").sorted() }
-        // val filePatchesToSkip = inputElements.dropLast(1).flatMap { it.filesMatchingRecursive("*.patch") }.sorted()
         val patchesToRemap = inputElements.last().listDirectoryEntries("*.patch").sorted()
-        // val filePatchesToRemap = inputElements.last().filesMatchingRecursive("*.patch").sorted()
 
-        if (patchesToRemap.isEmpty() /*&& filePatchesToRemap.isEmpty()*/) {
+        if (patchesToRemap.isEmpty()) {
             println("No input patches to remap found")
             return
         }
@@ -149,7 +155,8 @@ abstract class RemapPatches : BaseTask() {
             AccessTransformFormats.FML.read(ats.path),
             listOf(*classpathFiles.toTypedArray()),
             tempInputDir,
-            tempOutputDir
+            tempOutputDir,
+            simpleRemap.get()
         ).let { remapper ->
             val patchApplier = PatchApplier("remapped", "old", ignoreGitIgnore.get(), tempInputDir)
 
@@ -185,35 +192,6 @@ abstract class RemapPatches : BaseTask() {
                 remapper.remap() // Remap to new mappings
                 patchApplier.commitInitialRemappedSource() // Initial commit of pre-remap sources mapped to new mappings
                 patchApplier.checkoutOld() // Normal checkout back to pre-remap mappings branch
-                /*
-            } else if (filePatchesToSkip.isNotEmpty() && (meta == null || meta.stage == RemapStage.PRE_REMAP)) {
-                var foundResume = false
-                val patchesToApply = filePatchesToSkip.dropWhile { patch ->
-                    when {
-                        meta == null -> false
-                        meta.patchSet == patch.parent.name && meta.patchName == patch.name -> {
-                            foundResume = true
-                            true
-                        }
-
-                        else -> !foundResume
-                    }
-                }
-                println("Applying ${patchesToApply.size} file patches before remapping")
-                for (patch in patchesToApply) {
-                    metaFile.deleteForcefully()
-                    metaFile.bufferedWriter().use { writer ->
-                        gson.toJson(RemapMeta(RemapStage.PRE_REMAP, patch.parent.name, patch.name), writer)
-                    }
-                }
-                patchApplier.applyFilePatch(patchesToApply)
-
-                patchApplier.checkoutRemapped() // Switch to remapped branch without checking out files
-
-                remapper.remap() // Remap to new mappings
-                patchApplier.commitInitialRemappedSource() // Initial commit of pre-remap sources mapped to new mappings
-                patchApplier.checkoutOld() // Normal checkout back to pre-remap mappings branch
-                 */
             } else if (patchApplier.isUnfinishedPatch()) {
                 println("===========================")
                 println("Finishing current patch")
