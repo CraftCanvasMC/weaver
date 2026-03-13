@@ -42,7 +42,6 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
-import org.gradle.kotlin.dsl.*
 
 abstract class RemapPatches : BaseTask() {
 
@@ -87,6 +86,9 @@ abstract class RemapPatches : BaseTask() {
         description = "Whether to use simple remap. Needed if your mappings file doesn't touch class/package names"
     )
     abstract val simpleRemap: Property<Boolean>
+
+    @get:Input
+    abstract val javaRelease: Property<Int>
 
     @get:Inject
     abstract val providers: ProviderFactory
@@ -153,10 +155,11 @@ abstract class RemapPatches : BaseTask() {
         PatchSourceRemapWorker(
             mappings,
             AccessTransformFormats.FML.read(ats.path),
-            listOf(*classpathFiles.toTypedArray()),
+            classpathFiles,
             tempInputDir,
             tempOutputDir,
-            simpleRemap.get()
+            simpleRemap.get(),
+            javaRelease.get(),
         ).let { remapper ->
             val patchApplier = PatchApplier("remapped", "old", ignoreGitIgnore.get(), tempInputDir)
 

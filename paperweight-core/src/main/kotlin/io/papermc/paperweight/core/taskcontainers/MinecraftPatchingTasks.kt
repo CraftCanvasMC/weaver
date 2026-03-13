@@ -37,6 +37,7 @@ import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
 import java.nio.file.Path
+import org.gradle.api.JavaVersion
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.file.Directory
@@ -45,6 +46,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
+import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.*
 
 class MinecraftPatchingTasks(
@@ -224,6 +226,12 @@ class MinecraftPatchingTasks(
             classpathJars.from(
                 project.configurations.named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
             )
+            // always pick the highest release
+            javaRelease.set(
+                tasks.withType(JavaCompile::class.java)
+                    .map { it.options.release.orElse(JavaVersion.current().majorVersion.toInt()) }
+                    .reduce { a, b -> a.zip(b) { x, y -> maxOf(x, y) } }
+            )
             outputPatchDir.set(remappedPatchDir)
         }
 
@@ -304,7 +312,7 @@ class MinecraftPatchingTasks(
 
             inputDir.set(outputSrc)
             patchDir.set(featurePatchDir)
-            baseRef.set("file")
+            baseRef.convention("file")
             filterPatches.set(this@MinecraftPatchingTasks.filterPatches)
         }
 

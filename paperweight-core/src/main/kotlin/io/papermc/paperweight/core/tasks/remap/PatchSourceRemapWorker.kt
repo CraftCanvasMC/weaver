@@ -38,6 +38,7 @@ class PatchSourceRemapWorker(
     private val inputDir: Path,
     private val outputDir: Path,
     simpleRemap: Boolean,
+    javaRelease: Int,
 ) {
 
     private val merc: Mercury = Mercury()
@@ -54,6 +55,7 @@ class PatchSourceRemapWorker(
         }
 
         merc.isGracefulClasspathChecks = true
+        merc.setSourceCompatibilityFromRelease(javaRelease)
     }
 
     fun remap() {
