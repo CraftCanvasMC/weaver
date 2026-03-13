@@ -57,6 +57,9 @@ abstract class RemapPatches : BaseTask() {
     @get:Classpath
     abstract val classpathJars: ConfigurableFileCollection
 
+    @get:Classpath
+    abstract val sourceClasspath: ConfigurableFileCollection
+
     @get:InputDirectory
     abstract val upstreamRepoDir: DirectoryProperty
 
@@ -142,6 +145,8 @@ abstract class RemapPatches : BaseTask() {
             it.toPath().isLibraryJar
         }.map { it.toPath() }
 
+        val sourceClasspathFiles = sourceClasspath.files.map { it.toPath() }
+
         // Remap output directory, after each output this directory will be re-named to the input directory below for
         // the next remap operation
         println("setting up repo")
@@ -156,6 +161,7 @@ abstract class RemapPatches : BaseTask() {
             mappings,
             AccessTransformFormats.FML.read(ats.path),
             classpathFiles,
+            sourceClasspathFiles,
             tempInputDir,
             tempOutputDir,
             simpleRemap.get(),

@@ -226,6 +226,8 @@ class MinecraftPatchingTasks(
             classpathJars.from(
                 project.configurations.named(JavaPlugin.RUNTIME_CLASSPATH_CONFIGURATION_NAME),
             )
+            // provide mercury with the mache decompiled sources
+            sourceClasspath.from(coreTasks.extractMacheSources.flatMap { it.outputDir })
             // always pick the highest release
             javaRelease.set(
                 tasks.withType(JavaCompile::class.java)
