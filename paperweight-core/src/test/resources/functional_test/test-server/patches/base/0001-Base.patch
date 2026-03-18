@@ -5,15 +5,15 @@ Subject: [PATCH] Base
 
 
 diff --git a/net/minecraft/CrashReport.java b/net/minecraft/CrashReport.java
-index 7efc2d1a901ea5708045fc9fddca09caf467762f..659b933e4c077cb6b36c23e9844e314ecb2f1110 100644
+index 01c9784075b31876a0a91e81df0ae50a42d246e3..25837ee13ac83e64c3bea23f5abf4e6dd1e39829 100644
 --- a/net/minecraft/CrashReport.java
 +++ b/net/minecraft/CrashReport.java
 @@ -29,7 +29,7 @@ public class CrashReport {
-     private Path saveFile;
+     private @Nullable Path saveFile;
      private boolean trackingStackTrace = true;
      public StackTraceElement[] uncategorizedStackTrace = new StackTraceElement[0];
 -    public SystemReport systemReport = new SystemReport();
 +    private SystemReport systemReport = new SystemReport(); // woooo at base test???? who knew
  
-     public CrashReport(String title, Throwable exception) {
+     public CrashReport(final String title, final Throwable t) {
          this.title = title;
