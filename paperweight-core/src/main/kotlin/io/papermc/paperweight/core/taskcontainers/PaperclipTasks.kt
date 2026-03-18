@@ -23,7 +23,6 @@
 package io.papermc.paperweight.core.taskcontainers
 
 import com.google.gson.JsonObject
-import io.papermc.paperweight.core.util.reobfRequiresDebug
 import io.papermc.paperweight.tasks.*
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
@@ -46,28 +45,16 @@ class PaperclipTasks(
     private val bundlerVersionJson: Provider<RegularFile>,
     private val serverLibrariesList: Provider<RegularFile>,
     private val vanillaJar: Provider<RegularFile>,
-    mojangJar: Provider<RegularFile>,
-    reobfJar: Provider<RegularFile>,
+    serverJar: Provider<RegularFile>,
     private val mcVersion: Provider<String>,
     private val forkName: Provider<String>
 ) {
     init {
-        val (createBundlerJar, createPaperclipJar, createPublisherJar) = project.createTasks("mojmap")
-        val (createReobfBundlerJar, createReobfPaperclipJar, createReobfPublisherJar) = project.createTasks("reobf")
+        val (createBundlerJar, createPaperclipJar, createPublisherJar) = project.createTasks()
 
-        createBundlerJar.serverJar(mojangJar)
-        createReobfBundlerJar.serverJar(reobfJar) {
-            reobfRequiresDebug()
-        }
-
+        createBundlerJar.serverJar(serverJar)
         createPaperclipJar.bundlerJar(createBundlerJar)
-        createReobfPaperclipJar.bundlerJar(createReobfBundlerJar) {
-            reobfRequiresDebug()
-        }
-
-        createReobfPublisherJar {
-            reobfRequiresDebug()
-        }
+        createPublisherJar.paperclipJar(createPaperclipJar)
     }
 
     private fun Project.createTasks(
@@ -98,7 +85,6 @@ class PaperclipTasks(
             group = "bundling"
             description = "Build a ready-to-publish paperclip jar"
 
-            inputZip.set(paperclipJarTask.flatMap { it.outputZip })
             outputZip.convention(layout.buildDirectory.file(jarName("publisher", classifier).map { "libs/$it" }))
         }
         return Triple(bundlerJarTask, paperclipJarTask, publisherJarTask)
@@ -115,7 +101,7 @@ class PaperclipTasks(
                 ).joinToString("-") + ".jar"
             }
         } else {
-            val buildNum = project.providers.environmentVariable("BUILD_NUMBER").orElse("local")
+            val buildNum = providers.environmentVariable("BUILD_NUMBER").orElse("local")
             forkName.zip(buildNum) { name, build ->
                 "$name-build.$build.jar"
             }
@@ -168,6 +154,15 @@ class PaperclipTasks(
         originalBundlerJar.set(vanillaJar)
         bundlerJar.set(createBundlerJar.flatMap { it.outputZip })
         mcVersion.set(this@PaperclipTasks.mcVersion)
+
+        op.execute(this)
+    }
+
+    private fun TaskProvider<CreatePublisherJar>.paperclipJar(
+        createPaperclipJar: TaskProvider<CreatePaperclipJar>,
+        op: Action<CreatePublisherJar> = Action {},
+    ) = configure {
+        inputZip.set(createPaperclipJar.flatMap { it.outputZip })
 
         op.execute(this)
     }
