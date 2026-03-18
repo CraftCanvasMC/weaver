@@ -203,7 +203,7 @@ abstract class PaperweightCore : Plugin<Project> {
                 serverJar,
             )
 
-            if (coreExt.updatingMinecraft.oldPaperCommit.isPresent) {
+            if (coreExt.updatingMinecraft.oldPaperCommit.isPresent || target.providers.gradleProperty("updatingMinecraft").orNull == "true") {
                 tasks.paperPatchingTasks.applyBasePatches.configure {
                     additionalRemote = layout.cache.resolve(
                         "$OLD_PAPER_PATH/${coreExt.updatingMinecraft.oldPaperCommit.get()}/paper-server/src/minecraft/java"
