@@ -46,23 +46,20 @@ class PaperclipTasks(
     private val serverLibrariesList: Provider<RegularFile>,
     private val vanillaJar: Provider<RegularFile>,
     serverJar: Provider<RegularFile>,
-    private val mcVersion: Provider<String>,
-    private val forkName: Provider<String>
+    private val mcVersion: Provider<String>
 ) {
     init {
-        val (createBundlerJar, createPaperclipJar, createPublisherJar) = project.createTasks()
+        val (createBundlerJar, createPaperclipJar) = project.createTasks()
 
         createBundlerJar.serverJar(serverJar)
         createPaperclipJar.bundlerJar(createBundlerJar)
-        createPublisherJar.paperclipJar(createPaperclipJar)
     }
 
     private fun Project.createTasks(
         classifier: String = "",
-    ): Triple<TaskProvider<CreateBundlerJar>, TaskProvider<CreatePaperclipJar>, TaskProvider<CreatePublisherJar>> {
+    ): Pair<TaskProvider<CreateBundlerJar>, TaskProvider<CreatePaperclipJar>> {
         val bundlerTaskName = "create${classifier.capitalized()}BundlerJar"
         val paperclipTaskName = "create${classifier.capitalized()}PaperclipJar"
-        val publisherTaskName = "create${classifier.capitalized()}PublisherJar"
 
         val bundlerJarTask = tasks.register<CreateBundlerJar>(bundlerTaskName) {
             group = "bundling"
@@ -81,30 +78,17 @@ class PaperclipTasks(
             libraryChangesJson.set(bundlerJarTask.flatMap { it.libraryChangesJson })
             outputZip.set(layout.buildDirectory.file(jarName("paperclip", classifier).map { "libs/$it" }))
         }
-        val publisherJarTask = tasks.register<CreatePublisherJar>(publisherTaskName) {
-            group = "bundling"
-            description = "Build a ready-to-publish paperclip jar"
-
-            outputZip.convention(layout.buildDirectory.file(jarName("publisher", classifier).map { "libs/$it" }))
-        }
-        return Triple(bundlerJarTask, paperclipJarTask, publisherJarTask)
+        return bundlerJarTask to paperclipJarTask
     }
 
     private fun Project.jarName(kind: String, classifier: String): Provider<String> {
-        return if (kind != "publisher") {
-            bundlerJarName.map {
-                listOfNotNull(
-                    it,
-                    kind,
-                    project.version,
-                    classifier.takeIf { c -> c.isNotBlank() },
-                ).joinToString("-") + ".jar"
-            }
-        } else {
-            val buildNum = providers.environmentVariable("BUILD_NUMBER").orElse("local")
-            forkName.zip(buildNum) { name, build ->
-                "$name-build.$build.jar"
-            }
+        return bundlerJarName.map {
+            listOfNotNull(
+                it,
+                kind,
+                project.version,
+                classifier.takeIf { c -> c.isNotBlank() },
+            ).joinToString("-") + ".jar"
         }
     }
 
@@ -154,15 +138,6 @@ class PaperclipTasks(
         originalBundlerJar.set(vanillaJar)
         bundlerJar.set(createBundlerJar.flatMap { it.outputZip })
         mcVersion.set(this@PaperclipTasks.mcVersion)
-
-        op.execute(this)
-    }
-
-    private fun TaskProvider<CreatePublisherJar>.paperclipJar(
-        createPaperclipJar: TaskProvider<CreatePaperclipJar>,
-        op: Action<CreatePublisherJar> = Action {},
-    ) = configure {
-        inputZip.set(createPaperclipJar.flatMap { it.outputZip })
 
         op.execute(this)
     }

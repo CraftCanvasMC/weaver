@@ -153,7 +153,6 @@ abstract class PaperweightCore : Plugin<Project> {
             tasks.downloadServerJar.flatMap { it.outputJar },
             serverJar,
             ext.minecraftVersion,
-            ext.activeFork.map { it.name }.orElse("paper")
         )
 
         target.afterEvaluate {
