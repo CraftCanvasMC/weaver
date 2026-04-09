@@ -63,6 +63,7 @@ abstract class ApplyBasePatches : ControllableOutputTask() {
     @get:Input
     abstract val verbose: Property<Boolean>
 
+    @Deprecated("To be removed in a future version with no replacement")
     @get:Internal
     abstract val emitRejects: Property<Boolean>
 
