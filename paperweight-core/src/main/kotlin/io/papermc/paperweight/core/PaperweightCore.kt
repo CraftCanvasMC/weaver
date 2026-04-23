@@ -219,14 +219,16 @@ abstract class PaperweightCore : Plugin<Project> {
                     coreExt.paper.rejectsDir,
                     layout.projectDirectory.dir("src/minecraft/java"),
                 )
-            } else if (coreExt.activeFork.isPresent && target.hasProperty("old${coreExt.activeFork.get().name.capitalized()}Commit")) {
-                val name = coreExt.activeFork.get().name
+            } else if (coreExt.activeFork.isPresent && coreExt.updatingMinecraft.oldForkCommit.isPresent) {
                 // old commit fetching for forks through a gradle property
                 target.tasks.named<ApplyBasePatches>("applyMinecraftBasePatches").configure {
-                    additionalRemote = layout.cache.resolve(
-                        "$PAPER_PATH/old${name.capitalized()}/${target.providers.gradleProperty("old${name.capitalized()}Commit").get()}" +
-                            "/$name-server/src/minecraft/java"
-                    ).absolutePathString()
+                    additionalRemote = coreExt.activeFork.map {
+                        layout.cache
+                            .resolve(
+                                "$PAPER_PATH/old${name.capitalized()}/${coreExt.updatingMinecraft.oldForkCommit.get()}/${it.name}-server/src/minecraft/java"
+                            )
+                            .absolutePathString()
+                    }
                 }
                 target.tasks.named<ApplyFilePatches>("applyMinecraftSourcePatches").configure {
                     emitRejects = false
@@ -236,7 +238,7 @@ abstract class PaperweightCore : Plugin<Project> {
                     target,
                     name.lowercase(),
                     coreExt.minecraftVersion,
-                    coreExt.activeFork.get().rejectsDir,
+                    coreExt.activeFork.flatMap { it.rejectsDir },
                     layout.projectDirectory.dir("src/minecraft/java"),
                 )
             }
