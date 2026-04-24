@@ -38,7 +38,7 @@ abstract class PaperweightPatcherExtension @Inject constructor(private val objec
 
     val gitFilePatches: Property<Boolean> = objects.property<Boolean>().convention(false)
     val filterPatches: Property<Boolean> = objects.property<Boolean>().convention(true)
-    val validateATs: Property<Boolean> = objects.property<Boolean>().convention(false)
+    val validateATs: Property<Boolean> = objects.property<Boolean>().convention(true)
 
     val jstRepo: Property<String> = objects.property<String>().convention(PAPER_MAVEN_REPO_URL)
 
