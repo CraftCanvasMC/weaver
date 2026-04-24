@@ -61,11 +61,23 @@ abstract class PaperweightPatcher : Plugin<Project> {
             }
         }
 
+        target.configurations.register(JST_CLASSPATH_CONFIG) {
+            attributes {
+                attribute(JST_CLASSPATH_ATTRIBUTE, true)
+            }
+        }
+
         target.afterEvaluate {
             repositories {
                 maven(patcher.jstRepo) {
                     name = JST_REPO_NAME
                     content { onlyForConfigurations(JST_CONFIG) }
+                }
+                maven(PAPER_MAVEN_REPO_URL) {
+                    content { onlyForConfigurations(JST_CLASSPATH_CONFIG) }
+                }
+                mavenCentral {
+                    content { onlyForConfigurations(JST_CLASSPATH_CONFIG) }
                 }
             }
             afterEvaluate(patcher)
