@@ -85,13 +85,9 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
     @get:Optional
     abstract val oldCommit: Property<String>
 
-    @get:Input
-    abstract val additionalRemoteName: Property<String>
-
     override fun init() {
         super.init()
         atWorkingDir.set(layout.cache.resolve(paperTaskOutput(name = "${name}_atWorkingDir")))
-        additionalRemoteName.convention("old")
         forkName.convention(project.coreExt.activeFork.map { it.name.capitalized() })
     }
 
