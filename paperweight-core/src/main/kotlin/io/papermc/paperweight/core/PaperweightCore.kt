@@ -225,7 +225,7 @@ abstract class PaperweightCore : Plugin<Project> {
                     additionalRemote = coreExt.activeFork.map {
                         layout.cache
                             .resolve(
-                                "$PAPER_PATH/old${name.capitalized()}/${coreExt.updatingMinecraft.oldForkCommit.get()}/${it.name}-server/src/minecraft/java"
+                                "$PAPER_PATH/old${it.name.capitalized()}/${coreExt.updatingMinecraft.oldForkCommit.get()}/${it.name}-server/src/minecraft/java"
                             )
                             .absolutePathString()
                     }

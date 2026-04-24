@@ -193,8 +193,10 @@ class MinecraftPatchingTasks(
             outputDir.set(layout.cache.resolve(paperTaskOutput()))
             identifier.set(configName)
 
-            oldCommit.convention(project.coreExt.updatingMinecraft.oldForkCommit)
-            oldOutputDir.set(layout.cache.resolve("$PAPER_PATH/old${configName.capitalized()}"))
+            if (namePart == "Minecraft") { // only configure this when we're the target fork
+                oldCommit.convention(project.coreExt.updatingMinecraft.oldForkCommit)
+                oldOutputDir.set(layout.cache.resolve("$PAPER_PATH/old${configName.capitalized()}"))
+            }
 
             libraryImports.set(importLibFiles.flatMap { it.outputDir })
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
