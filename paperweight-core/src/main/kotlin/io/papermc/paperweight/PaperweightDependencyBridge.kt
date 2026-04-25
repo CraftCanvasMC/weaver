@@ -30,11 +30,18 @@ import org.gradle.api.plugins.JavaPlugin
 
 abstract class PaperweightDependencyBridge : Plugin<Project> {
     override fun apply(target: Project) {
-        target.configurations.consumable(JST_CLASSPATH_CONFIG) {
+        target.configurations.register(JST_CLASSPATH_CONFIG) {
+            isCanBeConsumed = true
             attributes {
                 attribute(JST_CLASSPATH_ATTRIBUTE, true)
             }
-            extendsFrom(target.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME))
+        }
+        target.afterEvaluate {
+            val api = target.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
+
+            api.allDependencies.forEach {
+                target.dependencies.add(JST_CLASSPATH_CONFIG, it)
+            }
         }
     }
 }
