@@ -131,7 +131,8 @@ abstract class PaperweightPatcher : Plugin<Project> {
                 description = "Applies all patches defined in the weaver-patcher project and the server project. " +
                     "(equivalent to running '$depend' and then '${tasks.get().single()}' in a second Gradle invocation)"
                 projectDir.set(layout.projectDirectory)
-                dependsOn(depend)
+                dependsOn("apply${upstream.name.capitalized()}SingleFilePatches")
+                finalizedBy(depend)
             }
         }
         patcher.additionalUpstreams.forEach { upstream ->

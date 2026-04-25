@@ -35,13 +35,7 @@ abstract class PaperweightDependencyBridge : Plugin<Project> {
             attributes {
                 attribute(JST_CLASSPATH_ATTRIBUTE, true)
             }
-        }
-        target.afterEvaluate {
-            val api = target.configurations.getByName(JavaPlugin.API_CONFIGURATION_NAME)
-
-            api.allDependencies.forEach {
-                target.dependencies.add(JST_CLASSPATH_CONFIG, it)
-            }
+            extendsFrom(target.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME))
         }
     }
 }
