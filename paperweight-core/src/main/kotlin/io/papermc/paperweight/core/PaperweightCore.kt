@@ -232,7 +232,7 @@ abstract class PaperweightCore : Plugin<Project> {
 
                 PatchRouletteTasks(
                     target,
-                    name.lowercase(),
+                    coreExt.activeFork.get().name.lowercase(),
                     coreExt.minecraftVersion,
                     coreExt.activeFork.flatMap { it.rejectsDir },
                     layout.projectDirectory.dir("src/minecraft/java"),
