@@ -128,13 +128,11 @@ abstract class PaperweightPatcher : Plugin<Project> {
             tasks.register<RunNestedBuild>("applyAllPatches") {
                 group = "patching"
                 val depend = "apply${upstream.name.capitalized()}Patches"
-                val depend1 = "apply${upstream.name.capitalized()}SingleFilePatches"
                 tasks.addAll("applyAllServerPatches")
                 description = "Applies all patches defined in the weaver-patcher project and the server project. " +
-                    "(equivalent to running '$depend1' and '$depend', and then ${tasks.get().single()}' in a second Gradle invocation)"
+                    "(equivalent to running '$depend' and then ${tasks.get().single()}' in a second Gradle invocation)"
                 projectDir.set(layout.projectDirectory)
                 dependsOn(depend)
-                dependsOn(depend1)
             }
         }
         patcher.additionalUpstreams.forEach { upstream ->
