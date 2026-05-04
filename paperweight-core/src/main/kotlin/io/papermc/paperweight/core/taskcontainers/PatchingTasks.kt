@@ -71,10 +71,8 @@ class PatchingTasks(
 
         if (readOnly) {
             input.set(applyBasePatches.flatMap { it.output })
-            output.set(layout.cache.resolve(paperTaskOutput()))
-        } else {
-            output.set(outputDir)
         }
+        output.set(outputDir)
         patches.set(filePatchDir.fileExists())
         rejectsDir.set(this@PatchingTasks.rejectsDir)
         gitFilePatches.set(this@PatchingTasks.gitFilePatches)
@@ -91,7 +89,6 @@ class PatchingTasks(
         } else {
             output.set(outputDir)
         }
-
         patches.set(basePatchDir.fileExists())
         baseRef.set("base")
         identifier = "$forkName $patchSetName"

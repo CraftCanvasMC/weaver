@@ -81,10 +81,8 @@ class MinecraftPatchingTasks(
 
         if (readOnly) {
             input.set(applyBasePatches.flatMap { it.output })
-            output.set(outputSrcFile)
-        } else {
-            output.set(outputSrc)
         }
+        output.set(outputSrc)
         patches.set(sourcePatchDir.fileExists())
         rejectsDir.set(this@MinecraftPatchingTasks.rejectsDir)
         gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
