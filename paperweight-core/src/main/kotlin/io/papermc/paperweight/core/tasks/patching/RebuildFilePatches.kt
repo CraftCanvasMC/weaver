@@ -126,7 +126,7 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         git("checkout", "file").executeSilently(silenceErr = true)
 
         val baseCommit = "file~1"
-        git("worktree", "add", "--force", baseDir.absolutePathString(), baseCommit).executeSilently(silenceErr = true)
+        git("worktree", "add", "--detach", "--force", baseDir.absolutePathString(), baseCommit).executeSilently(silenceErr = true)
 
         val filesWithNewAts = if (!ats.jst.isEmpty) {
             handleAts(
