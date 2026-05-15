@@ -29,6 +29,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
+import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.core.util.coreExt
@@ -288,6 +289,14 @@ class MinecraftPatchingTasks(
             group()
             description = "Rebuilds all $configName patches to Minecraft"
             dependsOn(rebuildBasePatches, rebuildFilePatches, rebuildFeaturePatches)
+        }
+
+        val fixupBasePatches = tasks.register<FixupBasePatches>("fixup${namePart}BasePatches") {
+            group()
+            description = "Puts the latest changes under the $configName Minecraft sources base patches commit"
+
+            repo.set(outputSrc)
+            identifier = configName
         }
 
         val fixupSourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}SourcePatches") {

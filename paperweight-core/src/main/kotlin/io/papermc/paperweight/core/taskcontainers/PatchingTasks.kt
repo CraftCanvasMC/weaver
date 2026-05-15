@@ -27,6 +27,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
+import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
@@ -126,6 +127,7 @@ class PatchingTasks(
 
     val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildFilePatchesName = "rebuild${namePart}FilePatches"
+    val fixupBasePatchesName = "fixup${namePart}BasePatches"
     val fixupFilePatchesName = "fixup${namePart}FilePatches"
     val rebuildFeaturePatchesName = "rebuild${namePart}FeaturePatches"
     val rebuildPatchesName = "rebuild${namePart}Patches"
@@ -208,6 +210,14 @@ class PatchingTasks(
             ats.jst.from(project.configurations.named(JST_CONFIG))
             atFile.set(additionalAts.fileExists())
             atFileOut.set(additionalAts.fileExists())
+            identifier = "$forkName $patchSetName"
+        }
+
+        val fixupBasePatches = tasks.register<FixupBasePatches>(fixupBasePatchesName) {
+            group = taskGroup
+            description = "Puts the latest changes under the $patchSetName base patches commit"
+
+            repo.set(outputDir)
             identifier = "$forkName $patchSetName"
         }
 
