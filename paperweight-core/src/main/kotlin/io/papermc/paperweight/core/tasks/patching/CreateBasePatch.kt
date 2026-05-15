@@ -34,7 +34,7 @@ import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.Option
 
 @UntrackedTask(because = "Always fixup when requested")
-abstract class FixupBasePatches : BaseTask() {
+abstract class CreateBasePatch : BaseTask() {
 
     @get:InputDirectory
     abstract val repo: DirectoryProperty

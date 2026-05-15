@@ -27,7 +27,8 @@ import io.papermc.paperweight.core.tasks.patching.ApplyBasePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
-import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
+import io.papermc.paperweight.core.tasks.patching.CreateBasePatch
+import io.papermc.paperweight.core.tasks.patching.FixupBasePatch
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
@@ -35,6 +36,7 @@ import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.JST_CLASSPATH_CONFIG
 import io.papermc.paperweight.util.constants.JST_CONFIG
 import io.papermc.paperweight.util.constants.paperTaskOutput
+import io.papermc.paperweight.util.set
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
@@ -44,6 +46,7 @@ import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.TaskContainer
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.register
 
 class PatchingTasks(
     private val project: Project,
@@ -127,7 +130,8 @@ class PatchingTasks(
 
     val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildFilePatchesName = "rebuild${namePart}FilePatches"
-    val fixupBasePatchesName = "fixup${namePart}BasePatches"
+    val createBasePatchName = "create${namePart}BasePatch"
+    val fixupBasePatchName = "fixup${namePart}BasePatch"
     val fixupFilePatchesName = "fixup${namePart}FilePatches"
     val rebuildFeaturePatchesName = "rebuild${namePart}FeaturePatches"
     val rebuildPatchesName = "rebuild${namePart}Patches"
@@ -213,12 +217,21 @@ class PatchingTasks(
             identifier = "$forkName $patchSetName"
         }
 
-        val fixupBasePatches = tasks.register<FixupBasePatches>(fixupBasePatchesName) {
+        val createBasePatch = tasks.register<CreateBasePatch>(createBasePatchName) {
             group = taskGroup
             description = "Puts the latest changes under the $patchSetName base patches commit"
 
             repo.set(outputDir)
             identifier = "$forkName $patchSetName"
+        }
+
+        val fixupBasePatches = tasks.register<FixupBasePatch>(fixupBasePatchName) {
+            group = taskGroup
+            description = "Puts the currently tracked source changes into the specified patch"
+
+            repo.set(outputDir)
+            patches.set(basePatchDir)
+            upstream.set("basepatches")
         }
 
         val fixupFilePatches = tasks.register<FixupFilePatches>(fixupFilePatchesName) {
