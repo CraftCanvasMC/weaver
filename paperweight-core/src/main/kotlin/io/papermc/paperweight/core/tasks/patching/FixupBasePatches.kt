@@ -92,10 +92,12 @@ abstract class FixupBasePatches : BaseTask() {
 
         // throw if false, since that means the repo state is corrupted
         validateSingleCommit(identifier, "Base", baseCommit)
-        validateSingleCommit(identifier, "File", fileCommit)
+        validateSingleOrNullCommit(identifier, "File", fileCommit)
 
         // retag everything
         git("tag", "-f", "basepatches", baseCommit.joinToString()).executeOut()
-        git("tag", "-f", "file", fileCommit.joinToString()).executeOut()
+        if (fileCommit.size == 1) {
+            git("tag", "-f", "file", fileCommit.joinToString()).executeOut()
+        }
     }
 }
