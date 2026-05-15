@@ -45,14 +45,20 @@ abstract class FixupBasePatches : BaseTask() {
     abstract val message: Property<String>
 
     @get:Input
+    @get:Optional
+    @get:Option(option = "description", description = "Commit description")
+    abstract val description: Property<String>
+
+    @get:Input
     abstract val identifier: Property<String>
 
     @TaskAction
     fun run() {
         val git = Git(repo)
         if (message.isPresent) {
+            val additionalArgs = if (description.isPresent) arrayOf("-m", description.get()) else arrayOf()
             git("add", ".").executeOut()
-            git("commit", "-m", message.get()).executeOut()
+            git("commit", "-m", message.get(), *additionalArgs).executeOut()
         }
         val baseCommit = git("rev-parse", "basepatches").getText().trim()
         val headCommit = git("rev-parse", "HEAD").getText().trim()
