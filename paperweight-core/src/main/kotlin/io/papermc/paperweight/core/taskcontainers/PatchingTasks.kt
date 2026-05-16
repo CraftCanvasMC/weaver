@@ -28,7 +28,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.CreateBasePatch
-import io.papermc.paperweight.core.tasks.patching.FixupBasePatch
+import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.tasks.*
@@ -131,7 +131,7 @@ class PatchingTasks(
     val rebuildBasePatchesName = "rebuild${namePart}BasePatches"
     val rebuildFilePatchesName = "rebuild${namePart}FilePatches"
     val createBasePatchName = "create${namePart}BasePatch"
-    val fixupBasePatchName = "fixup${namePart}BasePatch"
+    val fixupBasePatchesName = "fixup${namePart}BasePatches"
     val fixupFilePatchesName = "fixup${namePart}FilePatches"
     val rebuildFeaturePatchesName = "rebuild${namePart}FeaturePatches"
     val rebuildPatchesName = "rebuild${namePart}Patches"
@@ -225,9 +225,9 @@ class PatchingTasks(
             identifier = "$forkName $patchSetName"
         }
 
-        val fixupBasePatches = tasks.register<FixupBasePatch>(fixupBasePatchName) {
+        val fixupBasePatches = tasks.register<FixupBasePatches>(fixupBasePatchesName) {
             group = taskGroup
-            description = "Puts the currently tracked source changes into the specified patch"
+            description = "Puts the currently tracked source changes into the specified patch commit"
 
             repo.set(outputDir)
             patches.set(basePatchDir)

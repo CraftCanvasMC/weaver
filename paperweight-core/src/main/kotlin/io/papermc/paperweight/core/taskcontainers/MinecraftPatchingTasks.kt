@@ -30,7 +30,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.CreateBasePatch
-import io.papermc.paperweight.core.tasks.patching.FixupBasePatch
+import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.core.util.coreExt
@@ -300,9 +300,9 @@ class MinecraftPatchingTasks(
             identifier = configName
         }
 
-        val fixupBasePatches = tasks.register<FixupBasePatch>("fixup${namePart}BasePatch") {
+        val fixupBasePatches = tasks.register<FixupBasePatches>("fixup${namePart}BasePatches") {
             group()
-            description = "Puts the currently tracked source changes into the specified patch"
+            description = "Puts the currently tracked source changes into the specified patch commit"
 
             repo.set(outputSrc)
             patches.set(basePatchDir)
