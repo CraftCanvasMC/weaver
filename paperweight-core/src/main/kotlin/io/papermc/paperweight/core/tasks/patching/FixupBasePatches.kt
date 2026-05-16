@@ -54,7 +54,7 @@ abstract class FixupBasePatches : BaseTask() {
     @TaskAction
     fun run() {
         val git = Git(repo)
-        var index = -1
+        var index = Int.MIN_VALUE
         if (patchNumber.isPresent) {
             index = patchNumber.get().minus(1)
         } else {
@@ -67,7 +67,7 @@ abstract class FixupBasePatches : BaseTask() {
                 logger.lifecycle(patch.fileName.toString())
             }
             logger.lifecycle("===============================================")
-            while (index == -1) {
+            while (index == Int.MIN_VALUE) {
                 index = System.`in`.bufferedReader().readLine().toInt().minus(1)
             }
         }
