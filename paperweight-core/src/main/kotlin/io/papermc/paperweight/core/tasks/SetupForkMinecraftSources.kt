@@ -114,7 +114,7 @@ abstract class SetupForkMinecraftSources : JavaLauncherTask() {
         }
 
         if (atFile.isPresent && atFile.path.readText().isNotBlank()) {
-            println("Applying access transformers...")
+            logger.lifecycle("Applying access transformers...")
             ats.run(
                 launcher.get(),
                 outputDir.path,
