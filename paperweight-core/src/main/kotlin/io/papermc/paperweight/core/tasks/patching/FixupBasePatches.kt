@@ -78,7 +78,6 @@ abstract class FixupBasePatches : BaseTask() {
             error("Patch index out of range: $index (size=${commits.size})")
         }
         val selectedCommit = commits[index]
-        logger.lifecycle("Selected commit: $selectedCommit")
         git("add", ".").executeOut()
         git("commit", "--fixup", selectedCommit).executeOut()
         git("-c", "sequence.editor=:", "rebase", "-i", "--autosquash", upstream.get()).executeOut()
