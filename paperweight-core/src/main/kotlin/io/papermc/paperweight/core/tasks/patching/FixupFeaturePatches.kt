@@ -35,7 +35,7 @@ import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.Option
 
 @UntrackedTask(because = "Always fixup when requested")
-abstract class FixupBasePatches : BaseTask() {
+abstract class FixupFeaturePatches : BaseTask() {
 
     @get:InputDirectory
     abstract val repo: DirectoryProperty
@@ -56,7 +56,7 @@ abstract class FixupBasePatches : BaseTask() {
         val git = Git(repo)
         var index = -1
         if (patchNumber.isPresent) {
-            index = patchNumber.get().minus(1)
+            index = patchNumber.get() - 1 // -1 as the commits index starts from 0 whereas patches start from 1
         } else {
             logger.lifecycle("===============================================")
             logger.lifecycle("Please enter the patch number into which the current changes should be merged")
@@ -68,17 +68,14 @@ abstract class FixupBasePatches : BaseTask() {
             }
             logger.lifecycle("===============================================")
             while (index == -1) {
-                index = System.`in`.bufferedReader().readLine().toInt().minus(1)
+                index = System.`in`.bufferedReader().readLine().toInt() - 1
             }
         }
-        val hasBasePatchesTag = git("rev-parse", "-q", "--verify", "basepatches").getText()
-        val headTag = if (hasBasePatchesTag.isNotEmpty()) "basepatches" else "HEAD"
-        val commits = git("rev-list", "base..$headTag").getText().trim().lines().filter { it.isNotBlank() }.reversed()
+        val commits = git("rev-list", "file..HEAD").getText().trim().lines().filter { it.isNotBlank() }.reversed()
         if (index < 0 || index >= commits.size) {
             error("Patch index out of range: $index (size=${commits.size})")
         }
         val selectedCommit = commits[index]
-        logger.lifecycle("Selected commit: $selectedCommit")
         git("add", ".").executeOut()
         git("commit", "--fixup", selectedCommit).executeOut()
         git("-c", "sequence.editor=:", "rebase", "-i", "--autosquash", upstream.get()).executeOut()

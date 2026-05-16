@@ -31,6 +31,7 @@ import io.papermc.paperweight.core.tasks.patching.ApplyFilePatches
 import io.papermc.paperweight.core.tasks.patching.ApplyFilePatchesFuzzy
 import io.papermc.paperweight.core.tasks.patching.CreateBasePatch
 import io.papermc.paperweight.core.tasks.patching.FixupBasePatches
+import io.papermc.paperweight.core.tasks.patching.FixupFeaturePatches
 import io.papermc.paperweight.core.tasks.patching.FixupFilePatches
 import io.papermc.paperweight.core.tasks.patching.RebuildFilePatches
 import io.papermc.paperweight.core.util.coreExt
@@ -302,7 +303,7 @@ class MinecraftPatchingTasks(
 
         val fixupBasePatches = tasks.register<FixupBasePatches>("fixup${namePart}BasePatches") {
             group()
-            description = "Puts the currently tracked source changes into the specified patch commit"
+            description = "Puts the currently tracked source changes into the specified $configName Minecraft base patch commit"
 
             repo.set(outputSrc)
             patches.set(basePatchDir)
@@ -323,6 +324,15 @@ class MinecraftPatchingTasks(
 
             repo.set(outputResources)
             upstream.set("upstream/main")
+        }
+
+        val fixupFeaturePatches = tasks.register<FixupFeaturePatches>("fixup${namePart}FeaturePatches") {
+            group()
+            description = "Puts the currently tracked source changes into the specified $configName Minecraft feature patch commit"
+
+            repo.set(outputSrc)
+            upstream.set("upstream/main")
+            patches.set(featurePatchDir)
         }
 
         val applyOrMoveSourcePatches = tasks.register<ApplyFilePatches>("applyOrMove${namePart}SourcePatches") {
