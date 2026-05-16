@@ -71,7 +71,9 @@ abstract class FixupBasePatch : BaseTask() {
                 index = System.`in`.bufferedReader().readLine().toInt().minus(1)
             }
         }
-        val commits = git("rev-list", "base..basepatches").getText().trim().lines().filter { it.isNotBlank() }.reversed()
+        val hasBasePatchesTag = git("rev-parse", "-q", "--verify", "basepatches").getText()
+        val headTag = if (hasBasePatchesTag.isNotEmpty()) "basepatches" else "HEAD"
+        val commits = git("rev-list", "base..$headTag").getText().trim().lines().filter { it.isNotBlank() }.reversed()
         if (index < 0 || index >= commits.size) {
             error("Patch index out of range: $index (size=${commits.size})")
         }
