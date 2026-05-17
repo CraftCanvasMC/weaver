@@ -229,11 +229,11 @@ class PatchingTasks(
 
         val fixupBasePatches = tasks.register<FixupBasePatches>(fixupBasePatchesName) {
             group = taskGroup
-            description = "Puts the currently tracked source changes into the specified $patchSetName feature patch commit"
+            description = "Puts the currently tracked source changes into the specified $patchSetName base patch commit"
 
             repo.set(outputDir)
             patches.set(basePatchDir)
-            upstream.set("basepatches")
+            upstream.set("base")
         }
 
         val fixupFilePatches = tasks.register<FixupFilePatches>(fixupFilePatchesName) {
@@ -249,7 +249,7 @@ class PatchingTasks(
             description = "Puts the currently tracked source changes into the specified $patchSetName feature patch commit"
 
             repo.set(outputDir)
-            upstream.set("base")
+            upstream.set("file")
             patches.set(featurePatchDir)
         }
 

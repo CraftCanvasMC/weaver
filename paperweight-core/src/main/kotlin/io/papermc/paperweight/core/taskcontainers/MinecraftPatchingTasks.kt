@@ -315,7 +315,7 @@ class MinecraftPatchingTasks(
             description = "Puts the currently tracked source changes into the $configName Minecraft sources file patches commit"
 
             repo.set(outputSrc)
-            upstream.set("upstream/main")
+            upstream.set("basepatches")
         }
 
         val fixupResourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}ResourcePatches") {
@@ -331,7 +331,7 @@ class MinecraftPatchingTasks(
             description = "Puts the currently tracked source changes into the specified $configName Minecraft feature patch commit"
 
             repo.set(outputSrc)
-            upstream.set("upstream/main")
+            upstream.set("file")
             patches.set(featurePatchDir)
         }
 
