@@ -234,6 +234,7 @@ class PatchingTasks(
             repo.set(outputDir)
             patches.set(basePatchDir)
             upstream.set("base")
+            identifier = "$forkName $patchSetName"
         }
 
         val fixupFilePatches = tasks.register<FixupFilePatches>(fixupFilePatchesName) {

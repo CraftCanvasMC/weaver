@@ -47,6 +47,9 @@ abstract class FixupBasePatches : BaseTask() {
     abstract val patches: DirectoryProperty
 
     @get:Input
+    abstract val identifier: Property<String>
+
+    @get:Input
     @get:Optional
     @get:Option(option = "patch-number", description = "Select the patch to modify")
     abstract val patchNumber: Property<Int>
@@ -81,5 +84,26 @@ abstract class FixupBasePatches : BaseTask() {
         git("add", ".").executeOut()
         git("commit", "--fixup", selectedCommit).executeOut()
         git("-c", "sequence.editor=:", "rebase", "-i", "--autosquash", upstream.get()).executeOut()
+        tagCommits(git)
+    }
+
+    fun tagCommits(git: Git) {
+        val baseCommit = git(
+            "log",
+            "--format=%H %s",
+            "--grep=^${identifier.get()} Base Patches$",
+            "base..HEAD"
+        ).getText()
+            .lineSequence()
+            .map(String::trim)
+            .filter(String::isNotEmpty)
+            .map { it.substringBefore(" ") }
+            .toList()
+
+        // throw if false, since that means the repo state is corrupted
+        validateSingleCommit(identifier, "Base", baseCommit)
+
+        // retag
+        git("tag", "-f", "basepatches", baseCommit.joinToString()).executeOut()
     }
 }

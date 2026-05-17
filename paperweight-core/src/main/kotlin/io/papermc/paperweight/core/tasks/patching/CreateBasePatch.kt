@@ -71,7 +71,7 @@ abstract class CreateBasePatch : BaseTask() {
         tagCommits(git)
     }
 
-    private fun tagCommits(git: Git) {
+    fun tagCommits(git: Git) {
         val baseCommit = git(
             "log",
             "--format=%H %s",
@@ -84,26 +84,10 @@ abstract class CreateBasePatch : BaseTask() {
             .map { it.substringBefore(" ") }
             .toList()
 
-        val fileCommit = git(
-            "log",
-            "--format=%H %s",
-            "--grep=^${identifier.get()} File Patches$",
-            "base..HEAD"
-        ).getText()
-            .lineSequence()
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .map { it.substringBefore(" ") }
-            .toList()
-
         // throw if false, since that means the repo state is corrupted
         validateSingleCommit(identifier, "Base", baseCommit)
-        validateSingleOrNullCommit(identifier, "File", fileCommit)
 
-        // retag everything
+        // retag
         git("tag", "-f", "basepatches", baseCommit.joinToString()).executeOut()
-        if (fileCommit.size == 1) {
-            git("tag", "-f", "file", fileCommit.joinToString()).executeOut()
-        }
     }
 }

@@ -308,6 +308,7 @@ class MinecraftPatchingTasks(
             repo.set(outputSrc)
             patches.set(basePatchDir)
             upstream.set("upstream/main")
+            identifier = configName
         }
 
         val fixupSourcePatches = tasks.register<FixupFilePatches>("fixup${namePart}SourcePatches") {
