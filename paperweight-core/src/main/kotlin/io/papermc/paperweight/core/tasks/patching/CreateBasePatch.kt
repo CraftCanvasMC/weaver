@@ -47,7 +47,7 @@ abstract class CreateBasePatch : BaseTask() {
     @get:Input
     @get:Optional
     @get:Option(option = "description", description = "Commit description")
-    abstract val description: Property<String>
+    abstract val commitDescription: Property<String>
 
     @get:Input
     abstract val identifier: Property<String>
@@ -56,7 +56,7 @@ abstract class CreateBasePatch : BaseTask() {
     fun run() {
         val git = Git(repo)
         if (message.isPresent) {
-            val additionalArgs = if (description.isPresent) arrayOf("-m", description.get()) else arrayOf()
+            val additionalArgs = if (commitDescription.isPresent) arrayOf("-m", commitDescription.get()) else arrayOf()
             git("add", ".").executeOut()
             git("commit", "-m", message.get(), *additionalArgs).executeOut()
         }
