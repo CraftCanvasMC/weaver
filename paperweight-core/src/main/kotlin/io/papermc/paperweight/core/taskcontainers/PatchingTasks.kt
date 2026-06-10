@@ -68,6 +68,7 @@ class PatchingTasks(
     private val tasks: TaskContainer = project.tasks,
 ) {
     private val namePart: String = if (readOnly) "${forkName.capitalized()}${patchSetName.capitalized()}" else patchSetName.capitalized()
+    private val gitMutationLockService = project.gitMutationLockService
 
     private fun ApplyFilePatches.configureApplyFilePatches() {
         group = taskGroup
@@ -171,12 +172,6 @@ class PatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
-        val name = "rebuild${namePart}BasePatches"
-        if (name in tasks.names) {
-            tasks.named<RebuildBaseGitPatches>(name) {
-                base.set(setup.flatMap { it.outputDir })
-            }
-        }
     }
 
     private fun setupWritable() {
@@ -194,8 +189,8 @@ class PatchingTasks(
         val rebuildBasePatches = tasks.register<RebuildBaseGitPatches>(rebuildBasePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName base patches"
+            usesService(gitMutationLockService)
 
-            base.set(baseDir) // correct task execution order -> unused
             inputDir.set(outputDir)
             patchDir.set(basePatchDir)
             baseRef.set("base")
@@ -206,6 +201,7 @@ class PatchingTasks(
         val rebuildFilePatches = tasks.register<RebuildFilePatches>(rebuildFilePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName file patches"
+            usesService(gitMutationLockService)
             dependsOn(rebuildBasePatches)
 
             input.set(outputDir)
@@ -257,6 +253,7 @@ class PatchingTasks(
         val rebuildFeaturePatches = tasks.register<RebuildGitPatches>(rebuildFeaturePatchesName) {
             group = taskGroup
             description = "Rebuilds $patchSetName feature patches"
+            usesService(gitMutationLockService)
             dependsOn(rebuildFilePatches)
 
             inputDir.set(outputDir)

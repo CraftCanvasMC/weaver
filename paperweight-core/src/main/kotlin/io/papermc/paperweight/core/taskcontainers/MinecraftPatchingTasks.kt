@@ -76,6 +76,7 @@ class MinecraftPatchingTasks(
     }
 
     private val namePart = if (readOnly) "${configName.capitalized()}Minecraft" else if (paper) "" else "Minecraft"
+    private val gitMutationLockService = project.gitMutationLockService
 
     private fun ApplyFilePatches.configureApplyFilePatches() {
         group()
@@ -209,12 +210,6 @@ class MinecraftPatchingTasks(
         applyBasePatches.configure {
             input.set(setup.flatMap { it.outputDir })
         }
-        val name = "rebuild${namePart}BasePatches"
-        if (name in tasks.names) {
-            tasks.named<RebuildBaseGitPatches>(name) {
-                base.set(setup.flatMap { it.outputDir })
-            }
-        }
     }
 
     private fun setupWritable() {
@@ -233,8 +228,8 @@ class MinecraftPatchingTasks(
         val rebuildBasePatches = tasks.register<RebuildBaseGitPatches>(rebuildBasePatchesName) {
             group()
             description = "Rebuilds $configName base patches to the Minecraft source"
+            usesService(gitMutationLockService)
 
-            base.set(baseSources) // workaround to achieve the correct task execution order
             inputDir.set(outputSrc)
             patchDir.set(basePatchDir)
             baseRef.set("base")
@@ -246,6 +241,7 @@ class MinecraftPatchingTasks(
         val rebuildSourcePatches = tasks.register<RebuildFilePatches>(rebuildSourcePatchesName) {
             group()
             description = "Rebuilds $configName file patches to the Minecraft sources"
+            usesService(gitMutationLockService)
             dependsOn(rebuildBasePatches)
 
             input.set(outputSrc)
@@ -263,7 +259,6 @@ class MinecraftPatchingTasks(
             group()
             description = "Rebuilds $configName file patches to the Minecraft resources"
 
-            base.set(baseResources)
             input.set(outputResources)
             patches.set(resourcePatchDir)
             gitFilePatches.set(this@MinecraftPatchingTasks.gitFilePatches)
@@ -279,6 +274,7 @@ class MinecraftPatchingTasks(
         val rebuildFeaturePatches = tasks.register<RebuildGitPatches>(rebuildFeaturePatchesName) {
             group()
             description = "Rebuilds all $configName feature patches to the Minecraft sources"
+            usesService(gitMutationLockService)
             dependsOn(rebuildFilePatches)
 
             inputDir.set(outputSrc)

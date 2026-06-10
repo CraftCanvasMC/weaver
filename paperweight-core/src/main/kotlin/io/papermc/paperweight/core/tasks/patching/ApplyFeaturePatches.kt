@@ -55,14 +55,9 @@ abstract class ApplyFeaturePatches : ControllableOutputTask() {
     @get:Input
     abstract val verbose: Property<Boolean>
 
-    @Deprecated("To be removed in a future version with no replacement")
-    @get:Internal
-    abstract val emitRejects: Property<Boolean>
-
     override fun init() {
         printOutput.convention(false).finalizeValueOnRead()
         verbose.convention(false)
-        emitRejects.convention(false)
     }
 
     @TaskAction
@@ -139,61 +134,17 @@ abstract class ApplyFeaturePatches : ControllableOutputTask() {
             }
 
             val gitOut = printOutput && verbose
-            val result = if (emitRejects.get()) {
-                git(
-                    "am",
-                    "--3way",
-                    "--reject",
-                    "--ignore-whitespace",
-                    tempDir.absolutePathString()
-                ).captureOut(gitOut)
-            } else {
-                git("am", "--3way", "--ignore-whitespace", tempDir.absolutePathString()).captureOut(gitOut)
-            }
+            val result = git("am", "--3way", "--ignore-whitespace", tempDir.absolutePathString()).captureOut(gitOut)
 
             if (result.exit != 0) {
                 statusFile.writeText("1")
 
-                if (emitRejects.get()) {
-                    logFile.writeText(result.out)
-
-                    val filtered = result.out.lineSequence()
-                        .map { line ->
-                            val index = line.indexOf("Patch failed at")
-                            if (index >= 0) line.substring(index) else line
-                        }
-                        .filterNot { line ->
-                            line.startsWith("error: while") ||
-                                line.startsWith("Checking patch") ||
-                                line.startsWith("Applied patch") ||
-                                line.startsWith("Applying patch") ||
-                                line.endsWith("reject...") ||
-                                line.endsWith("cleanly.") ||
-                                line.startsWith(" ") ||
-                                line.startsWith("Hunk #") ||
-                                line.startsWith("Rejected hunk") ||
-                                line.contains(";") ||
-                                line.isEmpty()
-                        }
-                        .joinToString("\n")
-                    if (!gitOut) {
-                        // Log the output anyway on failure
-                        logger.error(filtered)
-                    }
-
-                    logger.error("***   Please review above details and finish the apply")
-                    logger.error("***   by manually applying the rejected hunks and deleting all `.rej` files")
-                    logger.error("***   then running `git am --continue` and saving the changes with `./gradlew rebuildPatches`")
-                    logger.error("***   For full logs refer to the `.git/patch-apply-logs.log` log file")
-                } else {
-                    if (!gitOut) {
-                        // Log the output anyway on failure
-                        logger.error(result.out)
-                    }
-
-                    logger.error("***   Please review above details and finish the apply then")
-                    logger.error("***   save the changes with `./gradlew rebuildPatches`")
+                if (!gitOut) {
+                    // Log the output anyway on failure
+                    logger.error(result.out)
                 }
+                logger.error("***   Please review above details and finish the apply then")
+                logger.error("***   save the changes with `./gradlew rebuildPatches`")
 
                 throw PaperweightException("Failed to apply patches")
             } else {

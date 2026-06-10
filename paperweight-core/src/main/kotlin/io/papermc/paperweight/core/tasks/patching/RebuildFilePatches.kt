@@ -57,10 +57,6 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     @get:InputDirectory
     abstract val input: DirectoryProperty
 
-    @get:Optional
-    @get:InputDirectory
-    abstract val base: DirectoryProperty
-
     @get:Internal
     abstract val baseDir: DirectoryProperty
 
