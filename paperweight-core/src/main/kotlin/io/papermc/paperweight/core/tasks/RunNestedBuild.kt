@@ -38,7 +38,9 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.internal.build.NestedRootBuildRunner
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.util.GradleVersion
 
 @UntrackedTask(because = "Nested build does it's own up-to-date checking")
 abstract class RunNestedBuild : BaseTask() {
@@ -68,11 +70,27 @@ abstract class RunNestedBuild : BaseTask() {
 
         params.systemPropertiesArgs[PAPERWEIGHT_DEBUG] = System.getProperty(PAPERWEIGHT_DEBUG, "false")
 
-        NestedRootBuildRunner::class.java.getDeclaredMethod(
-            "runNestedRootBuild",
-            String::class.java,
-            StartParameterInternal::class.java,
-            ServiceRegistry::class.java
-        ).invoke(null, null, params, services)
+        val legacy = GradleVersion.current() < GradleVersion.version("9.5.0") // Gradle changed the parameters in 9.5.0
+        val method = when {
+            legacy -> NestedRootBuildRunner::class.java.getDeclaredMethod(
+                "runNestedRootBuild",
+                String::class.java,
+                StartParameterInternal::class.java,
+                ServiceRegistry::class.java
+            )
+            else -> NestedRootBuildRunner::class.java.getDeclaredMethod(
+                "runNestedRootBuild",
+                String::class.java,
+                StartParameterInternal::class.java,
+                ServiceRegistry::class.java,
+                ClassPath::class.java
+            )
+        }
+        val args = when {
+            legacy -> arrayOf(null, params, services)
+            else -> arrayOf(null, params, services, ClassPath.EMPTY)
+        }
+
+        method.invoke(null, *args)
     }
 }
