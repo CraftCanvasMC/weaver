@@ -37,6 +37,8 @@ const val MC_MANIFEST_URL = "https://piston-meta.mojang.com/mc/game/version_mani
 
 const val CANVAS_MAVEN_REPO_URL = "https://maven.canvasmc.io/public"
 
+const val CANVAS_MAVEN_RELEASES_REPO_URL = "https://maven.canvasmc.io/releases"
+
 const val PAPER_MAVEN_REPO_URL = "https://repo.papermc.io/repository/maven-public/"
 
 const val MAVEN_CENTRAL_URL = "https://repo.maven.apache.org/maven2/"

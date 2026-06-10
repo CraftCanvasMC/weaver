@@ -178,7 +178,10 @@ abstract class PaperweightUser : Plugin<Project> {
                 }
             }
 
-            if (userdev.injectCanvasRepository.get()) {
+            if (userdev.injectCanvasRepositories.get()) {
+                repositories.maven(CANVAS_MAVEN_RELEASES_REPO_URL) {
+                    content { onlyForConfigurations(DEV_BUNDLE_CONFIG) }
+                }
                 repositories.maven(CANVAS_MAVEN_REPO_URL) {
                     content { onlyForConfigurations(DEV_BUNDLE_CONFIG) }
                 }
