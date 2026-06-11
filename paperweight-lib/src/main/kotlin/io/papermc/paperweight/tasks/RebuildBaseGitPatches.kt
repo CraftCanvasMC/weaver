@@ -70,20 +70,9 @@ abstract class RebuildBaseGitPatches : ControllableOutputTask() {
     @TaskAction
     fun run() {
         val git = Git(inputDir.path)
-        val basepatchesCommit = git(
-            "log",
-            "--format=%H %s",
-            "--grep=^${identifier.get()} Base Patches$",
-            "base..HEAD"
-        ).getText()
-            .lineSequence()
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .map { it.substringBefore(" ") }
-            .toList()
-
-        // throw if above 1, since that means the repo state is corrupted and we can't rebuild safely
-        val commitNumber = validateSingleOrNullCommit(identifier, "Base", basepatchesCommit)
+        // single or null commit, since if its more than that it means the repo state is corrupted and we can't rebuild safely
+        val basepatchesCommit = getCommitByIdentifier(git, identifier, "Base", "singleOrNull")
+        val commitNumber = basepatchesCommit.size
 
         // we update the tag to reflect the new repo state
         if (commitNumber == 1) {

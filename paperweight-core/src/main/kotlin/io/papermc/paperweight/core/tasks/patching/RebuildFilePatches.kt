@@ -99,23 +99,12 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         val baseDir = baseDir.convertToPath()
 
         val git = Git(inputDir)
-        val fileCommit = git(
-            "log",
-            "--format=%H %s",
-            "--grep=^${identifier.get()} File Patches$",
-            "base..HEAD"
-        ).getText()
-            .lineSequence()
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .map { it.substringBefore(" ") }
-            .toList()
 
-        // throw if false, since that means the repo state is corrupted and we can't rebuild safely
-        validateSingleCommit(identifier, "File", fileCommit)
+        // single commit, since if its more than that it means the repo state is corrupted and we can't rebuild safely
+        val fileCommit = getCommitByIdentifier(git, identifier, "File", "single").joinToString()
 
         // we update the appropriate tag to reflect the new repo state
-        git("tag", "-f", "file", fileCommit.joinToString()).executeSilently(silenceErr = true)
+        git("tag", "-f", "file", fileCommit).executeSilently(silenceErr = true)
 
         // now we can safely work with the repo, having updated the tag
         git("stash", "push").executeSilently(silenceErr = true)

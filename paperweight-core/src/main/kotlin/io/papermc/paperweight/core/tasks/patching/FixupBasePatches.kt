@@ -88,22 +88,9 @@ abstract class FixupBasePatches : BaseTask() {
     }
 
     fun tagCommits(git: Git) {
-        val baseCommit = git(
-            "log",
-            "--format=%H %s",
-            "--grep=^${identifier.get()} Base Patches$",
-            "base..HEAD"
-        ).getText()
-            .lineSequence()
-            .map(String::trim)
-            .filter(String::isNotEmpty)
-            .map { it.substringBefore(" ") }
-            .toList()
-
-        // throw if false, since that means the repo state is corrupted
-        validateSingleCommit(identifier, "Base", baseCommit)
-
+        // single commit, since if its more than that it means the repo state is corrupted and we can't rebuild safely
+        val baseCommit = getCommitByIdentifier(git, identifier, "Base", "single").joinToString()
         // retag
-        git("tag", "-f", "basepatches", baseCommit.joinToString()).executeOut()
+        git("tag", "-f", "basepatches", baseCommit).executeOut()
     }
 }

@@ -206,7 +206,7 @@ abstract class PaperweightCore : Plugin<Project> {
                 }
                 tasks.paperPatchingTasks.applySourcePatches.configure {
                     emitRejects = false
-                } // if we ever make features/base emit rejects by default, we should update this.
+                }
 
                 PatchRouletteTasks(
                     target,
@@ -228,7 +228,7 @@ abstract class PaperweightCore : Plugin<Project> {
                 }
                 target.tasks.named<ApplyFilePatches>("applyMinecraftSourcePatches").configure {
                     emitRejects = false
-                } // if we ever make features/base emit rejects by default, we should update this.
+                }
 
                 PatchRouletteTasks(
                     target,

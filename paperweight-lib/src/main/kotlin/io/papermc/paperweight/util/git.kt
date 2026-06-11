@@ -296,6 +296,32 @@ fun checkoutRepoFromUpstream(
     git("gc").runSilently(silenceErr = true)
 }
 
+fun getCommitsByIdentifier(git: Git, identifier: Provider<String>, kind: String): List<String> {
+    return git(
+        "log",
+        "--format=%H %s",
+        "--grep=^${identifier.get()} $kind Patches$",
+        "base..HEAD"
+    ).getText()
+        .lineSequence()
+        .map(String::trim)
+        .filter(String::isNotEmpty)
+        .map { it.substringBefore(" ") }
+        .toList()
+}
+
+fun getCommitByIdentifier(git: Git, identifier: Provider<String>, kind: String, validation: String): List<String> {
+    val commits = getCommitsByIdentifier(git, identifier, kind)
+    if (validation == "single") {
+        validateSingleCommit(identifier, kind, commits)
+    } else if (validation == "singleOrNull") {
+        validateSingleOrNullCommit(identifier, kind, commits)
+    } else {
+        throw PaperweightException("Invalid commit validation strategy passed: $validation\nSupported strategies: single, singleOrNull")
+    }
+    return commits
+}
+
 fun validateSingleOrNullCommit(identifier: Provider<String>, kind: String, commits: List<String>): Int {
     // > 1 hack bc its possible we encountered an apply error so the marker commit wasn't generated
     if (commits.size > 1) {
