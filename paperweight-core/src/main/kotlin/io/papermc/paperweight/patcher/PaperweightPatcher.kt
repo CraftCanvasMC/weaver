@@ -28,6 +28,7 @@ import io.papermc.paperweight.core.tasks.GeneratePatches
 import io.papermc.paperweight.core.tasks.GenerateSources
 import io.papermc.paperweight.core.tasks.PrepareForPatchGeneration
 import io.papermc.paperweight.core.tasks.RunNestedBuild
+import io.papermc.paperweight.core.tasks.patchroulette.PatchRouletteTasks
 import io.papermc.paperweight.patcher.extension.PaperweightPatcherExtension
 import io.papermc.paperweight.util.*
 import io.papermc.paperweight.util.constants.*
@@ -133,6 +134,16 @@ abstract class PaperweightPatcher : Plugin<Project> {
                     "(equivalent to running '$depend' and then ${tasks.get().single()}' in a second Gradle invocation)"
                 projectDir.set(layout.projectDirectory)
                 dependsOn(depend)
+            }
+            // TODO: maybe lock it behind a property like the server tasks?
+            upstream.directoryPatchSets.configureEach {
+                PatchRouletteTasks(
+                    this@afterEvaluate,
+                    name,
+                    upstream.ref.map { ref -> "$name-git-${ref.take(7)}" },
+                    rejectsDir,
+                    outputDir.get(),
+                )
             }
         }
         patcher.additionalUpstreams.forEach { upstream ->
