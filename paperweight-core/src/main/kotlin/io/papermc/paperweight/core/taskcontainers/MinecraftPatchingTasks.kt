@@ -258,6 +258,7 @@ class MinecraftPatchingTasks(
         val rebuildResourcePatches = tasks.register<RebuildFilePatches>(rebuildResourcePatchesName) {
             group()
             description = "Rebuilds $configName file patches to the Minecraft resources"
+            usesService(gitMutationLockService)
 
             input.set(outputResources)
             patches.set(resourcePatchDir)
