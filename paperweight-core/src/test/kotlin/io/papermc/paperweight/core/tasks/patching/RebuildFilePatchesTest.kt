@@ -59,7 +59,6 @@ class RebuildFilePatchesTest : TaskTest() {
         val atFileOut = tempDir.resolve("ats.at").toFile()
 
         task.input.set(source)
-        task.base.set(base)
         task.patches.set(patches)
         task.atFile.set(atFile)
         task.atFileOut.set(atFileOut)
