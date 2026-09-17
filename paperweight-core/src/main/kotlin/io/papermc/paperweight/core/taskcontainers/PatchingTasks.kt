@@ -41,6 +41,7 @@ import io.papermc.paperweight.util.set
 import java.nio.file.Path
 import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.file.RegularFileProperty
@@ -65,6 +66,7 @@ class PatchingTasks(
     private val gitFilePatches: Provider<Boolean>,
     private val filterPatches: Provider<Boolean>,
     private val outputDir: Path,
+    private val configurations: ConfigurationContainer = project.configurations,
     private val tasks: TaskContainer = project.tasks,
 ) {
     private val namePart: String = if (readOnly) "${forkName.capitalized()}${patchSetName.capitalized()}" else patchSetName.capitalized()
@@ -164,8 +166,8 @@ class PatchingTasks(
             identifier.set(namePart)
 
             atFile.set(mergeCollectedAts.flatMap { it.outputFile })
-            ats.jst.from(project.configurations.named(JST_CONFIG))
-            ats.jstClasspath.from(project.configurations.named(JST_CLASSPATH_CONFIG))
+            ats.jst.from(configurations.named(JST_CONFIG))
+            ats.jstClasspath.from(configurations.named(JST_CLASSPATH_CONFIG))
             validateAts.set(this@PatchingTasks.validateAts)
         }
 
@@ -208,8 +210,8 @@ class PatchingTasks(
             patches.set(filePatchDir)
             gitFilePatches.set(this@PatchingTasks.gitFilePatches)
 
-            ats.jstClasspath.from(project.configurations.named(JST_CLASSPATH_CONFIG))
-            ats.jst.from(project.configurations.named(JST_CONFIG))
+            ats.jstClasspath.from(configurations.named(JST_CLASSPATH_CONFIG))
+            ats.jst.from(configurations.named(JST_CONFIG))
             atFile.set(additionalAts.fileExists())
             atFileOut.set(additionalAts.fileExists())
             identifier = "$forkName $patchSetName"

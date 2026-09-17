@@ -24,19 +24,24 @@ package io.papermc.paperweight
 
 import io.papermc.paperweight.util.constants.JST_CLASSPATH_ATTRIBUTE
 import io.papermc.paperweight.util.constants.JST_CLASSPATH_CONFIG
+import javax.inject.Inject
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.plugins.JavaPlugin
 
 abstract class PaperweightDependencyBridge : Plugin<Project> {
+
+    @get:Inject
+    abstract val configurations: ConfigurationContainer
+
     override fun apply(target: Project) {
-        target.configurations.register(JST_CLASSPATH_CONFIG) {
-            isCanBeConsumed = true
+        configurations.consumable(JST_CLASSPATH_CONFIG) {
             attributes {
                 attribute(JST_CLASSPATH_ATTRIBUTE, true)
             }
-            extendsFrom(target.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME))
+            extendsFrom(configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME))
         }
-        target.rootProject.dependencies.add(JST_CLASSPATH_CONFIG, target)
     }
+    // TODO
 }

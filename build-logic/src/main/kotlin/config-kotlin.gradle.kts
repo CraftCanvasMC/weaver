@@ -61,7 +61,7 @@ dependencies {
 
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             useKotlinTest(embeddedKotlinVersion)
             dependencies {
                 implementation("org.junit.jupiter:junit-jupiter-engine:6.0.3")
@@ -96,6 +96,10 @@ tasks.jar {
     }
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = false // TODO: re-enable this
+}
+
 // The following is to work around https://github.com/diffplug/spotless/issues/1599
 // Ensure the ktlint step is before the license header step
 
@@ -116,20 +120,24 @@ extensions.configure<SpotlessExtension> {
     )
 
     val ktlintVer = "1.5.0"
+    val headerFile = isolated.rootProject.projectDirectory.file("license/copyright.txt")
 
     kotlin {
         ktlint(ktlintVer).editorConfigOverride(overrides)
+        licenseHeaderFile(headerFile) // until indra works
     }
     kotlinGradle {
         ktlint(ktlintVer).editorConfigOverride(overrides)
     }
 }
 
+/* Not compatible with IP
 plugins.apply("net.kyori.indra.licenser.spotless")
 extensions.configure<IndraSpotlessLicenserExtension> {
-    licenseHeaderFile(rootProject.file("license/copyright.txt"))
+    licenseHeaderFile(isolated.rootProject.projectDirectory.file("license/copyright.txt"))
     newLine(true)
 }
+*/
 
 tasks.register("format") {
     group = "formatting"

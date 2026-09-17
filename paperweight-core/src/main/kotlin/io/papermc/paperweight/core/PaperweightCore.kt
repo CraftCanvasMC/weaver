@@ -77,7 +77,7 @@ abstract class PaperweightCore : Plugin<Project> {
             delete(layout.cache)
         }
 
-        target.configurations.create(REMAPPER_CONFIG) {
+        target.configurations.register(REMAPPER_CONFIG) {
             defaultDependencies {
                 // Join list to avoid relocations breaking the string
                 val coordinates = "${listOf("net", "fabricmc").joinToString(".")}:tiny-remapper:${LibraryVersions.TINY_REMAPPER}:fat"
@@ -85,8 +85,8 @@ abstract class PaperweightCore : Plugin<Project> {
                 add(remapper)
             }
         }
-        target.configurations.create(PAPERCLIP_CONFIG)
-        val macheConfig = target.configurations.create(MACHE_CONFIG) {
+        target.configurations.register(PAPERCLIP_CONFIG)
+        val macheConfig = target.configurations.register(MACHE_CONFIG) {
             attributes.attribute(MacheOutput.ATTRIBUTE, objects.named(MacheOutput.ZIP))
         }
         target.configurations.register(MACHE_CODEBOOK_CONFIG) { isTransitive = false }
@@ -98,7 +98,7 @@ abstract class PaperweightCore : Plugin<Project> {
             extendsFrom(macheConfig)
         }
         target.configurations.register(MACHE_MINECRAFT_CONFIG) {
-            extendsFrom(macheMinecraftLibrariesConfig.get())
+            extendsFrom(macheMinecraftLibrariesConfig)
         }
         target.configurations.consumable(MAPPED_JAR_OUTGOING_CONFIG) // For source generator modules
         target.configurations.register(JST_CONFIG) {
@@ -113,14 +113,14 @@ abstract class PaperweightCore : Plugin<Project> {
                 attribute(JST_CLASSPATH_ATTRIBUTE, true)
             }
             extendsFrom(
-                target.configurations.getByName(MACHE_MINECRAFT_CONFIG),
-                target.configurations.getByName(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
+                target.configurations.named(MACHE_MINECRAFT_CONFIG),
+                target.configurations.named(JavaPlugin.COMPILE_CLASSPATH_CONFIGURATION_NAME)
             )
         }
 
         // impl extends minecraft
         target.configurations.named(JavaPlugin.IMPLEMENTATION_CONFIGURATION_NAME) {
-            extendsFrom(macheMinecraftLibrariesConfig.get())
+            extendsFrom(macheMinecraftLibrariesConfig)
         }
 
         if (target.providers.gradleProperty("paperweight.dev").orNull == "true") {
