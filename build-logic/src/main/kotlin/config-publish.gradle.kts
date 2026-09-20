@@ -61,7 +61,7 @@ private fun SetProperty<Configuration>.setFrom(configurations: List<NamedDomainO
 }
 
 val libSourcesJar = tasks.named<AbstractArchiveTask>("sourcesJar") {
-    from(zipTree(sourcesJarResolvable.map { it.singleFile })) {
+    from(zipTree(sourcesJarResolvable.flatMap { it.elements.map { it.single().asFile } })) {
         exclude("META-INF/**")
     }
 }
