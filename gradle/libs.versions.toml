@@ -1,8 +1,8 @@
 [versions]
-asm = "9.9.1"
+asm = "9.10.1"
 lorenz = "0.5.8"
 hypo = "1.2.4"
-serialize = "1.9.0"
+serialize = "2.4.0"
 jst = "1.0.68+paper.2-SNAPSHOT"
 tinyRemapper = "0.12.0"
 # For paper-checkstyle plugin
@@ -47,12 +47,11 @@ tinyRemapper = { module = "net.fabricmc:tiny-remapper", version.ref = "tinyRemap
 mockk = "io.mockk:mockk:1.14.9"
 
 # Gradle
-gradle-licenser = "net.kyori:indra-licenser-spotless:4.0.0"
-gradle-spotless = "com.diffplug.spotless:spotless-plugin-gradle:8.1.0"
-gradle-shadow = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:9.3.2"
-gradle-kotlin-dsl = "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.4.2"
-gradle-plugin-kotlin = { module = "org.jetbrains.kotlin.jvm:org.jetbrains.kotlin.jvm.gradle.plugin" }
-gradle-plugin-publish = "com.gradle.publish:plugin-publish-plugin:2.0.0"
+gradle-licenser = "net.kyori:indra-licenser-spotless:4.1.0"
+gradle-spotless = "com.diffplug.spotless:spotless-plugin-gradle:8.10.2"
+gradle-shadow = "com.gradleup.shadow:com.gradleup.shadow.gradle.plugin:9.6.1"
+gradle-kotlin-dsl = "org.gradle.kotlin.kotlin-dsl:org.gradle.kotlin.kotlin-dsl.gradle.plugin:6.7.3"
+gradle-plugin-publish = "com.gradle.publish:plugin-publish-plugin:2.1.0"
 
 # for renovate
 zCheckstyle = { module = "com.puppycrawl.tools:checkstyle", version.ref = "checkstyle" }

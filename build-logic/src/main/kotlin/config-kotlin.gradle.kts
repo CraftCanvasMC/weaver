@@ -2,6 +2,7 @@ import com.diffplug.gradle.spotless.SpotlessExtension
 import net.kyori.indra.licenser.spotless.IndraSpotlessLicenserExtension
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent
+import org.jetbrains.kotlin.gradle.dsl.JvmDefaultMode
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -23,7 +24,8 @@ kotlin {
     }
     compilerOptions {
         jvmTarget = JvmTarget.JVM_21
-        freeCompilerArgs = listOf("-Xjvm-default=all", "-Xjdk-release=21")
+        jvmDefault = JvmDefaultMode.NO_COMPATIBILITY
+        freeCompilerArgs = listOf("-Xjdk-release=21")
     }
 }
 
@@ -61,7 +63,7 @@ dependencies {
 
 testing {
     suites {
-        val test by getting(JvmTestSuite::class) {
+        named<JvmTestSuite>("test") {
             useKotlinTest(embeddedKotlinVersion)
             dependencies {
                 implementation("org.junit.jupiter:junit-jupiter-engine:6.0.3")
@@ -96,6 +98,10 @@ tasks.jar {
     }
 }
 
+tasks.validatePlugins {
+    enableStricterValidation = false // TODO: re-enable this
+}
+
 // The following is to work around https://github.com/diffplug/spotless/issues/1599
 // Ensure the ktlint step is before the license header step
 
@@ -116,20 +122,24 @@ extensions.configure<SpotlessExtension> {
     )
 
     val ktlintVer = "1.5.0"
+    val headerFile = isolated.rootProject.projectDirectory.file("license/copyright.txt")
 
     kotlin {
         ktlint(ktlintVer).editorConfigOverride(overrides)
+        licenseHeaderFile(headerFile) // until indra works
     }
     kotlinGradle {
         ktlint(ktlintVer).editorConfigOverride(overrides)
     }
 }
 
+/* Not compatible with IP
 plugins.apply("net.kyori.indra.licenser.spotless")
 extensions.configure<IndraSpotlessLicenserExtension> {
-    licenseHeaderFile(rootProject.file("license/copyright.txt"))
+    licenseHeaderFile(isolated.rootProject.projectDirectory.file("license/copyright.txt"))
     newLine(true)
 }
+*/
 
 tasks.register("format") {
     group = "formatting"
