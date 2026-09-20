@@ -46,13 +46,13 @@ configurations.consumable("sourcesJar") {
         attribute(Category.CATEGORY_ATTRIBUTE, named(Category.DOCUMENTATION))
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType.SOURCES))
     }
-    outgoing.artifact(tasks.named("sourcesJar"))
+    outgoing.artifact(tasks.sourcesJar)
 }
 
 val testClassesJar = tasks.register<Jar>("testClassesJar") {
     archiveClassifier.set("test-classes")
     from(sourceSets.test.map { it.output.classesDirs })
-    dependsOn(sourceSets.test.map { it.classesTaskName })
+    dependsOn(sourceSets.test.get().classesTaskName)
 }
 configurations.consumable("testClassesJar") {
     attributes {
