@@ -29,14 +29,17 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.UntrackedTask
 import org.gradle.api.tasks.options.Option
 
-@UntrackedTask(because = "Always fixup when requested")
+@UntrackedTask(because = "Always run when requested")
 abstract class CreateBasePatch : BaseTask() {
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.NONE)
     abstract val repo: DirectoryProperty
 
     @get:Input

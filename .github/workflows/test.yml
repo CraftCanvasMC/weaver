@@ -17,7 +17,13 @@ jobs:
           java-version: 21
           distribution: 'temurin'
       - name: Setup Gradle
+<<<<<<< HEAD
         uses: gradle/actions/setup-gradle@v5
+=======
+        uses: gradle/actions/setup-gradle@v6
+        with:
+          cache-disabled: true # namespace handles this
+>>>>>>> papermc/main
       - name: Execute Gradle build
         run: |
           git config --global user.email "no-reply@github.com"

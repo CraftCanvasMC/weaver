@@ -1,4 +1,5 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
+import org.gradle.plugin.compatibility.compatibility
 
 plugins {
     id("com.gradleup.shadow")
@@ -36,10 +37,16 @@ configurations.implementation {
 configurations.shadowRuntimeElements {
     compatibilityAttributes()
 }
+configurations.runtimeElements {
+    compatibilityAttributes()
+}
 
 fun ShadowJar.configureStandard() {
     configurations.setFrom(listOf(shadeResolvable))
     filesMatching("META-INF/**") {
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
+    }
+    filesMatching("META-INF/*.kotlin_module") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 
@@ -67,10 +74,18 @@ val libSourcesJar = tasks.named<AbstractArchiveTask>("sourcesJar") {
 gradlePlugin {
     website.set("https://github.com/CraftCanvasMC/weaver/")
     vcsUrl.set("https://github.com/CraftCanvasMC/weaver/")
+    plugins.configureEach {
+        compatibility {
+            features {
+                configurationCache = true
+                isolatedProjects = true
+            }
+        }
+    }
 }
 
 val shadowJar = tasks.named<ShadowJar>("shadowJar") {
-    archiveClassifier.set("")
+    archiveClassifier.set(null as String?)
     configureStandard()
 
     inputs.property("noRelocate", noRelocate)

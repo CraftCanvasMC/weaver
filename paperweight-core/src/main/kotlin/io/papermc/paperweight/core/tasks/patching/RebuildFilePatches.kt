@@ -55,16 +55,16 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
     abstract val verbose: Property<Boolean>
 
     @get:InputDirectory
+    @get:PathSensitive(PathSensitivity.RELATIVE)
     abstract val input: DirectoryProperty
 
     @get:Internal
-    abstract val baseDir: DirectoryProperty
+    abstract val base: DirectoryProperty
 
     @get:OutputDirectory
     abstract val patches: DirectoryProperty
 
-    @get:Optional
-    @get:InputFile
+    @get:Internal
     abstract val atFile: RegularFileProperty
 
     @get:Optional
@@ -89,14 +89,14 @@ abstract class RebuildFilePatches : JavaLauncherTask() {
         contextLines.convention(3)
         verbose.convention(false)
         gitFilePatches.convention(false)
-        baseDir.set(layout.cache.resolve(paperTaskOutput()))
+        base.set(layout.cache.resolve(paperTaskOutput()))
     }
 
     @TaskAction
     fun run() {
         val patchDir = patches.path.cleanDir()
         val inputDir = input.convertToPath()
-        val baseDir = baseDir.convertToPath()
+        val baseDir = base.convertToPath()
 
         val git = Git(inputDir)
 
