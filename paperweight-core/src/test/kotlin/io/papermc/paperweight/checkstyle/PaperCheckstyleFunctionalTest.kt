@@ -94,7 +94,7 @@ class PaperCheckstyleFunctionalTest {
     private fun buildScript() = """
         plugins {
             id 'java'
-            id 'io.papermc.paperweight.paper-checkstyle'
+            id 'io.canvasmc.weaver.paper-checkstyle'
         }
 
         repositories {
