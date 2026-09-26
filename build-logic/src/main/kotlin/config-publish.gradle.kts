@@ -43,7 +43,7 @@ configurations.runtimeElements {
 
 fun ShadowJar.configureStandard() {
     configurations.setFrom(listOf(shadeResolvable))
-    filesMatching("META-INF/**") {
+    filesMatching("META-INF/services/**") {
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
     filesMatching("META-INF/*.kotlin_module") {
